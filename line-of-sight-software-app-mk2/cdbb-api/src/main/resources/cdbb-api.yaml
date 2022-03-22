@@ -1,0 +1,927 @@
+openapi: 3.0.3
+info:
+    title: CDBB LoS API
+    description: CDBB Line Of Sight
+    license:
+        name: GPLv3
+        url: https://www.gnu.org/licenses/gpl-3.0.en.html
+    version: 1.0.0
+externalDocs:
+    description: Find out more about CDBB and Line of Sight
+    url: https://www.cdbb.cam.ac.uk/research/digital-built-environment/line-sight-asset-management-methodology-support-organisational
+servers:
+    - url: 'http://localhost:8080/api'
+paths:
+    /organisational-objectives:
+        post:
+            operationId: addOrganisationalObjective
+            summary: Adds a new organisational objective
+            description: Adds a new organisational objective when the id is unknown
+            responses:
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/organisational_objective_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The new organisational objective
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/organisational_objective'
+        get:
+            operationId: findAllOrganisationalObjectives
+            summary: Gets the full list of organisational objectives
+            description: Gets the full list of organisational objectives
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/organisational_objective_with_id'
+                            example:
+                                - id: 064fecac-d5e8-4ee5-8e96-d4bc63cc95ed
+                                  name: 'Objective #1'
+                                  oirs:
+                                      - 'OIR #1'
+                                      - 'OIR #2'
+                                  frs:
+                                      - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                                - id: fc2aae01-5543-4218-adda-99f459e61295
+                                  name: 'Objective #2'
+                                  oirs:
+                                      - 'OIR #3'
+                                      - 'OIR #4'
+                                  frs:
+                                      - '1cfda9b4-1466-4695-8ab2-c19848fa4542'
+                                      - '884deff4-9a42-4436-8ef2-561777a4f3fd'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /organisational-objectives/{id}:
+        put:
+            operationId: upsertOrganisationalObjective
+            summary: Add or update an organisational objective
+            description: Adds an organisational objective when the ID is known or updates an existing one
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the objective being manipulated
+            responses:
+                '200':
+                    description: Successful update operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/organisational_objective_with_id'
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/organisational_objective_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The properties of the organisational objective to add or update
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/organisational_objective'
+        get:
+            operationId: findOrganisationalObjectiveById
+            summary: Gets an organisational objective
+            description: Gets a single organisational objective with the given ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the objective being manipulated
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/organisational_objective_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        delete:
+            operationId: deleteOrganisationalObjective
+            summary: Deletes an organisational objective
+            description: Deletes a single organisational objective with the given ID.
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the objective being manipulated
+            responses:
+                '204':
+                    description: Successful operation
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /functional-requirements:
+        post:
+            operationId: addFunctionalRequirement
+            summary: Adds a new functional requirement
+            description: Adds a new functional requirement when the id is unknown
+            responses:
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_requirement_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The new functional requirement
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/functional_requirement'
+        get:
+            operationId: findAllFunctionalRequirements
+            summary: Gets the full list of functional requirements
+            description: Gets the full list of functional requirements
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/functional_requirement_with_id'
+                            example:
+                                - id: 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                                  name: 'FR #1'
+                                  fos:
+                                      - 0d72e486-74cf-45bc-b11e-cbb7a16b698f
+                                      - 91990373-dc68-4705-ace8-2a4d36d5bcce
+                                      - fbdd7a8a-57a6-46d1-a2d1-af57943fe5cc
+                                - id: 884deff4-9a42-4436-8ef2-561777a4f3fd
+                                  name: 'FR #2'
+                                  fos:
+                                      - 0d72e486-74cf-45bc-b11e-cbb7a16b698f
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /functional-requirements/{id}:
+        put:
+            operationId: upsertFunctionalRequirement
+            summary: Add or update a functional requirement
+            description: Adds a functional requirement if the ID is known or update an existing one
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the functional requirement being manipulated
+            responses:
+                '200':
+                    description: Successful update operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_requirement_with_id'
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_requirement_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The properties of the functional requirement to add or update
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/functional_requirement'
+        get:
+            operationId: findFunctionalRequirementById
+            summary: Gets a functional requirement
+            description: Gets a single functional requirement with the given ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the functional requirement being manipulated
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_requirement_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        delete:
+            operationId: deleteFunctionalRequirement
+            summary: Deletes a functional requirement
+            description: Deletes a single functional requirement with the given ID.
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the functional requirement being manipulated
+            responses:
+                '204':
+                    description: Successful operation
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /functional-objectives:
+        post:
+            operationId: addFunctionalObjective
+            summary: Adds a new functional objective
+            description: Adds a new functional objective when the id is unknown
+            responses:
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_objective_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The new functional objective
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/functional_objective'
+        get:
+            operationId: findAllFunctionalObjectives
+            summary: Gets the full list of functional objectives
+            description: Gets the full list of functional objectives
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/functional_objective_with_id'
+                            example:
+                                - id: 0d72e486-74cf-45bc-b11e-cbb7a16b698f
+                                  data_dictionary_entry:
+                                      id: 'EF_37_17_15'
+                                      text: 'Chimneys'
+                                  firs:
+                                      - 'FIR #1'
+                                      - 'FIR #2'
+                                  assets:
+                                      - 5799ee92-f25c-4173-aecd-dfa871719065
+                                      - 27217551-7641-4e1b-a297-11b49adb91b4
+                                - id: 91990373-dc68-4705-ace8-2a4d36d5bcce
+                                  data_dictionary_entry:
+                                      id: 'EF_37_17_15'
+                                      text: 'Chimneys'
+                                  firs:
+                                      - 'FIR #3'
+                                  assets: 5799ee92-f25c-4173-aecd-dfa871719065
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /functional-objectives/{id}:
+        put:
+            operationId: upsertFunctionalObjective
+            summary: Add or update a functional objective
+            description: Adds or updates a functional objective when the id is known
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the objective being manipulated
+            responses:
+                '200':
+                    description: Successful update operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_objective_with_id'
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_objective_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The properties of the functional objective to add or update
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/functional_objective'
+        get:
+            operationId: findFunctionalObjectiveById
+            summary: Gets a functional objective
+            description: Gets a single functional objective with the given ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the functional objective being manipulated
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_objective_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        delete:
+            operationId: deleteFunctionalObjective
+            summary: Deletes a functional objective
+            description: Deletes a single functional objective with the given ID.
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the objective being manipulated
+            responses:
+                '204':
+                    description: Successful operation
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /assets:
+        post:
+            operationId: addAsset
+            summary: Adds a new asset
+            description: Adds a new asset when the id is unknown
+            responses:
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asset_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The new asset
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asset'
+        get:
+            operationId: findAllAssets
+            summary: Gets the full list of assets
+            description: Gets the full list of assets
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/asset_with_id'
+                            example:
+                                - id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                  data_dictionary_entry:
+                                      id: 'Ss_15_30_15_65'
+                                      text: 'Preliminary concrete cleaning systems'
+                                  airs:
+                                      - 'AIR #1'
+                                      - 'AIR #2'
+                                      - 'AIR #3'
+                                - id: 0ee6c05d-c82c-494f-b13c-82f8d64178a1
+                                  data_dictionary_entry:
+                                      id: 'Ss_15_30_15_65'
+                                      text: 'Preliminary concrete cleaning systems'
+                                  airs:
+                                      - 'AIR #4'
+                                      - 'AIR #5'
+                                      - 'AIR #6'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /assets/{id}:
+        put:
+            operationId: upsertAsset
+            summary: Add or update an asset
+            description: Adds or updates an asset when the id is known
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the asset being manipulated
+            responses:
+                '200':
+                    description: Successful update operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asset_with_id'
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asset_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The properties of the asset to add or update
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/asset'
+        get:
+            operationId: findAssetById
+            summary: Gets an asset
+            description: Gets a single asset with the given ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the asset being manipulated
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asset_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        delete:
+            operationId: deleteAsset
+            summary: Deletes an asset
+            description: Deletes a single asset with the given ID.
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the asset being manipulated
+            responses:
+                '204':
+                    description: Successful operation
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /asset-data-dictionary:
+        get:
+            operationId: findAllAssetDataDictionaryEntries
+            summary: Get the assets data dictionary
+            description: Gets all of the data dictionary keys and values for assets
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/asset_data_dictionary_entry'
+                            example:
+                                - id: Ss_15_10_33_34
+                                  text: Ground gas collection and venting systems
+                                - id: Ss_25_16_94_95
+                                  text: Vehicle safety control systems
+                                - id: Ss_40_10_30_70
+                                  text: Regulatory signage systems
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /functional-objective-data-dictionary:
+        get:
+            operationId: findAllFunctionalObjectiveDataDictionaryEntries
+            summary: Get the functional objectives data dictionary
+            description: Gets all of the data dictionary keys and values for functional objectives
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/functional_objective_data_dictionary_entry'
+                            example:
+                                - id: EF_35_10_30
+                                  text: External stairs
+                                - id: EF_37_17_15
+                                  text: Chimneys
+                                - id: EF_70_80
+                                  text: Lighting
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+components:
+    schemas:
+        organisational_objective:
+            type: object
+            properties:
+                name:
+                    description: "The organisational objective"
+                    type: string
+                    example: 'Objective #1'
+                oirs:
+                    description: "The set of organisational information requirements associated with this organisational objective"
+                    type: array
+                    items:
+                        type: string
+                    example:
+                        - 'OIR #1'
+                        - 'OIR #2'
+                frs:
+                    description: "The IDs of the set of functional requirement that link to this organisational objective"
+                    type: array
+                    items:
+                        type: string
+                        format: uuid
+                    example:
+                        - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                        - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                        - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+            required:
+                - name
+                - oirs
+                - frs
+            example:
+                name: 'Objective #1'
+                oirs:
+                    - 'OIR #1'
+                    - 'OIR #2'
+                frs:
+                    - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                    - 884deff4-9a42-4436-8ef2-561777a4f3fd
+        organisational_objective_with_id:
+            allOf:
+                - $ref: '#/components/schemas/organisational_objective'
+            type: object
+            properties:
+                id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
+            required:
+                - id
+            example:
+                id: 064fecac-d5e8-4ee5-8e96-d4bc63cc95ed
+                name: 'Objective #1'
+                oirs:
+                    - 'OIR #1'
+                    - 'OIR #2'
+                frs:
+                    - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                    - 884deff4-9a42-4436-8ef2-561777a4f3fd
+        functional_requirement:
+            type: object
+            properties:
+                name:
+                    description: "The functional requirement"
+                    type: string
+                    example: 'FR #1'
+                fos:
+                    description: "The IDs of the set of functional objectives linked to this functional requirement"
+                    type: array
+                    items:
+                        type: string
+                        format: uuid
+                    example:
+                        - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                        - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                        - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+            required:
+                - name
+                - fos
+            example:
+                name: 'FR #1'
+                fos:
+                    - 0d72e486-74cf-45bc-b11e-cbb7a16b698f
+                    - 91990373-dc68-4705-ace8-2a4d36d5bcce
+                    - fbdd7a8a-57a6-46d1-a2d1-af57943fe5cc
+        functional_requirement_with_id:
+            allOf:
+                - $ref: '#/components/schemas/functional_requirement'
+            type: object
+            properties:
+                id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
+            required:
+                - id
+            example:
+                id: 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                name: 'FR #1'
+                fos:
+                    - 0d72e486-74cf-45bc-b11e-cbb7a16b698f
+                    - 91990373-dc68-4705-ace8-2a4d36d5bcce
+                    - fbdd7a8a-57a6-46d1-a2d1-af57943fe5cc
+        functional_objective:
+            type: object
+            properties:
+                data_dictionary_entry:
+                    $ref: '#/components/schemas/functional_objective_data_dictionary_entry'
+                firs:
+                    description: "The set of functional information requirements associated with this functional objective"
+                    type: array
+                    items:
+                        type: string
+                    example:
+                        - 'FIR #1'
+                        - 'FIR #2'
+                assets:
+                    description: "The IDs of the set of assets linked to this functional objective"
+                    type: array
+                    items:
+                        type: string
+                        format: uuid
+                    example:
+                        - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                        - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                        - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+            required:
+                - data_dictionary_entry
+                - firs
+                - assets
+            example:
+                data_dictionary_entry:
+                    id: 'EF_37_17_15'
+                    text: 'Chimneys'
+                firs:
+                    - 'FIR #1'
+                    - 'FIR #2'
+                assets:
+                    - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                    - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                    - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+        functional_objective_with_id:
+            allOf:
+                - $ref: '#/components/schemas/functional_objective'
+            type: object
+            properties:
+                id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
+            required:
+                - id
+            example:
+                id: 0d72e486-74cf-45bc-b11e-cbb7a16b698f
+                data_dictionary_entry:
+                    id: 'EF_37_17_15'
+                    text: 'Chimneys'
+                firs:
+                    - 'FIR #1'
+                    - 'FIR #2'
+                assets:
+                    - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                    - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                    - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+        asset:
+            type: object
+            properties:
+                data_dictionary_entry:
+                    $ref: '#/components/schemas/asset_data_dictionary_entry'
+                airs:
+                    description: "The set of asset information requirements associated with this asset"
+                    type: array
+                    items:
+                        type: string
+                    example:
+                        - 'AIR #1'
+                        - 'AIR #2'
+            required:
+                - data_dictionary_entry
+                - airs
+            example:
+                data_dictionary_entry:
+                    id: 'Ss_15_30_15_65'
+                    text: 'Preliminary concrete cleaning systems'
+                airs:
+                    - 'AIR #1'
+                    - 'AIR #2'
+        asset_with_id:
+            allOf:
+                - $ref: '#/components/schemas/asset'
+            type: object
+            properties:
+                id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
+            required:
+                - id
+            example:
+                id: 5799ee92-f25c-4173-aecd-dfa871719065
+                data_dictionary_entry:
+                    id: 'Ss_15_30_15_65'
+                    text: 'Preliminary concrete cleaning systems'
+                airs:
+                    - 'AIR #1'
+                    - 'AIR #2'
+        asset_data_dictionary_entry:
+            type: object
+            properties:
+                id:
+                    description: The ID of this entry
+                    type: string
+                text:
+                    description: The text of this entry
+                    type: string
+            required:
+                - id
+                - text
+            example:
+                id: Ss_15_30_15_65
+                text: Preliminary concrete cleaning systems
+        functional_objective_data_dictionary_entry:
+            type: object
+            properties:
+                id:
+                    description: The ID of this entry
+                    type: string
+                text:
+                    description: The text of this entry
+                    type: string
+            required:
+                - id
+                - text
+            example:
+                id: EF_37_17_15
+                text: Chimneys
+    responses:
+        BadRequest:
+            description: Bad request - The service was unable to understand the request or information required in the request was missing.
+        Unauthorised:
+            description: Unauthorised - Authentication has failed or not been provided.
+        Forbidden:
+            description: Forbidden - Authentication has been provided, but the requested operation is not allowed.
+        NotFound:
+            description: The resource was not found.

@@ -1,0 +1,14 @@
+logging:
+    level:
+        org:
+            hibernate:
+                SQL: debug
+
+spring:
+    jpa:
+        show-sql: true
+    h2:
+        console:
+            enabled: true
+    liquibase:
+        change-log: 'classpath:database/liquibase-changelog.yaml'

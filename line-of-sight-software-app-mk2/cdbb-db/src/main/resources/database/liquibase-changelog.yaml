@@ -1,0 +1,409 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1646768317237-1
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createSequence:
+            incrementBy: 1
+            sequenceName: hibernate_sequence
+            startValue: 1
+  - changeSet:
+      id: 1646768317237-2
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: asset_id
+                  type: uuid
+              - column:
+                  name: airs
+                  type: VARCHAR(255)
+            tableName: airs
+  - changeSet:
+      id: 1646768317237-3
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_asset
+                  name: id
+                  type: uuid
+              - column:
+                  constraints:
+                    nullable: false
+                  name: data_dictionary_entry_id
+                  type: VARCHAR(255)
+            tableName: asset
+  - changeSet:
+      id: 1646768317237-4
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_asset_dictionary
+                  name: id
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: text
+                  type: VARCHAR(255)
+            tableName: asset_dictionary
+  - changeSet:
+      id: 1646768317237-5
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: fo_id
+                  type: uuid
+              - column:
+                  name: firs
+                  type: VARCHAR(255)
+            tableName: firs
+  - changeSet:
+      id: 1646768317237-6
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_fo_assets
+                  name: asset_id
+                  type: uuid
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_fo_assets
+                  name: fo_id
+                  type: uuid
+            tableName: fo_assets
+  - changeSet:
+      id: 1646768317237-7
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_fr_fo
+                  name: fo_id
+                  type: uuid
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_fr_fo
+                  name: fr_id
+                  type: uuid
+            tableName: fr_fo
+  - changeSet:
+      id: 1646768317237-8
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_functionalobjective
+                  name: id
+                  type: uuid
+              - column:
+                  constraints:
+                    nullable: false
+                  name: data_dictionary_entry_id
+                  type: VARCHAR(255)
+            tableName: functional_objective
+  - changeSet:
+      id: 1646768317237-9
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_functional_objective_dictionary
+                  name: id
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: text
+                  type: VARCHAR(255)
+            tableName: functional_objective_dictionary
+  - changeSet:
+      id: 1646768317237-10
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_functionalrequirement
+                  name: id
+                  type: uuid
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(255)
+            tableName: functional_requirement
+  - changeSet:
+      id: 1646768317237-11
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                  name: oo_id
+                  type: uuid
+              - column:
+                  name: oirs
+                  type: VARCHAR(255)
+            tableName: oirs
+  - changeSet:
+      id: 1646768317237-12
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_oo_frs
+                  name: fr_id
+                  type: uuid
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_oo_frs
+                  name: oo_id
+                  type: uuid
+            tableName: oo_frs
+  - changeSet:
+      id: 1646768317237-13
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_organisationalobjective
+                  name: id
+                  type: uuid
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(255)
+            tableName: organisational_objective
+  - changeSet:
+      id: 1646768317237-14
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: data_dictionary_entry_id
+            baseTableName: asset
+            constraintName: FK_ASSET_ON_DATADICTIONARYENTRY
+            referencedColumnNames: id
+            referencedTableName: asset_dictionary
+  - changeSet:
+      id: 1646768317237-15
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: data_dictionary_entry_id
+            baseTableName: functional_objective
+            constraintName: FK_FUNCTIONALOBJECTIVE_ON_DATADICTIONARYENTRY
+            referencedColumnNames: id
+            referencedTableName: functional_objective_dictionary
+  - changeSet:
+      id: 1646768317237-16
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: asset_id
+            baseTableName: airs
+            constraintName: fk_airs_on_asset
+            referencedColumnNames: id
+            referencedTableName: asset
+  - changeSet:
+      id: 1646768317237-17
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fo_id
+            baseTableName: firs
+            constraintName: fk_firs_on_functional_objective
+            referencedColumnNames: id
+            referencedTableName: functional_objective
+  - changeSet:
+      id: 1646768317237-18
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: asset_id
+            baseTableName: fo_assets
+            constraintName: fk_fo_assets_on_asset
+            referencedColumnNames: id
+            referencedTableName: asset
+  - changeSet:
+      id: 1646768317237-19
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fo_id
+            baseTableName: fo_assets
+            constraintName: fk_fo_assets_on_functional_objective
+            referencedColumnNames: id
+            referencedTableName: functional_objective
+  - changeSet:
+      id: 1646768317237-20
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fo_id
+            baseTableName: fr_fo
+            constraintName: fk_fr_fo_on_functional_objective
+            referencedColumnNames: id
+            referencedTableName: functional_objective
+  - changeSet:
+      id: 1646768317237-21
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fr_id
+            baseTableName: fr_fo
+            constraintName: fk_fr_fo_on_functional_requirement
+            referencedColumnNames: id
+            referencedTableName: functional_requirement
+  - changeSet:
+      id: 1646768317237-22
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: oo_id
+            baseTableName: oirs
+            constraintName: fk_oirs_on_organisational_objective
+            referencedColumnNames: id
+            referencedTableName: organisational_objective
+  - changeSet:
+      id: 1646768317237-23
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: fr_id
+            baseTableName: oo_frs
+            constraintName: fk_oo_frs_on_functional_requirement
+            referencedColumnNames: id
+            referencedTableName: functional_requirement
+  - changeSet:
+      id: 1646768317237-24
+      author: Jeremy Booth (generated)
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: oo_id
+            baseTableName: oo_frs
+            constraintName: fk_oo_frs_on_organisational_objective
+            referencedColumnNames: id
+            referencedTableName: organisational_objective
+  - changeSet:
+        id: 1646768317237-25
+        author: Jeremy Booth
+        objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+        changes:
+            - loadData:
+                  columns:
+                      - column:
+                          header: Code
+                          name: id
+                          type: STRING
+                      - column:
+                          header: Title
+                          name: text
+                          type: STRING
+                  commentLineStartsWith: //
+                  encoding: UTF-8
+                  file: Uniclass2015_EF_v1_10.csv
+                  quotechar: '"'
+                  relativeToChangelogFile: true
+                  tableName: functional_objective_dictionary
+                  usePreparedStatements: true
+  - changeSet:
+        id: 1646768317237-26
+        author: Jeremy Booth
+        objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+        changes:
+            - loadData:
+                  columns:
+                      - column:
+                            header: Code
+                            name: id
+                            type: STRING
+                      - column:
+                            header: Title
+                            name: text
+                            type: STRING
+                  commentLineStartsWith: //
+                  encoding: UTF-8
+                  file: Uniclass2015_Ss_v1_25.csv
+                  quotechar: '"'
+                  relativeToChangelogFile: true
+                  tableName: asset_dictionary
+                  usePreparedStatements: true

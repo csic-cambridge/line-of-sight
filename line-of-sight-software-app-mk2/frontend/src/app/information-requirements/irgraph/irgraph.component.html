@@ -1,0 +1,316 @@
+<div class="container-xxl" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+    <div class="buttons-div">
+        <button type="button" class="btn btn-outline-primary" (click)="open(organisationalObjectiveContent)">Organisational Objectives</button>
+        <button type="button" class="btn btn-outline-primary" (click)="open(functionalRequirementsContent)">Functional Requirements</button>
+        <button type="button" class="btn btn-outline-primary" (click)="open(functionalObjectiveContent)">Functional Objectives</button>
+        <button type="button" class="btn btn-outline-primary" (click)="open(assetContent)">Assets</button>
+        <button type="button" class="btn btn-outline-primary pull-right" (click)="logout()">Logout</button>
+        <button type="button" class="btn btn-outline-primary pull-right" (click)="reloadWindow()"><i class="fa fa-refresh fa-spin"></i>  Reload</button>
+    </div>
+    <hr />
+    <div class="row row-cols-4">
+        <div class="col">
+            <div class="d-flex flex-column justify-content-around h-100">
+                <div *ngFor="let objective of objectives" class="card text-center information-requirement w-50 mx-auto">
+                    <h5 class="card-header" id="{{objective.id}}"
+                        (mouseover)="mouseEnterObjective($event)" (mouseleave)="mouseLeaveObjective($event)"
+                        (dragstart)="ooLinkStart($event)" draggable="true">
+                        {{objective.name}}
+                    </h5>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li *ngFor="let oir of objective.oirs" class="list-group-item">{{oir}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="d-flex flex-column justify-content-around h-100">
+                <div *ngFor="let fr of frs" class="card text-center information-requirement w-50 mx-auto"
+                     (dragover)="allowLinkToFR($event)" (drop)="linkToFR($event)">
+                    <h5 class="card-header" (mouseover)="mouseEnterFR($event)" (mouseleave)="mouseLeaveFR($event)"
+                        (dragstart)="frLinkStart($event)" draggable="true"
+                        id="{{fr.id}}">{{fr.name}}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="d-flex flex-column justify-content-around h-100">
+                <div *ngFor="let fo of fos" class="card text-center information-requirement w-50 mx-auto"
+                     (dragover)="allowLinkToFO($event)" (drop)="linkToFO($event)">
+                    <h5 class="card-header" (mouseover)="mouseEnterFO($event)" (mouseleave)="mouseLeaveFO($event)"
+                        (dragstart)="foLinkStart($event)" draggable="true"
+                        id="{{fo.id}}">{{fo.data_dictionary_entry.text}}</h5>
+                    <div class="card-body" *ngIf="fo.firs.length>0">
+                        <ul class="list-group list-group-flush">
+                            <li *ngFor="let fir of fo.firs" class="list-group-item">{{fir}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="d-flex flex-column justify-content-around">
+                <div class="card text-center information-requirement w-50 mx-auto" *ngFor="let asset of assets"
+                     (dragover)="allowLinkToAsset($event)" (drop)="linkToAsset($event)">
+                    <h5 class="card-header" (mouseover)="mouseEnterAsset($event)" (mouseleave)="mouseLeaveAsset($event)"
+                        id="{{asset.id}}">{{asset.data_dictionary_entry.text}}</h5>
+                    <div class="card-body" *ngIf="asset.airs.length>0">
+                        <ul class="list-group list-group-flush">
+                            <li *ngFor="let air of asset.airs" class="list-group-item">{{air}}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div *ngFor="let entityLinks of entityLinks | keyvalue">
+        <app-entity-link *ngFor="let entityLink of entityLinks.value"
+                         leftLink="{{entityLinks.key}}" rightLink="{{entityLink}}"></app-entity-link>
+    </div>
+</div>
+
+<ng-template #organisationalObjectiveContent let-modal>
+    <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0">
+        <h3 class="modal-title">Organisational Objective</h3>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #oo = 'ngForm' (ngSubmit)="saveOrganisationalObjective(oo.value)">
+            <!-- OO -->
+            <div class="form-group">
+                <h5><label for="ooId" class="form-label text-right" style="margin: 10pt">Organisational Objective Name</label></h5>
+                <input id="ooId" name="id" class="form-control element-text" list="ooDatalistOptions"
+                       (change)="getOOsValue()" placeholder="Enter Organisational Objective Name ... " autocomplete="off" ngModel>
+                <datalist id="ooDatalistOptions">
+                    <option *ngFor="let oo of objectives" value="{{oo.name}}">
+                        {{oo.name}}
+                    </option>
+                </datalist>
+                <div *ngFor="let oo of objectives">
+                    <input *ngIf="oo.name === selectedOOName" [(ngModel)]="oo.id" id="ooMainId" name="ooMainId"
+                           value="{{oo.id}}" hidden>
+                    <input *ngIf="oo.name === selectedOOName && oo.oirs.length>0" [(ngModel)]="oo.oirs" id="ooExistingOIRs" name="ooExistingOIRs"
+                           value="{{oo.oirs}}" hidden>
+                    <input *ngIf="oo.name === selectedOOName && oo.frs.length>0" [(ngModel)]="oo.frs" id="ooExistingFRs" name="ooExistingFRs"
+                           value="{{oo.frs}}" hidden>
+                </div>
+            </div>
+            <!-- OIRs-->
+            <div class="form-group">
+                <h5><label for="oirText" style="margin: 10pt">Organisation Information Requirement <i>(OIR)</i></label></h5>
+                <div class="input-group">
+                    <input id="oirText" name="oirs" class="form-control element-text" placeholder="Enter OIR Text ... " ngModel>
+                </div>
+
+                <h6><label for="OIRContent" style="margin: 10pt"><b>Linked OIR</b>
+                    <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked OIRs)</label></label></h6>
+                <div id="ooOIRDiv" class="form=group" *ngFor="let oo of objectives">
+                    <div *ngFor="let oir of oo.oirs" id="OIRContent">
+                        <input class="custom-label-css" *ngIf="oo.name === selectedOOName && oo.oirs.length>0" (change)="onOOOIRChange(oir)"
+                               id="ooOIRSelect" type="checkbox" value="{{oir}}" checked />
+                        <label class="custom-label-css" *ngIf="oo.name === selectedOOName && oo.oirs.length>0" for="ooOIRSelect">{{oir}}</label>
+                    </div>
+                </div>
+            </div>
+            <!-- FRs -->
+            <div class="form-group">
+                <h5><label for="ooFRText" style="margin: 10pt">Functional Requirements <i>(FR)</i></label></h5>
+                <h6><label for="ooFRContent" style="margin: 10pt"><b>Linked FRs</b>
+                    <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FRs)</label></label></h6>
+                <div id="ooFRDiv" class="form=group" *ngFor="let oo of objectives">
+                    <div *ngFor="let fr of oo.frs" id="ooFRContent"> <!-- (change)="onOOFRChange(fr)" -->
+                       <input class="custom-checkbox-css" *ngIf="oo.name === selectedOOName && oo.frs.length>0" (change)="onOOFRChange(fr)"
+                               id="ooFRSelect" type="checkbox" value="{{fr}}" checked />
+                        <label class="custom-label-css" *ngIf="oo.name === selectedOOName && oo.frs.length>0" for="ooFRSelect">{{fr}}</label>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <div class="input-group">
+                        <select id="ooFRText" name="frs" class="form-control" [(ngModel)]="selectedFRText">
+                            <option *ngFor="let fr of frs" value="{{fr.id}}">{{fr.name}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" class="btn btn-info">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+<!--                <pre>{{ oo.value | json }}</pre>-->
+            </div>
+        </form>
+    </div>
+</ng-template>
+
+<ng-template #functionalRequirementsContent let-modal>
+    <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0">
+        <h3 class="modal-title">Functional Requirements</h3>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #fr = 'ngForm' (ngSubmit)="saveFunctionalRequirements(fr.value)">
+            <!-- FR -->
+            <div class="form-group">
+                <h5><label for="frName" class="form-label text-right" style="margin: 10pt">Functional Requirement Name</label></h5>
+                <input id="frName" name="name" class="form-control element-text" list="frDatalistOptions"
+                       (change)="getFRValue()" placeholder="Enter Functional Requirement Name ... " autocomplete="off" ngModel>
+                <datalist id="frDatalistOptions">
+                    <option *ngFor="let fr of frs" value="{{fr.name}}">
+                        {{fr.name}}
+                    </option>
+                </datalist>
+                <div *ngFor="let fr of frs">
+                    <input *ngIf="fr.name === selectedFRText" [(ngModel)]="fr.id" id="frMainId" name="frMainId"
+                           value="{{fr.id}}" hidden>
+                    <input *ngIf="fr.name === selectedFRText &&  fr.fos.length > 0" [(ngModel)]="fr.fos" id="frExistingFOs" name="frExistingFOs"
+                           value="{{fr.fos}}" hidden>
+                </div>
+            </div>
+            <!-- FOS -->
+            <div class="form-group">
+                <h5><label for="fosText" style="margin: 10pt">Functional Objectives <i>(FO)</i></label></h5>
+                <h6><label for="fosContent" style="margin: 10pt"><b>Linked Functional Objectives</b>
+                    <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FOs)</label></label></h6>
+                <div id="frFOSDiv" class="form=group" *ngFor="let fr of frs">
+                    <div *ngFor="let fos of fr.fos" id="fosContent"> <!-- (change)="onFRFOSChange(fos)" -->
+                        <input class="custom-checkbox-css" *ngIf="fr.name === selectedFRText &&  fr.fos.length >0" (change)="onFRFOSChange(fos)"
+                               id="frFOSSelect" type="checkbox" value="{{ fos }}" checked/>
+                        <label class="custom-label-css" *ngIf="fr.name === selectedFRText &&  fr.fos.length >0" for="frFOSSelect">{{fos}}</label>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <select id="fosText" name="fos" class="form-control" [(ngModel)]="selectedFO" (change)="getFOSValue()">
+                        <option *ngFor="let fo of fos" value="{{fo.id}}">{{fo.data_dictionary_entry.text}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" class="btn btn-info">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+<!--                <pre>{{ fr.value | json }}</pre>-->
+            </div>
+        </form>
+    </div>
+</ng-template>
+
+<ng-template #functionalObjectiveContent let-modal>
+    <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0">
+        <h3 class="modal-title">Functional Objective</h3>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form #fo = 'ngForm' (ngSubmit)="saveFunctionalObjective(fo.value)">
+            <!-- FO -->
+            <div class="form-group">
+                <h5><label for="fosId" class="form-label text-right" style="margin: 10pt">Functional Objective Name</label></h5>
+                <select id="fosId" name="id" class="form-control" [(ngModel)]="selectedFO" (change)="getFOSValue()">
+                    <option *ngFor="let fo of fos" value="{{fo.data_dictionary_entry.id}}-{{fo.data_dictionary_entry.text}}">{{fo.data_dictionary_entry.text}}</option>
+                </select>
+                <div *ngFor="let fo of fos">
+                    <input *ngIf="fo.data_dictionary_entry.id === selectedFOId" [(ngModel)]="fo.id" id="foMainId" name="foMainId"
+                           value="{{fo.id}}" hidden>
+                    <input *ngIf="fo.data_dictionary_entry.id === selectedFOId && fo.firs.length>0" [(ngModel)]="fo.firs" id="foExistingFIRs" name="foExistingFIRs"
+                           value="{{fo.firs}}" hidden>
+                    <input *ngIf="fo.data_dictionary_entry.id === selectedFOId && fo.assets.length>0" [(ngModel)]="fo.assets" id="foExistingAssets" name="foExistingAssets"
+                           value="{{fo.assets}}" hidden>
+                </div>
+            </div>
+            <!-- FIRs-->
+            <div class="form-group">
+                <h5><label for="firText" style="margin: 10pt">Functional Information Requirement <i>(FIR)</i></label></h5>
+                <div class="input-group">
+                    <input id="firText" name="firs" class="form-control element-text" placeholder="Enter New FIR ... " ngModel>
+                </div>
+
+                <h6><label for="FIRContentList" style="margin: 10pt"><b>Linked FIR</b>
+                    <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FIRs)</label></label></h6>
+                <div id="foFIRDiv" class="form=group" *ngFor="let fo of fos">
+                    <div *ngFor="let fir of fo.firs" id="FIRContentList">
+                        <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.firs.length>0" (change)="onFOFIRChange(fir)"
+                               id="foFirSelect" type="checkbox" value="{{ fir }}" checked/>
+                        <label class="custom-label-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.firs.length>0" for="foFirSelect">{{ fir }}</label>
+                    </div>
+                </div>
+            </div>
+            <!-- Assets -->
+            <div class="form-group">
+                <h5><label for="foAssetText" style="margin: 10pt">Assets</label></h5>
+                <h6><label for="foAssetContent" style="margin: 10pt"><b>Linked Assets</b>
+                    <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked assets)</label></label></h6>
+
+                <div id="foAssetDiv" class="form=group" *ngFor="let fo of fos">
+                    <div *ngFor="let asset of fo.assets" id="foAssetContent"> <!-- (change)="onFOAssetChange(asset)" -->
+                        <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0" (change)="onFOAssetChange(asset)"
+                               id="foAssetSelect" type="checkbox" value="{{ asset }}" checked />
+                        <label class="custom-label-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0" for="foAssetSelect">{{ asset }}</label>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <select id="foAssetText" name="assets" class="form-control" [(ngModel)]="selectedAsset" (change)="getAssetValue()">
+                        <option *ngFor="let asset of assets" value="{{asset.id}}">{{asset.data_dictionary_entry.text}}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" class="btn btn-info">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+<!--                <pre>{{ fo.value | json }}</pre>-->
+            </div>
+        </form>
+    </div>
+</ng-template>
+
+<ng-template #assetContent let-modal>
+    <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0">
+        <h3 class="modal-title">Asset</h3>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form id="assetForm" #asset = 'ngForm' (ngSubmit)="saveAsset(asset.value)">
+            <!-- ASSET -->
+            <div class="form-group">
+                <h5><label for="assetId" class="form-label text-right" style="margin: 10pt">Asset Name</label></h5>
+                <select id="assetId" name="id" class="form-control" [(ngModel)]="selectedAsset" (change)="getAssetValue()">
+                    <option *ngFor="let asset of assets" value="{{asset.data_dictionary_entry.id}}-{{asset.data_dictionary_entry.text}}">{{asset.data_dictionary_entry.text}}</option>
+                </select>
+                <div *ngFor="let asset of assets">
+                    <input *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId" [(ngModel)]="asset.id" id="assetMainId" name="assetMainId"
+                           value="{{asset.id}}" hidden>
+                    <input *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId && asset.airs.length>0" [(ngModel)]="asset.airs" id="assetExistingAIRs" name="assetExistingAIRs"
+                           value="{{asset.airs}}" hidden>
+                </div>
+            </div>
+            <!-- AIR -->
+            <div class="form-group">
+                <h5><label for="airText" style="margin: 10pt">Asset Information Requirement <i>(AIR)</i></label></h5>
+                <div class="input-group">
+                    <input id="airText" name="airs" class="form-control element-text" placeholder="Enter New AIR ... " autocomplete="off" ngModel>
+                </div>
+
+                <h6><label for="assetAirContentList" style="margin: 10pt"><b>Linked AIR</b>
+                    <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked AIRs)</label></label></h6>
+                <div id="assetAIRDiv" class="form=group" *ngFor="let asset of assets">
+                    <div class="form-check form-switch" *ngFor="let air of asset.airs" id="assetAirContentList">
+                        <input class="custom-checkbox-css" *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId &&  asset.airs.length>0" (change)="onAssetAIRChange(air)"
+                               id="assetAirSelect" type="checkbox" value="{{ air }}" checked />
+                        <label class="custom-label-css" *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId &&  asset.airs.length>0" for="assetAirSelect">{{ air }}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" class="btn btn-info">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+<!--                <pre>{{ asset.value | json }}</pre>-->
+            </div>
+        </form>
+    </div>
+</ng-template>
