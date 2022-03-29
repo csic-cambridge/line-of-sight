@@ -82,9 +82,9 @@
         <form #oo = 'ngForm' (ngSubmit)="saveOrganisationalObjective(oo.value)">
             <!-- OO -->
             <div class="form-group">
-                <h5><label for="ooId" class="form-label text-right" style="margin: 10pt">Organisational Objective Name</label></h5>
-                <input id="ooId" name="id" class="form-control element-text" list="ooDatalistOptions"
-                       (change)="getOOsValue()" placeholder="Enter Organisational Objective Name ... " autocomplete="off" ngModel>
+                <h5><label for="ooId" class="form-label text-right" style="margin: 10pt">Title</label></h5>
+                <input id="ooId" name="id" #ooId="ngModel" required [class.is-invalid]="ooId.invalid" class="form-control element-text is-invalid" list="ooDatalistOptions"
+                       (change)="getOOsValue()" placeholder="Organisational Objective Name / Title ... " autocomplete="off" ngModel>
                 <datalist id="ooDatalistOptions">
                     <option *ngFor="let oo of objectives" value="{{oo.name}}">
                         {{oo.name}}
@@ -103,7 +103,7 @@
             <div class="form-group">
                 <h5><label for="oirText" style="margin: 10pt">Organisation Information Requirement <i>(OIR)</i></label></h5>
                 <div class="input-group">
-                    <input id="oirText" name="oirs" class="form-control element-text" placeholder="Enter OIR Text ... " ngModel>
+                    <input id="oirText" name="oirs" class="form-control element-text" placeholder="OIR Text ... " ngModel>
                 </div>
 
                 <h6><label for="OIRContent" style="margin: 10pt"><b>Linked OIR</b>
@@ -141,8 +141,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button data-dismiss="modal" class="btn btn-info">Save</button>
-                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+                <button type="submit" data-dismiss="modal" class="btn btn-info" [disabled]="!oo.valid">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modal.dismiss()">Cancel</button>
 <!--                <pre>{{ oo.value | json }}</pre>-->
             </div>
         </form>
@@ -160,9 +160,9 @@
         <form #fr = 'ngForm' (ngSubmit)="saveFunctionalRequirements(fr.value)">
             <!-- FR -->
             <div class="form-group">
-                <h5><label for="frName" class="form-label text-right" style="margin: 10pt">Functional Requirement Name</label></h5>
-                <input id="frName" name="name" class="form-control element-text" list="frDatalistOptions"
-                       (change)="getFRValue()" placeholder="Enter Functional Requirement Name ... " autocomplete="off" ngModel>
+                <h5><label for="frName" class="form-label text-right" style="margin: 10pt">Title</label></h5>
+                <input id="frName" name="name" #frName="ngModel" required [class.is-invalid]="frName.invalid" class="form-control element-text is-invalid" list="frDatalistOptions"
+                       (change)="getFRValue()" placeholder="Functional Requirement Title ... " autocomplete="off" ngModel>
                 <datalist id="frDatalistOptions">
                     <option *ngFor="let fr of frs" value="{{fr.name}}">
                         {{fr.name}}
@@ -199,8 +199,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button data-dismiss="modal" class="btn btn-info">Save</button>
-                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+                <button type="submit" data-dismiss="modal" class="btn btn-info" [disabled]="!fr.valid">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modal.dismiss()">Cancel</button>
 <!--                <pre>{{ fr.value | json }}</pre>-->
             </div>
         </form>
@@ -218,8 +218,8 @@
         <form #fo = 'ngForm' (ngSubmit)="saveFunctionalObjective(fo.value)">
             <!-- FO -->
             <div class="form-group">
-                <h5><label for="fosId" class="form-label text-right" style="margin: 10pt">Functional Objective Name</label></h5>
-                <select id="fosId" name="id" class="form-control" [(ngModel)]="selectedFO" (change)="getFOSValue()">
+                <h5><label for="fosId" class="form-label text-right" style="margin: 10pt">Title</label></h5>
+                <select id="fosId" name="id" #fosId="ngModel" required [class.is-invalid]="fosId.invalid" class="form-control is-invalid" [(ngModel)]="selectedFO" (change)="getFOSValue()">
                     <option *ngFor="let fo of fos" value="{{fo.data_dictionary_entry.id}}-{{fo.data_dictionary_entry.text}}">{{fo.data_dictionary_entry.text}}</option>
                 </select>
                 <div *ngFor="let fo of fos">
@@ -235,7 +235,7 @@
             <div class="form-group">
                 <h5><label for="firText" style="margin: 10pt">Functional Information Requirement <i>(FIR)</i></label></h5>
                 <div class="input-group">
-                    <input id="firText" name="firs" class="form-control element-text" placeholder="Enter New FIR ... " ngModel>
+                    <input id="firText" name="firs" class="form-control element-text" placeholder="New FIR ... " ngModel>
                 </div>
 
                 <h6><label for="FIRContentList" style="margin: 10pt"><b>Linked FIR</b>
@@ -270,8 +270,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button data-dismiss="modal" class="btn btn-info">Save</button>
-                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+                <button type="submit" data-dismiss="modal" class="btn btn-info" [disabled]="!fo.valid">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modal.dismiss()">Cancel</button>
 <!--                <pre>{{ fo.value | json }}</pre>-->
             </div>
         </form>
@@ -289,8 +289,8 @@
         <form id="assetForm" #asset = 'ngForm' (ngSubmit)="saveAsset(asset.value)">
             <!-- ASSET -->
             <div class="form-group">
-                <h5><label for="assetId" class="form-label text-right" style="margin: 10pt">Asset Name</label></h5>
-                <select id="assetId" name="id" class="form-control" [(ngModel)]="selectedAsset" (change)="getAssetValue()">
+                <h5><label for="assetId" class="form-label text-right" style="margin: 10pt">Title</label></h5>
+                <select id="assetId" name="id" #assetId="ngModel" required [class.is-invalid]="assetId.invalid" class="form-control is-invalid" [(ngModel)]="selectedAsset" (change)="getAssetValue()">
                     <option *ngFor="let asset of assets" value="{{asset.data_dictionary_entry.id}}-{{asset.data_dictionary_entry.text}}">{{asset.data_dictionary_entry.text}}</option>
                 </select>
                 <div *ngFor="let asset of assets">
@@ -304,7 +304,7 @@
             <div class="form-group">
                 <h5><label for="airText" style="margin: 10pt">Asset Information Requirement <i>(AIR)</i></label></h5>
                 <div class="input-group">
-                    <input id="airText" name="airs" class="form-control element-text" placeholder="Enter New AIR ... " autocomplete="off" ngModel>
+                    <input id="airText" name="airs" class="form-control element-text" placeholder="New AIR ... " autocomplete="off" ngModel>
                 </div>
 
                 <h6><label for="assetAirContentList" style="margin: 10pt"><b>Linked AIR</b>
@@ -318,8 +318,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button data-dismiss="modal" class="btn btn-info">Save</button>
-                <button type="button" class="btn btn-danger" (click)="modalClose('Cancel')">Cancel</button>
+                <button type="submit" data-dismiss="modal" class="btn btn-info" [disabled]="!asset.valid">Save</button>
+                <button type="button" class="btn btn-danger" (click)="modal.dismiss()">Cancel</button>
 <!--                <pre>{{ asset.value | json }}</pre>-->
             </div>
         </form>
