@@ -123,9 +123,13 @@
                     <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FRs)</label></label></h6>
                 <div id="ooFRDiv" class="form=group" *ngFor="let oo of objectives">
                     <div *ngFor="let fr of oo.frs" id="ooFRContent"> <!-- (change)="onOOFRChange(fr)" -->
-                       <input class="custom-checkbox-css" *ngIf="oo.name === selectedOOName && oo.frs.length>0" (change)="onOOFRChange(fr)"
-                               id="ooFRSelect" type="checkbox" value="{{fr}}" checked />
-                        <label class="custom-label-css" *ngIf="oo.name === selectedOOName && oo.frs.length>0" for="ooFRSelect">{{fr}}</label>
+                        <div *ngFor="let funcreq of frs">
+                            <input class="custom-checkbox-css" *ngIf="oo.name === selectedOOName && oo.frs.length>0 && funcreq.id === fr"
+                                   (change)="onOOFRChange(fr)" id="ooFRSelect" type="checkbox" value="{{fr}}" checked />
+                            <label class="custom-label-css" *ngIf="oo.name === selectedOOName && oo.frs.length>0 && funcreq.id === fr"
+                                   for="ooFRSelect">{{funcreq.name}}</label>
+                        </div>
+
                     </div>
                 </div>
                 <div class="input-group">
@@ -177,10 +181,15 @@
                 <h6><label for="fosContent" style="margin: 10pt"><b>Linked Functional Objectives</b>
                     <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FOs)</label></label></h6>
                 <div id="frFOSDiv" class="form=group" *ngFor="let fr of frs">
-                    <div *ngFor="let fos of fr.fos" id="fosContent"> <!-- (change)="onFRFOSChange(fos)" -->
-                        <input class="custom-checkbox-css" *ngIf="fr.name === selectedFRText &&  fr.fos.length >0" (change)="onFRFOSChange(fos)"
-                               id="frFOSSelect" type="checkbox" value="{{ fos }}" checked/>
-                        <label class="custom-label-css" *ngIf="fr.name === selectedFRText &&  fr.fos.length >0" for="frFOSSelect">{{fos}}</label>
+                    <div *ngFor="let fo of fr.fos" id="fosContent"> <!-- (change)="onFRFOSChange(fos)" -->
+                        <div *ngFor="let funcOutput of fos">
+                            <input class="custom-checkbox-css" id="frFOSSelect" type="checkbox"
+                                   *ngIf="fr.name === selectedFRText &&  fr.fos.length > 0 && funcOutput.id === fo"
+                                   (change)="onFRFOSChange(fo)" value="{{ fo }}" checked/>
+                            <label class="custom-label-css" for="frFOSSelect"
+                                   *ngIf="fr.name === selectedFRText &&  fr.fos.length >0 && funcOutput.id === fo">{{funcOutput.data_dictionary_entry.text}}</label>
+                        </div>
+
                     </div>
                 </div>
                 <div class="input-group">
@@ -246,10 +255,12 @@
                     <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked assets)</label></label></h6>
 
                 <div id="foAssetDiv" class="form=group" *ngFor="let fo of fos">
-                    <div *ngFor="let asset of fo.assets" id="foAssetContent"> <!-- (change)="onFOAssetChange(asset)" -->
-                        <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0" (change)="onFOAssetChange(asset)"
-                               id="foAssetSelect" type="checkbox" value="{{ asset }}" checked />
-                        <label class="custom-label-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0" for="foAssetSelect">{{ asset }}</label>
+                    <div *ngFor="let foAsset of fo.assets" id="foAssetContent"> <!-- (change)="onFOAssetChange(asset)" -->
+                        <div *ngFor="let asset of assets">
+                            <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0 && asset.id === foAsset" (change)="onFOAssetChange(foAsset)"
+                                   id="foAssetSelect" type="checkbox" value="{{ foAsset }}" checked />
+                            <label class="custom-label-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0 && asset.id === foAsset" for="foAssetSelect">{{ asset.data_dictionary_entry.text }}</label>
+                        </div>
                     </div>
                 </div>
                 <div class="input-group">
