@@ -222,7 +222,7 @@ export class IRGraphComponent implements OnInit, AfterViewInit {
             2000);
     }
 
-    saveFunctionalObjective(value: any): void {
+    saveFunctionalOutput(value: any): void {
         console.log("FO value received: ", value);
 
         let checkExistingFOId = 'foMainId' in value;

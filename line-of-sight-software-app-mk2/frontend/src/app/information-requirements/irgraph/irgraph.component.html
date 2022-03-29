@@ -2,7 +2,7 @@
     <div class="buttons-div">
         <button type="button" class="btn btn-outline-primary" (click)="open(organisationalObjectiveContent)">Organisational Objectives</button>
         <button type="button" class="btn btn-outline-primary" (click)="open(functionalRequirementsContent)">Functional Requirements</button>
-        <button type="button" class="btn btn-outline-primary" (click)="open(functionalObjectiveContent)">Functional Objectives</button>
+        <button type="button" class="btn btn-outline-primary" (click)="open(functionalOutputContent)">Functional Outputs</button>
         <button type="button" class="btn btn-outline-primary" (click)="open(assetContent)">Assets</button>
         <button type="button" class="btn btn-outline-primary pull-right" (click)="logout()">Logout</button>
         <button type="button" class="btn btn-outline-primary pull-right" (click)="reloadWindow()"><i class="fa fa-refresh fa-spin"></i>  Reload</button>
@@ -177,8 +177,8 @@
             </div>
             <!-- FOS -->
             <div class="form-group">
-                <h5><label for="fosText" style="margin: 10pt">Functional Objectives <i>(FO)</i></label></h5>
-                <h6><label for="fosContent" style="margin: 10pt"><b>Linked Functional Objectives</b>
+                <h5><label for="fosText" style="margin: 10pt">Functional Output<i>(FO)</i></label></h5>
+                <h6><label for="fosContent" style="margin: 10pt"><b>Linked Functional Outputs</b>
                     <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FOs)</label></label></h6>
                 <div id="frFOSDiv" class="form=group" *ngFor="let fr of frs">
                     <div *ngFor="let fo of fr.fos" id="fosContent"> <!-- (change)="onFRFOSChange(fos)" -->
@@ -207,15 +207,15 @@
     </div>
 </ng-template>
 
-<ng-template #functionalObjectiveContent let-modal>
+<ng-template #functionalOutputContent let-modal>
     <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0">
-        <h3 class="modal-title">Functional Objective</h3>
+        <h3 class="modal-title">Functional Output</h3>
         <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <div class="modal-body">
-        <form #fo = 'ngForm' (ngSubmit)="saveFunctionalObjective(fo.value)">
+        <form #fo = 'ngForm' (ngSubmit)="saveFunctionalOutput(fo.value)">
             <!-- FO -->
             <div class="form-group">
                 <h5><label for="fosId" class="form-label text-right" style="margin: 10pt">Title</label></h5>
