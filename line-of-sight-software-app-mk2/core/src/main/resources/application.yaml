@@ -6,12 +6,20 @@ logging:
                 SQL: debug
 
 spring:
+    datasource:
+        url: jdbc:mariadb://127.0.1:3306/cdbb?allowMultiQueries=true
+        username: cdbb
+        password: cdbbpw
+        driver-class-name: org.mariadb.jdbc.Driver
     jpa:
+        hibernate:
+            ddl-auto:create
         show-sql: true
         properties.hibernate.enable_lazy_load_no_trans: true
-    h2:
-        console:
-            enabled: true
+    sql:
+        init:
+            mode=never:
+
     liquibase:
         change-log: 'classpath:database/liquibase-changelog.yaml'
     web.cors.allowed-origins:
