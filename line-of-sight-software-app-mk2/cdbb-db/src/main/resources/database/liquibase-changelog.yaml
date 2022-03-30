@@ -19,7 +19,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: asset_id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   name: airs
                   type: VARCHAR(255)
@@ -37,7 +37,7 @@ databaseChangeLog:
                     primaryKey: true
                     primaryKeyName: pk_asset
                   name: id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   constraints:
                     nullable: false
@@ -75,7 +75,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: fo_id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   name: firs
                   type: VARCHAR(255)
@@ -93,14 +93,14 @@ databaseChangeLog:
                     primaryKey: true
                     primaryKeyName: pk_fo_assets
                   name: asset_id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   constraints:
                     nullable: false
                     primaryKey: true
                     primaryKeyName: pk_fo_assets
                   name: fo_id
-                  type: uuid
+                  type: CHAR(36)
             tableName: fo_assets
   - changeSet:
       id: 1646768317237-7
@@ -115,14 +115,14 @@ databaseChangeLog:
                     primaryKey: true
                     primaryKeyName: pk_fr_fo
                   name: fo_id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   constraints:
                     nullable: false
                     primaryKey: true
                     primaryKeyName: pk_fr_fo
                   name: fr_id
-                  type: uuid
+                  type: CHAR(36)
             tableName: fr_fo
   - changeSet:
       id: 1646768317237-8
@@ -137,7 +137,7 @@ databaseChangeLog:
                     primaryKey: true
                     primaryKeyName: pk_functionalobjective
                   name: id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   constraints:
                     nullable: false
@@ -177,7 +177,7 @@ databaseChangeLog:
                     primaryKey: true
                     primaryKeyName: pk_functionalrequirement
                   name: id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   constraints:
                     nullable: false
@@ -195,7 +195,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                   name: oo_id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   name: oirs
                   type: VARCHAR(255)
@@ -213,14 +213,14 @@ databaseChangeLog:
                     primaryKey: true
                     primaryKeyName: pk_oo_frs
                   name: fr_id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   constraints:
                     nullable: false
                     primaryKey: true
                     primaryKeyName: pk_oo_frs
                   name: oo_id
-                  type: uuid
+                  type: CHAR(36)
             tableName: oo_frs
   - changeSet:
       id: 1646768317237-13
@@ -235,7 +235,7 @@ databaseChangeLog:
                     primaryKey: true
                     primaryKeyName: pk_organisationalobjective
                   name: id
-                  type: uuid
+                  type: CHAR(36)
               - column:
                   constraints:
                     nullable: false
@@ -384,7 +384,7 @@ databaseChangeLog:
                   quotechar: '"'
                   relativeToChangelogFile: true
                   tableName: functional_objective_dictionary
-                  usePreparedStatements: true
+                  usePreparedStatements: false #NOTE true causes insert of data to fail silently ref https://github.com/liquibase/liquibase/issues/1551
   - changeSet:
         id: 1646768317237-26
         author: Jeremy Booth
@@ -406,4 +406,10 @@ databaseChangeLog:
                   quotechar: '"'
                   relativeToChangelogFile: true
                   tableName: asset_dictionary
-                  usePreparedStatements: true
+                  usePreparedStatements: false #NOTE true causes insert of data to fail silently ref https://github.com/liquibase/liquibase/issues/1551
+  - changeSet:
+        id: 1646768317237-27
+        author: Philip Rushby
+  - include:
+        file: data.sql
+        relativeToChangelogFile: true

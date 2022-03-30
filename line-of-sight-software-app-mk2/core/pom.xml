@@ -77,10 +77,6 @@
             </activation>
 
             <dependencies>
-                <dependency>
-                    <groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>
-                </dependency>
                 <!-- Force frontend to be built before core so we can copy the dist folder in for dev builds -->
                 <dependency>
                     <groupId>com.costain.cdbb</groupId>
