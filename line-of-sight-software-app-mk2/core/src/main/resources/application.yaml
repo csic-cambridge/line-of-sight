@@ -7,7 +7,7 @@ logging:
 
 spring:
     datasource:
-        url: jdbc:mariadb://127.0.1:3306/cdbb?allowMultiQueries=true
+        url: jdbc:mariadb://127.0.0.1:3306/cdbb?allowMultiQueries=true
         username: cdbb
         password: cdbbpw
         driver-class-name: org.mariadb.jdbc.Driver
