@@ -55,6 +55,7 @@ build and share containerized applications and microservices. Docker Desktop inc
     ```
 
   * Start an interactive Bash session in the container
+    This is not required on Windows as the UI provides a CLI
     ``` bash
     docker exec -ti debian bash
     ```
@@ -70,6 +71,7 @@ build and share containerized applications and microservices. Docker Desktop inc
     create user cdbb@’%’ identified by 'cdbbpw’;
     GRANT ALL PRIVILEGES ON *.* TO 'cdbb'@’%’ IDENTIFIED BY 'cdbbpw';
     flush privileges;
+    create schema cdbb;
     ```
 
 Now Database is set up and ready to be used by the application. 
