@@ -68,10 +68,10 @@ build and share containerized applications and microservices. Docker Desktop inc
 
   * Create the user for the system
     ``` bash
-    create user cdbb@’%’ identified by 'cdbbpw’;
-    GRANT ALL PRIVILEGES ON *.* TO 'cdbb'@’%’ IDENTIFIED BY 'cdbbpw';
-    flush privileges;
-    create schema cdbb;
+    CREATE USER cdbb@'%' IDENTIFIED BY 'cdbbpw';
+    GRANT ALL PRIVILEGES ON *.* TO 'cdbb'@'%' IDENTIFIED BY 'cdbbpw';
+    FLUSH PRIVILEGES;
+    CREATE SCHEMA cdbb;
     ```
 
 Now Database is set up and ready to be used by the application. 
@@ -92,7 +92,7 @@ git clone https://github.com/csic-cambridge/line-of-sight.git
      .\mvnw clean install -Ddev-build
     
     # Run the application after successful build process
-    .\mvnw -P dev core spring-boot:run
+    .\mvnw -pl core -Pdev spring-boot:run
     ```
 
     Once application has successfully started, open the following URL in a browser,
