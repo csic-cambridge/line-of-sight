@@ -57,7 +57,7 @@ build and share containerized applications and microservices. Docker Desktop inc
   * Start an interactive Bash session in the container
     (This is not required on Windows as the UI provides a CLI)
     ``` bash
-    docker exec -ti debian bash
+    docker exec -ti mariadb bash
     ```
 
   * Start mysql
