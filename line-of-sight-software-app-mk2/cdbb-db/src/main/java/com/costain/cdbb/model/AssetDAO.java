@@ -1,8 +1,14 @@
 package com.costain.cdbb.model;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
+
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -13,14 +19,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "asset")
@@ -36,8 +37,11 @@ public class AssetDAO {
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
     @Type(type = "uuid-char")
-
     private UUID id;
+
+    @Column(name = "projectId", columnDefinition = "CHAR(36)")
+    @Type(type = "uuid-char")
+    private UUID projectId;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private AssetDataDictionaryEntryDAO dataDictionaryEntry;
@@ -50,6 +54,7 @@ public class AssetDAO {
     public String toString() {
         return "Asset {" +
             "id=" + id +
+            ", projectId = " + projectId +
             ", dataDictionaryEntry='" + dataDictionaryEntry + '\'' +
             ", airs=" + airs +
             '}';
@@ -60,7 +65,9 @@ public class AssetDAO {
         if (this == o) return true;
         if (!(o instanceof AssetDAO)) return false;
         AssetDAO assetDAO = (AssetDAO) o;
-        return Objects.equals(id, assetDAO.id) && Objects.equals(dataDictionaryEntry, assetDAO.dataDictionaryEntry) &&
+        return Objects.equals(id, assetDAO.id) &&
+            Objects.equals(projectId, assetDAO.getProjectId()) &&
+            Objects.equals(dataDictionaryEntry, assetDAO.dataDictionaryEntry) &&
             Objects.equals(airs, assetDAO.airs);
     }
 

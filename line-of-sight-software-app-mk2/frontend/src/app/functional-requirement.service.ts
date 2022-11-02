@@ -17,12 +17,22 @@ export class FunctionalRequirementService {
         this.serviceUrl = environment.apiBaseUrl + '/api/functional-requirements';
     }
 
-    getFunctionalRequirements(): Observable<Array<FunctionalRequirement>> {
-        return this.http.get<Array<FunctionalRequirement>>(this.serviceUrl);
+    getFunctionalRequirements(projectId: string): Observable<Array<FunctionalRequirement>> {
+        return this.http.get<Array<FunctionalRequirement>>(this.serviceUrl + '/' + projectId);
     }
 
-    save(functionalRequirement: FunctionalRequirement): Observable<FunctionalRequirement> {
-        return this.http.put<FunctionalRequirement>(this.serviceUrl + '/' + functionalRequirement.id, functionalRequirement);
+    save(functionalRequirement: FunctionalRequirement, projectId: string): Observable<FunctionalRequirement> {
+        console.log("save functional requirement - projectId = " + projectId + " id = " + functionalRequirement.id);
+        return functionalRequirement.id == null
+            ?  this.http.post<FunctionalRequirement>(this.serviceUrl + '/' + projectId, functionalRequirement)
+            :  this.http.put<FunctionalRequirement>(this.serviceUrl + '/' + projectId +
+                            '/' + functionalRequirement.id,  functionalRequirement);
+
+    }
+
+    delete(frId: string, projectId: string): Observable<any> {
+        console.log("Functional Requirement Id to delete: ", frId);
+        return this.http.delete(this.serviceUrl + '/' + projectId + '/' + frId);
     }
 
 }

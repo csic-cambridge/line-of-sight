@@ -41,10 +41,13 @@ public class GlobalRestExceptionHandler {
         private String item;
         @JsonProperty
         private String error;
+        @JsonProperty
+        private boolean forUi;
 
-        public ErrorMessage(String item, String error) {
+        public ErrorMessage(String item, String error, boolean forUi) {
             this.item = item;
             this.error = error;
+            this.forUi = forUi;
         }
 
         public String toString() {
@@ -52,6 +55,7 @@ public class GlobalRestExceptionHandler {
                 + "item="
                 + item
                 + ", error='" + error + '\''
+                + ", forUi=" + forUi
                 + '}';
         }
     }
@@ -70,7 +74,13 @@ public class GlobalRestExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected List<ErrorMessage> handleWebBindException(Errors e) {
         return e.getAllErrors().stream()
-            .map(error -> new ErrorMessage(error.getObjectName(), error.getDefaultMessage())).toList();
+            .map(error -> new ErrorMessage(error.getObjectName(), error.getDefaultMessage(), false)).toList();
+    }
+
+    @ExceptionHandler(CdbbValidationError.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    protected ErrorMessage handleNameError(Throwable ex) {
+        return new ErrorMessage("Error", ex.getMessage(), true);
     }
 
     @ExceptionHandler(JpaObjectRetrievalFailureException.class)
@@ -78,7 +88,7 @@ public class GlobalRestExceptionHandler {
     protected ErrorMessage handleJpaNotFound(Throwable ex) {
         String message = ex.getMessage();
         return new ErrorMessage("Error", "Unable to find object with id"
-            + message.substring(message.lastIndexOf(' ')));
+            + message.substring(message.lastIndexOf(' ')), false);
     }
 
 
@@ -86,6 +96,6 @@ public class GlobalRestExceptionHandler {
     @ExceptionHandler(value = {Throwable.class})
     protected ErrorMessage handleOthers(Throwable ex) {
         logger.info("Unhandled exception", ex);
-        return new ErrorMessage("Error", "An unexpected error has occurred, please try again later");
+        return new ErrorMessage("Error", "An unexpected error has occurred, please try again later", true);
     }
 }

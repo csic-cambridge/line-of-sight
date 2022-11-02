@@ -31,7 +31,9 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/angular2-draggable/css/resizable.min.css"
             ],
             "scripts": ["node_modules/leader-line/leader-line.min.js"]
           },

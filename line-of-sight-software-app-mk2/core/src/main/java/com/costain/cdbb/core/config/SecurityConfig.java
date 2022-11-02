@@ -19,6 +19,7 @@ package com.costain.cdbb.core.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -32,14 +33,15 @@ import org.springframework.web.server.session.CookieWebSessionIdResolver;
 import org.springframework.web.server.session.WebSessionIdResolver;
 import reactor.core.publisher.Mono;
 
+@Profile("!no_security")
 @Configuration
 @EnableGlobalMethodSecurity(
     prePostEnabled = true,
     securedEnabled = true,
     jsr250Enabled = true
 )
-public class SecurityConfig {
 
+public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
@@ -52,17 +54,22 @@ public class SecurityConfig {
                 .pathMatchers("/favicon.*").permitAll()
                 .pathMatchers("/login").permitAll()
                 .pathMatchers("/logout").permitAll()
+                .pathMatchers(CustomWebFilter.DASHBOARD_ROUTE).authenticated()
+                .pathMatchers(CustomWebFilter.OOGRAPH_ROUTE).authenticated()
+                .pathMatchers(CustomWebFilter.PROJECT_ROUTE).authenticated()
+                .pathMatchers(CustomWebFilter.SUPERUSER_ROUTE).authenticated()
                 .pathMatchers("/api/**").authenticated()
             )
-            .formLogin(spec -> {
-                spec.authenticationSuccessHandler((webFilterExchange, authentication) -> {
-                    webFilterExchange.getExchange().getResponse().setStatusCode(HttpStatus.OK);
-                    return Mono.empty();
-                });
-                spec.authenticationFailureHandler(
+
+           .formLogin(spec -> {
+               spec.authenticationSuccessHandler((webFilterExchange, authentication) -> {
+                   webFilterExchange.getExchange().getResponse().setStatusCode(HttpStatus.OK);
+                   return Mono.empty();
+               });
+               spec.authenticationFailureHandler(
                     new ServerAuthenticationEntryPointFailureHandler(
                         new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)));
-            })
+           })
             .exceptionHandling(spec -> {
                 spec.authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED));
             })
@@ -92,3 +99,4 @@ public class SecurityConfig {
         return resolver;
     }
 }
+

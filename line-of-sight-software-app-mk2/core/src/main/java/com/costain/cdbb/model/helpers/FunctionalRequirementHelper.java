@@ -17,7 +17,7 @@
 
 package com.costain.cdbb.model.helpers;
 
-import com.costain.cdbb.model.FunctionalObjectiveDAO;
+import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalRequirement;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
 import com.costain.cdbb.model.FunctionalRequirementWithId;
@@ -36,28 +36,34 @@ public class FunctionalRequirementHelper {
     public FunctionalRequirementWithId fromDao(FunctionalRequirementDAO dao) {
         FunctionalRequirementWithId dto = new FunctionalRequirementWithId();
         dto.id(dao.getId());
+        dto.projectId(dao.getProjectId());
         dto.name(dao.getName());
-        dto.fos(dao.getFos() != null ? dao.getFos().stream().map(fo -> fo.getId()).toList()
+        dto.fos(dao.getFos() != null ? dao.getFos().stream().map(FunctionalOutputDAO::getId).toList()
             : Collections.emptyList());
 
         return dto;
     }
 
-    public FunctionalRequirementDAO fromDto(FunctionalRequirement functionalRequirement) {
-        return fromDto(FunctionalRequirementDAO.builder(), functionalRequirement.getName(),
+    public FunctionalRequirementDAO fromDto(UUID projectId, FunctionalRequirement functionalRequirement) {
+        return fromDto(FunctionalRequirementDAO.builder(),
+            projectId,
+            functionalRequirement.getName(),
             functionalRequirement.getFos());
     }
 
-    public FunctionalRequirementDAO fromDto(UUID id, FunctionalRequirement functionalRequirement) {
-        return fromDto(FunctionalRequirementDAO.builder().id(id), functionalRequirement.getName(),
+    public FunctionalRequirementDAO fromDto(UUID projectId, UUID id, FunctionalRequirement functionalRequirement) {
+        return fromDto(FunctionalRequirementDAO.builder().id(id),
+            projectId,
+            functionalRequirement.getName(),
             functionalRequirement.getFos());
     }
 
     private FunctionalRequirementDAO fromDto(FunctionalRequirementDAO.FunctionalRequirementDAOBuilder builder,
-            String name, Collection<UUID> fos) {
+            UUID projectId, String name, Collection<UUID> fos) {
         return builder
+            .projectId(projectId)
             .name(name)
-            .fos(fos.stream().map(id -> FunctionalObjectiveDAO.builder().id(id).build()).collect(Collectors.toSet()))
+            .fos(fos.stream().map(id -> FunctionalOutputDAO.builder().id(id).build()).collect(Collectors.toSet()))
             .build();
     }
 }

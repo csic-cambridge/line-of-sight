@@ -1,6 +1,11 @@
 export interface OrganisationalObjective {
-    id: string;
+    id: string | null;
     name: string;
-    oirs: string[];
-    frs: string[];
+    oirs: Oir[];
+    is_deleted: boolean;
+}
+
+export interface Oir {
+    id: string;
+    oir: string;
 }

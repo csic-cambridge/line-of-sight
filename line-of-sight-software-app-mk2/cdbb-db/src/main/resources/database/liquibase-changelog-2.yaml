@@ -1,0 +1,919 @@
+databaseChangeLog:
+- changeSet:
+      id: 1654519480623-0
+      author: Philip Rushby
+      changes:
+          - sql:
+                dbms:  'mysql, mariadb'
+                stripComments:  true
+                splitStatements: true
+                sql: delete from oo_frs;
+                     delete from oirs;
+                     delete from organisational_objective;
+                     delete from fr_fo;
+                     delete from functional_requirement;
+                     delete from fo_assets;
+                     delete from firs;
+                     delete from functional_output;
+                     delete from airs;
+                     delete from asset;
+
+- changeSet:
+    id: 1654519480623-1
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: SMALLINT
+        - column:
+            name: permission
+            type: VARCHAR(25)
+        tableName: permission
+- changeSet:
+    id: 1654519480623-2
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            name: name
+            type: VARCHAR(100)
+        - column:
+            name: fo_dd_id
+            type: CHAR(36)
+        - column:
+            name: asset_dd_id
+            type: CHAR(36)
+        tableName: project
+- changeSet:
+    id: 1654519480623-3
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: project_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: oo_id
+            type: CHAR(36)
+        - column:
+            defaultValueComputed: 'NULL'
+            name: accepted_last_modified_timestamp
+            type: timestamp
+        tableName: project_organisational_objective
+- changeSet:
+    id: 1654519480623-4
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            name: name
+            type: VARCHAR(128)
+        tableName: rename_as_asset_dictionary
+- changeSet:
+    id: 1654519480623-5
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: text
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: asset_dictionary_id
+            type: CHAR(36)
+        tableName: rename_as_asset_dictionary_entry
+- changeSet:
+    id: 1654519480623-6
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            name: name
+            type: VARCHAR(128)
+        tableName: rename_as_functional_output_dictionary
+- changeSet:
+    id: 1654519480623-7
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+            name: text
+            type: VARCHAR(255)
+        - column:
+            name: fo_dictionary_id
+            type: CHAR(36)
+        tableName: rename_as_functional_output_dictionary_entry
+- changeSet:
+    id: 1654519480623-8
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: INT
+        - column:
+            name: email_address
+            type: VARCHAR(100)
+        - column:
+            defaultValueBoolean: false
+            name: is_super_user
+            type: BIT
+        tableName: user
+- changeSet:
+    id: 1654519480623-9
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: user_id
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: permission_id
+            type: SMALLINT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: project_id
+            type: CHAR(36)
+        tableName: user_permission
+- changeSet:
+    id: 1654519480623-10
+    author: philliprushby (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            defaultValueComputed: 'NULL'
+            name: last_modified_timestamp
+            type: TIMESTAMP
+        tableName: organisational_objective
+- changeSet:
+    id: 1654519480623-11
+    author: philliprushby (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: project_id
+            type: CHAR(36 BYTE)
+        tableName: functional_requirement
+- changeSet:
+    id: 1654519480623-12
+    author: philliprushby (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            defaultValueBoolean: false
+            name: is_deleted
+            type: BIT
+        tableName: organisational_objective
+- changeSet:
+    id: 1654519480623-13
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: asset_dictionary_id
+        indexName: FK_ASSETDICTIONARYENTRY_ON_ASSET_DICTIONARY_idx
+        tableName: rename_as_asset_dictionary_entry
+- changeSet:
+    id: 1654519480623-14
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: fo_dictionary_id
+        indexName: FK_FUNCTIONALOUTPUTDICTIONARY_ON_FUNCTIONAL_OUTPUT_DICTIONA_idx
+        tableName: rename_as_functional_output_dictionary_entry
+- changeSet:
+    id: 1654519480623-15
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: oo_id
+        indexName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_ORGANISATIONAL_OBJECTI_idx
+        tableName: project_organisational_objective
+- changeSet:
+    id: 1654519480623-16
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: asset_dd_id
+        indexName: FK_PROJECT_ON_ASSETDATADICTIONARY_idx
+        tableName: project
+- changeSet:
+    id: 1654519480623-17
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: fo_dd_id
+        indexName: FK_PROJECT_ON_FUNCTIONALOUTPUTDICTIONARY_idx
+        tableName: project
+- changeSet:
+    id: 1654519480623-18
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: permission_id
+        indexName: FK_USERPERMISSION_ON_PERMISSION_idx
+        tableName: user_permission
+- changeSet:
+    id: 1654519480623-19
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: project_id
+        indexName: FK_USERPERMISSION_ON_PROJECT_idx
+        tableName: user_permission
+- changeSet:
+    id: 1654519480623-20
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: project_id
+        indexName: FUNCTIONAL_REQUIREMENT_ON_PROJECT_idx
+        tableName: functional_requirement
+- changeSet:
+    id: 1654519480623-21
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: asset_dictionary_id
+        baseTableName: rename_as_asset_dictionary_entry
+        constraintName: FK_ASSETDICTIONARYENTRY_ON_ASSETDICTIONARY
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: rename_as_asset_dictionary
+        validate: true
+#- changeSet:
+#    id: 1654519480623-22
+#    author: philliprushby (generated)
+#    changes:
+#    - addForeignKeyConstraint:
+#        baseColumnNames: data_dictionary_entry_id
+#        baseTableName: asset
+#        constraintName: FK_ASSET_ON_DATADICTIONARYENTRY
+#        deferrable: false
+#        initiallyDeferred: false
+#        onDelete: RESTRICT
+#        onUpdate: RESTRICT
+#        referencedColumnNames: id
+#        referencedTableName: rename_as_asset_dictionary_entry
+#        validate: true
+- changeSet:
+    id: 1654519480623-23
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: fo_dictionary_id
+        baseTableName: rename_as_functional_output_dictionary_entry
+        constraintName: FK_FODICTIONARYENTRY_ON_FODICTIONARY
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: rename_as_functional_output_dictionary
+        validate: true
+#- changeSet:
+#    id: 1654519480623-24
+#    author: philliprushby (generated)
+#    changes:
+#    - addForeignKeyConstraint:
+#        baseColumnNames: data_dictionary_entry_id
+#        baseTableName: functional_output
+#        constraintName: FK_FUNCTIONALOUTPUT_ON_DATADICTIONARYENTRY
+#        deferrable: false
+#        initiallyDeferred: false
+#        onDelete: RESTRICT
+#        onUpdate: RESTRICT
+#        referencedColumnNames: id
+#        referencedTableName: rename_as_functional_output_dictionary_entry
+#        validate: true
+- changeSet:
+    id: 1654519480623-25
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: oo_id
+        baseTableName: project_organisational_objective
+        constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_ORGANISATIONAL_OBJECTIVE
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: organisational_objective
+        validate: true
+- changeSet:
+    id: 1654519480623-26
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: project_id
+        baseTableName: project_organisational_objective
+        constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_PROJECT
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: project
+        validate: true
+- changeSet:
+    id: 1654519480623-27
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: asset_dd_id
+        baseTableName: project
+        constraintName: FK_PROJECT_ON_ASSETDATADICTIONARY
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: rename_as_asset_dictionary
+        validate: true
+- changeSet:
+    id: 1654519480623-28
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: fo_dd_id
+        baseTableName: project
+        constraintName: FK_PROJECT_ON_FUNCTIONALOUTPUTDICTIONARY
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: rename_as_functional_output_dictionary
+        validate: true
+- changeSet:
+    id: 1654519480623-29
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: permission_id
+        baseTableName: user_permission
+        constraintName: FK_USERPERMISSION_ON_PERMISSION
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: permission
+        validate: true
+- changeSet:
+    id: 1654519480623-30
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: project_id
+        baseTableName: user_permission
+        constraintName: FK_USERPERMISSION_ON_PROJECT
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: project
+        validate: true
+- changeSet:
+    id: 1654519480623-31
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: user_id
+        baseTableName: user_permission
+        constraintName: FK_USERPERMISSION_ON_USER
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: user
+        validate: true
+- changeSet:
+    id: 1654519480623-32
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: project_id
+        baseTableName: functional_requirement
+        constraintName: FUNCTIONAL_REQUIREMENT_ON_PROJECT
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: NO ACTION
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: project
+        validate: true
+- changeSet:
+    id: 1654519480623-33
+    author: philliprushby (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: asset
+        constraintName: FK_ASSET_ON_DATADICTIONARYENTRY
+- changeSet:
+    id: 1654519480623-34
+    author: philliprushby (generated)
+    changes:
+    - dropForeignKeyConstraint:
+        baseTableName: functional_output
+        constraintName: FK_FUNCTIONALOUTPUT_ON_DATADICTIONARYENTRY
+- changeSet:
+    id: 1654519480623-35
+    author: philliprushby (generated)
+    changes:
+    - dropTable:
+        tableName: asset_dictionary
+- changeSet:
+    id: 1654519480623-36
+    author: philliprushby (generated)
+    changes:
+    - dropTable:
+        tableName: functional_output_dictionary
+
+- changeSet:
+      id: 1654519480623-37
+      author: philliprushby (generated)
+      changes:
+          -   renameTable:
+                  newTableName: asset_dictionary
+                  oldTableName: rename_as_asset_dictionary
+- changeSet:
+      id: 1654519480623-38
+      author: philliprushby (generated)
+      changes:
+          -   renameTable:
+                  newTableName: asset_dictionary_entry
+                  oldTableName: rename_as_asset_dictionary_entry
+- changeSet:
+      id: 1654519480623-39
+      author: philliprushby (generated)
+      changes:
+          -   renameTable:
+                  newTableName: functional_output_dictionary
+                  oldTableName: rename_as_functional_output_dictionary
+- changeSet:
+      id: 1654519480623-40
+      author: philliprushby (generated)
+      changes:
+          -   renameTable:
+                  newTableName: functional_output_dictionary_entry
+                  oldTableName: rename_as_functional_output_dictionary_entry
+- changeSet:
+      id: 1654519480623-41
+      author: Philip Rushby
+      changes:
+        - sql:
+            dbms: 'mysql, mariadb'
+            splitStatements: false
+            stripComments: true
+            sql:
+                insert into asset (id, data_dictionary_entry_id)
+                values
+                    ('5799ee92-f25c-4173-aecd-dfa871719065', 'Ss_15_10_33_34'),
+                    ('0ee6c05d-c82c-494f-b13c-82f8d64178a1', 'Ss_15_10_78'),
+                    ('6dcb0cd6-9f63-407c-8d4c-c6d29a5e4a75', 'Ss_25_13_50_54'),
+                    ('b2044e60-b5a4-41dc-9a5d-f7577c91bdc0', 'Ss_25_14_67_12'),
+                    ('f6148b21-5a2c-427a-ac52-aee3a4181c8f', 'Ss_25_16_94_95'),
+                    ('27217551-7641-4e1b-a297-11b49adb91b4', 'Ss_25_20_90_15'),
+                    ('16b4a26c-dd38-4674-a197-049d7385fa82', 'Ss_25_38_20_30'),
+                    ('4a7272c6-70d1-491e-94c0-6f4bdae29eb5', 'Ss_30_25_10_10'),
+                    ('5417ce9a-a329-42a1-90b2-a1badfd13fcb', 'Ss_32_30_90_12'),
+                    ('e6d74d50-9bc7-4aff-98eb-d2480b2d98ae', 'Ss_40_10_25_25'),
+                    ('ae57eb75-2872-4d5c-a1e8-a385f3de825b', 'Ss_40_10_30_36'),
+                    ('ad4d9d3f-d428-4038-a158-b0538a84632f', 'Ss_40_10_30_70'),
+                    ('ead84c97-a1a4-4b9a-a286-b2b36cb609ea', 'Ss_45_75_20_16'),
+                    ('68e47638-4bfb-4728-ad9e-e2e4bec22595', 'Ss_45_75_44'),
+                    ('50740e2b-a2b6-491d-a92f-babf0959784a', 'Ss_50_75_58_07');
+
+                insert into airs (asset_id, airs)
+                values
+                    ('5799ee92-f25c-4173-aecd-dfa871719065', 'AIR \#1'),
+                    ('5799ee92-f25c-4173-aecd-dfa871719065', 'AIR \#2'),
+                    ('5799ee92-f25c-4173-aecd-dfa871719065', 'AIR \#3'),
+                    ('0ee6c05d-c82c-494f-b13c-82f8d64178a1', 'AIR \#4'),
+                    ('0ee6c05d-c82c-494f-b13c-82f8d64178a1', 'AIR \#5'),
+                    ('0ee6c05d-c82c-494f-b13c-82f8d64178a1', 'AIR \#6'),
+                    ('6dcb0cd6-9f63-407c-8d4c-c6d29a5e4a75', 'AIR \#7'),
+                    ('6dcb0cd6-9f63-407c-8d4c-c6d29a5e4a75', 'AIR \#8'),
+                    ('6dcb0cd6-9f63-407c-8d4c-c6d29a5e4a75', 'AIR \#9'),
+                    ('27217551-7641-4e1b-a297-11b49adb91b4', 'AIR \#10');
+
+                insert into functional_output (id, data_dictionary_entry_id)
+                values
+                    ('0d72e486-74cf-45bc-b11e-cbb7a16b698f', 'EF_35_10_30'),
+                    ('91990373-dc68-4705-ace8-2a4d36d5bcce', 'EF_37_17_15'),
+                    ('fbdd7a8a-57a6-46d1-a2d1-af57943fe5cc', 'EF_70_80');
+
+                insert into firs (fo_id, firs)
+                values
+                    ('0d72e486-74cf-45bc-b11e-cbb7a16b698f', 'FIR \#1'),
+                    ('0d72e486-74cf-45bc-b11e-cbb7a16b698f', 'FIR \#2'),
+                    ('91990373-dc68-4705-ace8-2a4d36d5bcce', 'FIR \#3');
+
+                insert into fo_assets (fo_id, asset_id)
+                values
+                    ('0d72e486-74cf-45bc-b11e-cbb7a16b698f', '5799ee92-f25c-4173-aecd-dfa871719065'),
+                    ('0d72e486-74cf-45bc-b11e-cbb7a16b698f', '27217551-7641-4e1b-a297-11b49adb91b4'),
+                    ('91990373-dc68-4705-ace8-2a4d36d5bcce', '5799ee92-f25c-4173-aecd-dfa871719065');
+
+                insert into functional_output_dictionary (id, name)
+                values
+                ("97ee7a74-e8c7-11ec-8fea-0242ac120002", "Uniclass2015_EF_v1_10");
+
+                insert into asset_dictionary (id, name)
+                values
+                ("e1970a24-e8c7-11ec-8fea-0242ac120002", "Uniclass2015_Ss_v1_25");
+
+                insert into project(id, name, fo_dd_id, asset_dd_id)
+                values
+                ('387dac90-e188-11ec-8fea-0242ac120002', "Sample Project", "97ee7a74-e8c7-11ec-8fea-0242ac120002","e1970a24-e8c7-11ec-8fea-0242ac120002");
+
+                insert into functional_requirement (id, name, project_id)
+                values
+                    ('1cfda9b4-1466-4695-8ab2-c19848fa4542', 'FR \#1', '387dac90-e188-11ec-8fea-0242ac120002'),
+                    ('884deff4-9a42-4436-8ef2-561777a4f3fd', 'FR \#2', '387dac90-e188-11ec-8fea-0242ac120002'),
+                    ('2853000a-ec64-4d5b-9dcd-f73d8a79e1cc', 'FR \#3', '387dac90-e188-11ec-8fea-0242ac120002'),
+                    ('53f26727-63ae-4570-a91a-074f3fbdb110', 'FR \#4', '387dac90-e188-11ec-8fea-0242ac120002');
+
+                insert into fr_fo(fr_id, fo_id)
+                values
+                    ('1cfda9b4-1466-4695-8ab2-c19848fa4542', '0d72e486-74cf-45bc-b11e-cbb7a16b698f'),
+                    ('1cfda9b4-1466-4695-8ab2-c19848fa4542', '91990373-dc68-4705-ace8-2a4d36d5bcce'),
+                    ('1cfda9b4-1466-4695-8ab2-c19848fa4542', 'fbdd7a8a-57a6-46d1-a2d1-af57943fe5cc'),
+                    ('2853000a-ec64-4d5b-9dcd-f73d8a79e1cc', '0d72e486-74cf-45bc-b11e-cbb7a16b698f');
+
+                insert into organisational_objective(id, name)
+                values
+                    ('064fecac-d5e8-4ee5-8e96-d4bc63cc95ed', 'Objective \#1'),
+                    ('fc2aae01-5543-4218-adda-99f459e61295', 'Objective \#2'),
+                    ('ee183d1b-f9f4-4d7d-8c0a-53f81b198ced', 'Objective \#3');
+
+                insert into project_organisational_objective (project_id, oo_id)
+                values
+                    ('387dac90-e188-11ec-8fea-0242ac120002', '064fecac-d5e8-4ee5-8e96-d4bc63cc95ed'),
+                    ('387dac90-e188-11ec-8fea-0242ac120002', 'fc2aae01-5543-4218-adda-99f459e61295'),
+                    ('387dac90-e188-11ec-8fea-0242ac120002', 'ee183d1b-f9f4-4d7d-8c0a-53f81b198ced');
+
+                insert into oirs(oo_id, oirs)
+                values
+                    ('064fecac-d5e8-4ee5-8e96-d4bc63cc95ed', 'OIR \#1'),
+                    ('064fecac-d5e8-4ee5-8e96-d4bc63cc95ed', 'OIR \#2'),
+                    ('fc2aae01-5543-4218-adda-99f459e61295', 'OIR \#3'),
+                    ('fc2aae01-5543-4218-adda-99f459e61295', 'OIR \#4');
+
+                insert into oo_frs(oo_id, fr_id)
+                values
+                    ('064fecac-d5e8-4ee5-8e96-d4bc63cc95ed', '1cfda9b4-1466-4695-8ab2-c19848fa4542'),
+                    ('fc2aae01-5543-4218-adda-99f459e61295', '1cfda9b4-1466-4695-8ab2-c19848fa4542'),
+                    ('fc2aae01-5543-4218-adda-99f459e61295', '884deff4-9a42-4436-8ef2-561777a4f3fd'),
+                    ('ee183d1b-f9f4-4d7d-8c0a-53f81b198ced', '1cfda9b4-1466-4695-8ab2-c19848fa4542');
+
+                insert into permission(id, permission)
+                values
+                    (1, "View all"),
+                    (10, "Import"),
+                    (11, "Export"),
+                    (20, "Edit OO/OIR"),
+                    (21, "Edit FR"),
+                    (22, "Edit FO/FIR"),
+                    (23, "Edit Asset/AIR"),
+                    (30, "Add new FIR"),
+                    (31, "Add new AIR");
+- changeSet:
+      id: 1654519480623-42
+      author: Jeremy Booth
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+          - loadData:
+                columns:
+                    - column:
+                          header: Code
+                          name: id
+                          type: STRING
+                    - column:
+                          header: Title
+                          name: text
+                          type: STRING
+                    - column:
+                          name: fo_dictionary_id
+                          value: 1
+                commentLineStartsWith: //
+                encoding: UTF-8
+                file: database/Uniclass2015_EF_v1_10_for_2.1.csv
+                quotechar: '"'
+                relativeToChangelogFile: false
+                tableName: functional_output_dictionary_entry
+                usePreparedStatements: false #NOTE true causes insert of data to fail silently ref https://github.com/liquibase/liquibase/issues/1551
+- changeSet:
+      id: 1654519480623-43
+      author: Jeremy Booth
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - loadData:
+              columns:
+                  - column:
+                        header: Code
+                        name: id
+                        type: STRING
+                  - column:
+                        header: Title
+                        name: text
+                        type: STRING
+                  - column:
+                        header: adid
+                        name: asset_dictionary_id
+                        value: '1'
+                        type: STRING
+              commentLineStartsWith: //
+              encoding: UTF-8
+              file: database/Uniclass2015_Ss_v1_25_for_2.1.csv
+              quotechar: '"'
+              relativeToChangelogFile: false
+              tableName: asset_dictionary_entry
+              usePreparedStatements: false #NOTE true causes insert of data to fail silently ref https://github.com/liquibase/liquibase/issues/1551
+
+- changeSet:
+      id: 1655386727868-1
+      author: philliprushby (generated)
+      changes:
+          - addDefaultValue:
+                columnDataType: timestamp
+                columnName: last_modified_timestamp
+                defaultValueComputed: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                tableName: organisational_objective
+
+- changeSet:
+    id: 1655386727868-2
+    author: Philip Rushby
+    changes:
+        - sql:
+              dbms: 'mysql, mariadb'
+              splitStatements: false
+              stripComments: true
+              sql:
+                  update organisational_objective set last_modified_timestamp = CURRENT_TIMESTAMP;
+                  delete from oo_frs;
+                  delete from project_organisational_objective;
+- changeSet:
+      id: 1655386727868-3
+      author: philliprushby
+      changes:
+          -   renameTable:
+                  newTableName: poo_frs
+                  oldTableName: oo_frs
+- changeSet:
+      id: 1655386727868-4
+      author: philliprushby (generated)
+      changes:
+          - addDefaultValue:
+                columnDataType: timestamp
+                columnName: last_modified_timestamp
+                defaultValueComputed: current_timestamp()
+                tableName: organisational_objective
+
+- changeSet:
+      id: 1655452686189-1
+      author: philliprushby (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                          name: id
+                          type: CHAR(36 BYTE)
+                tableName: project_organisational_objective
+- changeSet:
+      id: 1655452686189-2
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: project_organisational_objective
+                constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_PROJECT
+
+- changeSet:
+      id: 1655452686189-3
+      author: philliprushby (generated)
+      changes:
+          - dropPrimaryKey:
+                tableName: project_organisational_objective
+- changeSet:
+      id: 1655452686189-4
+      author: philliprushby (generated)
+      changes:
+          - addPrimaryKey:
+                columnNames: id
+                constraintName: PRIMARY
+                tableName: project_organisational_objective
+- changeSet:
+      id: 1655452686189-5
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: project_id
+                baseTableName: project_organisational_objective
+                constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_PROJECT
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: project
+                validate: true
+
+- changeSet:
+      id: 1655455070097-1
+      author: philliprushby (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                          name: poo_id
+                          type: CHAR(36 BYTE)
+                tableName: poo_frs
+
+- changeSet:
+      id: 1655455070097-2
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: poo_id
+                baseTableName: poo_frs
+                constraintName: fk_oo_frs_on_project_organisational_objective
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: RESTRICT
+                onUpdate: RESTRICT
+                referencedColumnNames: id
+                referencedTableName: project_organisational_objective
+                validate: true
+- changeSet:
+      id: 1655455070097-3
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: poo_frs
+                constraintName: fk_oo_frs_on_organisational_objective
+
+- changeSet:
+      id: 1655455070097-4
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: poo_frs
+                constraintName: fk_oo_frs_on_functional_requirement
+
+
+- changeSet:
+      id: 1655455070097-5
+      author: philliprushby (generated)
+      changes:
+          - dropPrimaryKey:
+                tableName: poo_frs
+- changeSet:
+      id: 1655455070097-6
+      author: philliprushby (generated)
+      changes:
+          - addPrimaryKey:
+                columnNames: fr_id, poo_id
+                constraintName: PRIMARY
+                tableName: poo_frs
+
+- changeSet:
+      id: 1655455070097-7
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: fr_id
+                baseTableName: poo_frs
+                constraintName: fk_oo_frs_on_functional_requirement
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: RESTRICT
+                onUpdate: RESTRICT
+                referencedColumnNames: id
+                referencedTableName: functional_requirement
+                validate: true
+- changeSet:
+      id: 1655455070097-9
+      author: philliprushby (generated)
+      changes:
+          - dropColumn:
+                columnName: oo_id
+                tableName: poo_frs
+
+- changeSet:
+      id: 1655454387016-10
+      author: Philip Rushby
+      changes:
+          - sql:
+                dbms: 'mysql, mariadb'
+                splitStatements: false
+                stripComments: true
+                sql:
+                    insert into project_organisational_objective (id, project_id, oo_id)
+                    values
+                        ('4d0a44c2-0a49-45c7-914c-bb1a3cf14509','387dac90-e188-11ec-8fea-0242ac120002', '064fecac-d5e8-4ee5-8e96-d4bc63cc95ed'),
+                        ('6e767c64-3865-4215-b8d8-e7feec9517ce','387dac90-e188-11ec-8fea-0242ac120002', 'fc2aae01-5543-4218-adda-99f459e61295'),
+                        ('d30f022f-067e-4b7e-8d02-b2ad32d1fb0a','387dac90-e188-11ec-8fea-0242ac120002', 'ee183d1b-f9f4-4d7d-8c0a-53f81b198ced');
+
+                    insert into poo_frs(poo_id, fr_id)
+                    values
+                    ('4d0a44c2-0a49-45c7-914c-bb1a3cf14509', '1cfda9b4-1466-4695-8ab2-c19848fa4542'),
+                    ('6e767c64-3865-4215-b8d8-e7feec9517ce', '1cfda9b4-1466-4695-8ab2-c19848fa4542'),
+                    ('6e767c64-3865-4215-b8d8-e7feec9517ce', '884deff4-9a42-4436-8ef2-561777a4f3fd'),
+                    ('d30f022f-067e-4b7e-8d02-b2ad32d1fb0a', '1cfda9b4-1466-4695-8ab2-c19848fa4542');

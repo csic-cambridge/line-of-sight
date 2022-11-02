@@ -1,9 +1,14 @@
 package com.costain.cdbb.model;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,14 +18,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "functional_requirement")
@@ -36,11 +37,14 @@ public class FunctionalRequirementDAO {
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
     @Type(type = "uuid-char")
-
     private UUID id;
 
     @Column(nullable = false)
     private String name;
+
+    @Column(name = "projectId", columnDefinition = "CHAR(36)")
+    @Type(type = "uuid-char")
+    private UUID  projectId;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -48,14 +52,15 @@ public class FunctionalRequirementDAO {
         joinColumns = {@JoinColumn(name = "fr_id")},
         inverseJoinColumns = {@JoinColumn(name = "fo_id")}
     )
-    private Set<FunctionalObjectiveDAO> fos;
+    private Set<FunctionalOutputDAO> fos;
 
     @Override
     public String toString() {
         return "FunctionalRequirement {" +
             "id=" + id +
             ", name='" + name + '\'' +
-            ", fos='" + fos.stream().map(fo -> fo.getId()).toList() + '\'' +
+            ", project=" + projectId +
+            ", fos='" + (fos == null ? "null" : fos.stream().map(fo -> fo.getId()).toList()) + '\'' +
             '}';
     }
 
@@ -64,8 +69,10 @@ public class FunctionalRequirementDAO {
         if (this == o) return true;
         if (!(o instanceof FunctionalRequirementDAO)) return false;
         FunctionalRequirementDAO that = (FunctionalRequirementDAO) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) &&
-            Objects.equals(fos != null ? fos.stream().map(fo -> fo.getId()).collect(Collectors.toSet()) : null,
+        return Objects.equals(id, that.id) &&
+               Objects.equals(name, that.name) &&
+               Objects.equals(projectId, that.projectId) &&
+               Objects.equals(fos != null ? fos.stream().map(fo -> fo.getId()).collect(Collectors.toSet()) : null,
                 that.fos != null ? that.fos.stream().map(fo -> fo.getId()).collect(Collectors.toSet()) : null);
     }
 

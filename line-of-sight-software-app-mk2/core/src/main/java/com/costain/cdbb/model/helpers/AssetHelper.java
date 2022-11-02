@@ -19,43 +19,64 @@ package com.costain.cdbb.model.helpers;
 
 import com.costain.cdbb.model.Asset;
 import com.costain.cdbb.model.AssetDAO;
-import com.costain.cdbb.model.AssetDataDictionaryEntry;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
 import com.costain.cdbb.model.AssetWithId;
+import com.costain.cdbb.model.DataDictionaryEntry;
+import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
+import com.costain.cdbb.repositories.ProjectRepository;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class AssetHelper {
+    @Autowired
+    AssetDataDictionaryEntryRepository ddeRepository;
+
+    @Autowired
+    ProjectRepository projectRepository;
 
     public AssetWithId fromDao(AssetDAO dao) {
         AssetWithId dto = new AssetWithId();
         dto.id(dao.getId());
         AssetDataDictionaryEntryDAO dde = dao.getDataDictionaryEntry();
-        dto.dataDictionaryEntry(new AssetDataDictionaryEntry().id(dde.getId()).text(dde.getText()));
+        dto.dataDictionaryEntry(new DataDictionaryEntry()
+            .id(dde.getId())
+            .text(dde.getId() + "-" + dde.getText()));
         dto.airs(dao.getAirs() != null ? dao.getAirs().stream().toList() : Collections.emptyList());
-
         return dto;
     }
 
-    public AssetDAO fromDto(Asset asset) {
-        return fromDto(AssetDAO.builder(), asset.getDataDictionaryEntry(), asset.getAirs());
+    public AssetDAO fromDto(UUID id, Asset asset, UUID projectId) {
+        return fromDto(AssetDAO.builder().id(id), projectId,
+            asset.getDataDictionaryEntry().getId(), asset.getAirs());
     }
 
-    public AssetDAO fromDto(UUID id, Asset asset) {
-        return fromDto(AssetDAO.builder().id(id), asset.getDataDictionaryEntry(), asset.getAirs());
+    public AssetDAO fromDto(AssetWithId asset, UUID projectId) {
+        return fromDto(AssetDAO.builder(), projectId,
+            asset.getDataDictionaryEntry().getId(), asset.getAirs());
     }
 
-    private AssetDAO fromDto(AssetDAO.AssetDAOBuilder builder, AssetDataDictionaryEntry dde, Collection<String> airs) {
+    public AssetDAO fromDto(UUID id, AssetWithId asset, UUID projectId) {
+        return fromDto(AssetDAO.builder().id(id), projectId,
+            asset.getDataDictionaryEntry().getId(), asset.getAirs());
+    }
+
+    private AssetDAO fromDto(AssetDAO.AssetDAOBuilder builder, UUID projectId,
+                             String ddeId, Collection<String> airs) {
+        Optional<AssetDataDictionaryEntryDAO> optAssetDdeDao = ddeRepository.findById(ddeId);
         return builder
-            .dataDictionaryEntry(AssetDataDictionaryEntryDAO.builder().id(dde.getId()).text(dde.getText()).build())
-            .airs(airs != null ? airs.stream().collect(Collectors.toSet()) : Collections.emptySet())
+            .projectId(projectId)
+            .dataDictionaryEntry(optAssetDdeDao.get())
+            .airs(airs != null ? new HashSet<>(airs) : Collections.emptySet())
             .build();
     }
 

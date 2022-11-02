@@ -5,7 +5,7 @@
 
     <groupId>com.costain.cdbb</groupId>
     <artifactId>cdbb</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.0</version>
     <packaging>pom</packaging>
     <name>Line Of Sight Software App MK2</name>
     <description>Line of Sight</description>
@@ -21,14 +21,14 @@
         <dependency-check-maven.version>7.0.0</dependency-check-maven.version>
         <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
         <docker.build.directory>${project.build.directory}</docker.build.directory>
-        <editorconfig-maven-plugin.version>0.0.11</editorconfig-maven-plugin.version>
+        <editorconfig-maven-plugin.version>0.1.1</editorconfig-maven-plugin.version>
         <findsecbugs-plugin.version>1.8.0</findsecbugs-plugin.version>
         <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
         <git-commit-id-plugin.version>4.0.0</git-commit-id-plugin.version>
         <h2.version>2.1.210</h2.version>
         <jackson-databind-nullable.version>0.2.2</jackson-databind-nullable.version>
         <java.version>17</java.version>
-        <liquibase.version>4.8.0</liquibase.version>
+        <liquibase.version>4.12.0</liquibase.version>
         <lombok.version>1.18.22</lombok.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.9.0</maven-compiler-plugin.version>
@@ -48,7 +48,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <node.version>v16.14.0</node.version>
-        <npm.version>8.4.1</npm.version>
+        <npm.version>7.5.6</npm.version>
         <openapi-generator.version>5.4.0</openapi-generator.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sb-contrib.version>7.4.7</sb-contrib.version>
@@ -507,6 +507,20 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-help-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <executions>
+                        <execution>
+                            <id>show-profiles</id>
+                            <goals>
+                                <goal>active-profiles</goal>
+                            </goals>
+                            <phase>compile</phase>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -653,5 +667,6 @@
                 </plugins>
             </build>
         </profile>
+
     </profiles>
 </project>

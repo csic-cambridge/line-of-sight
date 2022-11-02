@@ -1,20 +1,5 @@
 package com.costain.cdbb.model;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +8,27 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
+
+import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @Table(name = "organisational_objective")
@@ -40,28 +46,52 @@ public class OrganisationalObjectiveDAO {
     @Type(type = "uuid-char")
     private UUID id;
 
+    @OneToMany(mappedBy="ooDao", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    private Collection<OirDAO> oirDaos;
+
+
+    @OneToMany(mappedBy="oo", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    @OrderBy("dateCreated DESC")
+    private List<OoVersionDAO> ooVersions;
+
+    public void addLatestOoVersion(OoVersionDAO ooVersion) {
+        ooVersions.add(0, ooVersion);
+    }
+
     @Column(nullable = false)
+    private boolean isDeleted;
+
+    @Transient
     private String name;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "oirs", joinColumns = @JoinColumn(name = "ooId", referencedColumnName = "id"))
-    private Set<String> oirs;
+    public String getName() {
+        if (ooVersions == null) {
+            return name;
+        }
+        else {
+            return ooVersions.get(0).getName();
+        }
+    }
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "oo_frs",
-        joinColumns = {@JoinColumn(name = "oo_id")},
-        inverseJoinColumns = {@JoinColumn(name = "fr_id")}
-    )
-    private Set<FunctionalRequirementDAO> frs;
+    public void setOoVersion (OoVersionDAO ooVersion) {
+        // used when creating OO
+        this.ooVersions = new ArrayList<OoVersionDAO>(Arrays.asList(ooVersion));
+    }
+
+    public void setOirs(List<OirDAO>oirDaos) {
+        this.oirDaos = oirDaos;
+    }
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
 
     @Override
     public String toString() {
-        return "FunctionalObjective {" +
+        return "Organisational Objective {" +
             "id=" + id +
-            ", name='" + name + '\'' +
-            ", oirs='" + oirs + '\'' +
-            ", frs='" + frs.stream().map(fr -> fr.getId()).toList() + '\'' +
+            ", versions='" + ooVersions + '\'' +
+            ", oirs='" + oirDaos + '\'' +
+              ", Is deleted = " + isDeleted +
             '}';
     }
 
@@ -70,14 +100,12 @@ public class OrganisationalObjectiveDAO {
         if (this == o) return true;
         if (!(o instanceof OrganisationalObjectiveDAO)) return false;
         OrganisationalObjectiveDAO that = (OrganisationalObjectiveDAO) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(oirs, that.oirs) &&
-            Objects.equals(frs != null ? frs.stream().map(fr -> fr.getId()).collect(Collectors.toSet()) : null,
-                that.frs != null ? that.frs.stream().map(fr -> fr.getId()).collect(Collectors.toSet()) : null);
+        return Objects.equals(id, that.id) && Objects.equals(ooVersions, that.ooVersions)
+            && Objects.equals(oirDaos, that.oirDaos);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, oirs,
-            frs != null ? frs.stream().map(fr -> fr.getId()).collect(Collectors.toSet()) : null);
+        return Objects.hash(id, ooVersions, oirDaos);
     }
 }

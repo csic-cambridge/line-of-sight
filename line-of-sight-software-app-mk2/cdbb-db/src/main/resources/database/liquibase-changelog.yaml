@@ -380,9 +380,9 @@ databaseChangeLog:
                           type: STRING
                   commentLineStartsWith: //
                   encoding: UTF-8
-                  file: Uniclass2015_EF_v1_10.csv
+                  file: database/Uniclass2015_EF_v1_10.csv
                   quotechar: '"'
-                  relativeToChangelogFile: true
+                  relativeToChangelogFile: false
                   tableName: functional_objective_dictionary
                   usePreparedStatements: false #NOTE true causes insert of data to fail silently ref https://github.com/liquibase/liquibase/issues/1551
   - changeSet:
@@ -402,9 +402,9 @@ databaseChangeLog:
                             type: STRING
                   commentLineStartsWith: //
                   encoding: UTF-8
-                  file: Uniclass2015_Ss_v1_25.csv
+                  file: database/Uniclass2015_Ss_v1_25.csv
                   quotechar: '"'
-                  relativeToChangelogFile: true
+                  relativeToChangelogFile: false
                   tableName: asset_dictionary
                   usePreparedStatements: false #NOTE true causes insert of data to fail silently ref https://github.com/liquibase/liquibase/issues/1551
   - changeSet:

@@ -47,21 +47,21 @@ public class AssetApiDelegateImpl implements AssetsApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<Flux<AssetWithId>>> findAllAssets(ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(repository.findAll())
+    public Mono<ResponseEntity<Flux<AssetWithId>>> findAssetsByProject(UUID projectId, ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(repository.findByProjectId(projectId))
                 .map(dao -> assetHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @Override
-    public Mono<ResponseEntity<AssetWithId>> findAssetById(UUID id, ServerWebExchange exchange) {
-        return AssetsApiDelegate.super.findAssetById(id, exchange);
+    public Mono<ResponseEntity<AssetWithId>> findAssetById(UUID projectId, UUID id, ServerWebExchange exchange) {
+        return AssetsApiDelegate.super.findAssetById(projectId, id, exchange);
     }
 
     @Override
-    public Mono<ResponseEntity<AssetWithId>> addAsset(Mono<Asset> asset, ServerWebExchange exchange) {
-        return asset.map(dto -> assetHelper.fromDto(dto))
+    public Mono<ResponseEntity<AssetWithId>> addAsset(UUID projectId, Mono<Asset> asset, ServerWebExchange exchange) {
+        return asset.map(dto -> assetHelper.fromDto(null, dto, projectId))
             .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
             .map(savedDao -> assetHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
@@ -69,8 +69,9 @@ public class AssetApiDelegateImpl implements AssetsApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<AssetWithId>> upsertAsset(UUID id, Mono<Asset> asset, ServerWebExchange exchange) {
-        return asset.map(dto -> assetHelper.fromDto(id, dto))
+    public Mono<ResponseEntity<AssetWithId>> updateAsset(UUID projectId, UUID id,
+                                                         Mono<Asset> asset, ServerWebExchange exchange) {
+        return asset.map(dto -> assetHelper.fromDto(id, dto, projectId))
             .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
             .map(savedDao -> assetHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
@@ -78,7 +79,7 @@ public class AssetApiDelegateImpl implements AssetsApiDelegate {
     }
 
     @Override
-    public Mono<ResponseEntity<Void>> deleteAsset(UUID id, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<Void>> deleteAsset(UUID projectId, UUID id, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
         return Mono.fromRunnable(() -> repository.deleteById(id))
             .map(x -> re)

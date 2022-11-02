@@ -1,0 +1,35 @@
+.oo-container {
+    margin-top: 1em;
+    margin-bottom: 1em;
+
+    font-size: 0.6rem;
+    line-height: 1;
+
+    .card-body {
+        padding: unset;
+    }
+
+    .card-header {
+        font-size: 0.7rem;
+    }
+}
+
+.element-text {
+    font-size: medium;
+}
+
+.custom-label-css {
+    margin-left: 25pt;
+    margin-right: 10pt;
+}
+
+.strikethrough {
+    text-decoration: line-through;
+}
+
+.action-btn-grp {
+    margin-left: 10px;
+}
+.container-xxl{
+    padding: 15px;
+}

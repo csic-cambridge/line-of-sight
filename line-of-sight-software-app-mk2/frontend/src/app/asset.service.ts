@@ -17,12 +17,19 @@ export class AssetService {
         this.serviceUrl = environment.apiBaseUrl + '/api/assets';
     }
 
-    getAssets(): Observable<Array<Asset>> {
-        return this.http.get<Array<Asset>>(this.serviceUrl);
+    getAssets(projectId: string): Observable<Array<Asset>> {
+        return this.http.get<Array<Asset>>(this.serviceUrl + '/' + projectId);
     }
 
-    save(asset: Asset): Observable<Asset> {
+    save(asset: Asset, projectId: string): Observable<Asset> {
         console.log("Asset Id to store: ", asset.id);
-        return this.http.put<Asset>(this.serviceUrl + '/' + asset.id, asset);
+        return asset.id === ''
+            ? this.http.post<Asset>(this.serviceUrl + '/' + projectId, asset)
+            : this.http.put<Asset>(this.serviceUrl + '/' + projectId + '/' + asset.id, asset);
+    }
+
+    delete(assetId: string, projectId: string): Observable<any> {
+        console.log("Asset Id to delete: ", assetId);
+        return this.http.delete(this.serviceUrl + '/' + projectId + '/' + assetId);
     }
 }

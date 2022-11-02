@@ -3,6 +3,10 @@ logging:
         org:
             hibernate:
                 SQL: debug
+                type:
+                    descriptor:
+                        sql:
+                            BasicBinder: trace
 
 spring:
     datasource:
@@ -19,4 +23,4 @@ spring:
             init:
                 mode=never:
     liquibase:
-        change-log: 'classpath:database/liquibase-changelog.yaml'
+        change-log: 'classpath:database/liquibase-changelog-main.yaml'

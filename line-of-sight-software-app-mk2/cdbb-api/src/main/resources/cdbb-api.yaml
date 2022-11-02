@@ -39,8 +39,8 @@ paths:
                             $ref: '#/components/schemas/organisational_objective'
         get:
             operationId: findAllOrganisationalObjectives
-            summary: Gets the full list of organisational objectives
-            description: Gets the full list of organisational objectives
+            summary: Gets the full list of (non-deleted) organisational objectives
+            description: Gets the full list of (non-deleted) organisational objectives
             responses:
                 '200':
                     description: Successful operation
@@ -76,9 +76,9 @@ paths:
                     $ref: '#/components/responses/NotFound'
     /organisational-objectives/{id}:
         put:
-            operationId: upsertOrganisationalObjective
-            summary: Add or update an organisational objective
-            description: Adds an organisational objective when the ID is known or updates an existing one
+            operationId: updateOrganisationalObjective
+            summary: update an organisational objective
+            description: Updates an organisational objective
             parameters:
                 - in: path
                   name: id
@@ -109,7 +109,7 @@ paths:
                 '404':
                     $ref: '#/components/responses/NotFound'
             requestBody:
-                description: The properties of the organisational objective to add or update
+                description: The properties of the organisational objective to add or update (name and or oirs)
                 required: true
                 content:
                     application/json:
@@ -165,11 +165,157 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-requirements:
+    /project-organisational-objectives/{projectid}:
+        get:
+            operationId: findAllProjectOrganisationalObjectives
+            summary: Gets the full list of project organisational objectives
+            description: Gets the full list of project organisational objectives
+            parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the project organisational objectives being fetched
+
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/project_organisational_objective_with_id'
+                            example:
+                                - id: 064fecac-d5e8-4ee5-8e96-d4bc63cc95ed
+                                  name: 'Objective #1'
+                                  oirs:
+                                      - 'OIR #1'
+                                      - 'OIR #2'
+                                  frs:
+                                      - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+
+                                - id: fc2aae01-5543-4218-adda-99f459e61295
+                                  name: 'Objective #2'
+                                  oirs:
+                                      - 'OIR #3'
+                                      - 'OIR #4'
+                                  frs:
+                                      - '1cfda9b4-1466-4695-8ab2-c19848fa4542'
+                                      - '884deff4-9a42-4436-8ef2-561777a4f3fd'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /project-organisational-objectives/{projectid}/{pooid}:
+        put:
+            operationId: updateProjectOrganisationalObjective
+            summary: Updates a project organisational objective
+            description: Updates the ooversion of the project organisational objective
+            parameters:
+                -   in: path
+                    name: projectid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The UUID of the project id of the project organisational objective being updated
+                -   in: path
+                    name: pooid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The UUID of the project organisational objective being updated
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                    $ref: '#/components/schemas/project_organisational_objective_with_id'
+                            example:
+                                -   id: 064fecac-d5e8-4ee5-8e96-d4bc63cc95ed
+                                    name: 'Objective #1'
+                                    oirs:
+                                        - 'OIR #1'
+                                        - 'OIR #2'
+                                    frs:
+                                        - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+
+                                -   id: fc2aae01-5543-4218-adda-99f459e61295
+                                    name: 'Objective #2'
+                                    oirs:
+                                        - 'OIR #3'
+                                        - 'OIR #4'
+                                    frs:
+                                        - '1cfda9b4-1466-4695-8ab2-c19848fa4542'
+                                        - '884deff4-9a42-4436-8ef2-561777a4f3fd'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The project_organisational_objective_with_id to update with
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/project_organisational_objective_update'
+        delete:
+            operationId: deleteProjectOrganisationalObjective
+            summary: Deletes a project organisational objective
+            description: Deletes a single project organisational objective with the given ID.
+            parameters:
+                -   in: path
+                    name: projectid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The project UUID of the project organisational objective being deleted
+                -   in: path
+                    name: pooid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The UUID of the project organisational objective being deleted
+            responses:
+                '204':
+                    description: Successful operation
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+
+    /functional-requirements/{projectid}:
         post:
             operationId: addFunctionalRequirement
             summary: Adds a new functional requirement
             description: Adds a new functional requirement when the id is unknown
+            parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being created
             responses:
                 '201':
                     description: Successful creation operation
@@ -194,6 +340,14 @@ paths:
             operationId: findAllFunctionalRequirements
             summary: Gets the full list of functional requirements
             description: Gets the full list of functional requirements
+            parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being manipulated
             responses:
                 '200':
                     description: Successful operation
@@ -222,28 +376,29 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-requirements/{id}:
+    /functional-requirements/{projectid}/{id}:
         put:
-            operationId: upsertFunctionalRequirement
+            operationId: updateFunctionalRequirement
             summary: Add or update a functional requirement
             description: Adds a functional requirement if the ID is known or update an existing one
             parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional requirement being updated
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the functional requirement being manipulated
+                  description: The UUID of the functional requirement being updated
             responses:
                 '200':
                     description: Successful update operation
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/functional_requirement_with_id'
-                '201':
-                    description: Successful creation operation
                     content:
                         application/json:
                             schema:
@@ -257,7 +412,7 @@ paths:
                 '404':
                     $ref: '#/components/responses/NotFound'
             requestBody:
-                description: The properties of the functional requirement to add or update
+                description: The properties of the functional requirement to update
                 required: true
                 content:
                     application/json:
@@ -269,12 +424,19 @@ paths:
             description: Gets a single functional requirement with the given ID
             parameters:
                 - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being sought
+                - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the functional requirement being manipulated
+                  description: The UUID of the functional requirement being sought
             responses:
                 '200':
                     description: Successful operation
@@ -296,6 +458,13 @@ paths:
             description: Deletes a single functional requirement with the given ID.
             parameters:
                 - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being deleted
+                - in: path
                   name: id
                   required: true
                   schema:
@@ -313,18 +482,26 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-objectives:
+    /functional-outputs/{projectid}:
         post:
-            operationId: addFunctionalObjective
-            summary: Adds a new functional objective
-            description: Adds a new functional objective when the id is unknown
+            operationId: addFunctionalOutput
+            summary: Adds a new functional output
+            description: Adds a new functional output to the project when the id is unknown
+            parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being created
             responses:
                 '201':
                     description: Successful creation operation
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/functional_objective_with_id'
+                                $ref: '#/components/schemas/functional_output_with_id'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -332,16 +509,24 @@ paths:
                 '403':
                     $ref: '#/components/responses/Forbidden'
             requestBody:
-                description: The new functional objective
+                description: The new functional output
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/functional_objective'
+                            $ref: '#/components/schemas/functional_output'
         get:
-            operationId: findAllFunctionalObjectives
-            summary: Gets the full list of functional objectives
-            description: Gets the full list of functional objectives
+            operationId: findFunctionalOutputsByProject
+            summary: Gets all functional outputs for a project
+            description: Gets all functional outputs for a project
+            parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being requested
             responses:
                 '200':
                     description: Successful operation
@@ -350,25 +535,7 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/functional_objective_with_id'
-                            example:
-                                - id: 0d72e486-74cf-45bc-b11e-cbb7a16b698f
-                                  data_dictionary_entry:
-                                      id: 'EF_37_17_15'
-                                      text: 'Chimneys'
-                                  firs:
-                                      - 'FIR #1'
-                                      - 'FIR #2'
-                                  assets:
-                                      - 5799ee92-f25c-4173-aecd-dfa871719065
-                                      - 27217551-7641-4e1b-a297-11b49adb91b4
-                                - id: 91990373-dc68-4705-ace8-2a4d36d5bcce
-                                  data_dictionary_entry:
-                                      id: 'EF_37_17_15'
-                                      text: 'Chimneys'
-                                  firs:
-                                      - 'FIR #3'
-                                  assets: 5799ee92-f25c-4173-aecd-dfa871719065
+                                    $ref: '#/components/schemas/functional_output_with_id'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -377,32 +544,39 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-objectives/{id}:
+    /functional-outputs/{projectid}/{id}:
         put:
-            operationId: upsertFunctionalObjective
-            summary: Add or update a functional objective
-            description: Adds or updates a functional objective when the id is known
+            operationId: updateFunctionalOutput
+            summary: Add or update an functional output
+            description: Updates FIRs and Assets to those provided
             parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being manipulated
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the objective being manipulated
+                  description: The id of the functional output being updated
             responses:
                 '200':
                     description: Successful update operation
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/functional_objective_with_id'
+                                $ref: '#/components/schemas/functional_output_with_id'
                 '201':
-                    description: Successful creation operation
+                    description: Successful update operation
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/functional_objective_with_id'
+                                $ref: '#/components/schemas/functional_output_with_id'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -412,31 +586,38 @@ paths:
                 '404':
                     $ref: '#/components/responses/NotFound'
             requestBody:
-                description: The properties of the functional objective to add or update
+                description: The properties of the functional output to update
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/functional_objective'
+                            $ref: '#/components/schemas/functional_output'
         get:
-            operationId: findFunctionalObjectiveById
-            summary: Gets a functional objective
-            description: Gets a single functional objective with the given ID
+            operationId: findFunctionalOutputById
+            summary: Gets a functional output
+            description: Gets a single functional output with the given id
             parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being manipulated
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the functional objective being manipulated
+                  description: The id of the functional output being manipulated
             responses:
                 '200':
                     description: Successful operation
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/functional_objective_with_id'
+                                $ref: '#/components/schemas/functional_output_with_id'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -446,17 +627,24 @@ paths:
                 '404':
                     $ref: '#/components/responses/NotFound'
         delete:
-            operationId: deleteFunctionalObjective
-            summary: Deletes a functional objective
-            description: Deletes a single functional objective with the given ID.
+            operationId: deleteFunctionalOutput
+            summary: Deletes an functional output
+            description: Deletes a single functional output with the given ID.
             parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the functional output being deleted
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the objective being manipulated
+                  description: The id of the functional output being deleted
             responses:
                 '204':
                     description: Successful operation
@@ -468,11 +656,19 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /assets:
+    /assets/{projectid}:
         post:
             operationId: addAsset
             summary: Adds a new asset
-            description: Adds a new asset when the id is unknown
+            description: Adds a new asset to the project when the id is unknown
+            parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                    type: string
+                    format: uuid
+                  description: The project UUID of the asset being added
             responses:
                 '201':
                     description: Successful creation operation
@@ -494,9 +690,17 @@ paths:
                         schema:
                             $ref: '#/components/schemas/asset'
         get:
-            operationId: findAllAssets
-            summary: Gets the full list of assets
-            description: Gets the full list of assets
+            operationId: findAssetsByProject
+            summary: Gets all assets for a project
+            description: Gets all assets for a project
+            parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                    type: string
+                    format: uuid
+                  description: The project UUID of the assets being requested
             responses:
                 '200':
                     description: Successful operation
@@ -506,23 +710,6 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/asset_with_id'
-                            example:
-                                - id: 5799ee92-f25c-4173-aecd-dfa871719065
-                                  data_dictionary_entry:
-                                      id: 'Ss_15_30_15_65'
-                                      text: 'Preliminary concrete cleaning systems'
-                                  airs:
-                                      - 'AIR #1'
-                                      - 'AIR #2'
-                                      - 'AIR #3'
-                                - id: 0ee6c05d-c82c-494f-b13c-82f8d64178a1
-                                  data_dictionary_entry:
-                                      id: 'Ss_15_30_15_65'
-                                      text: 'Preliminary concrete cleaning systems'
-                                  airs:
-                                      - 'AIR #4'
-                                      - 'AIR #5'
-                                      - 'AIR #6'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -531,19 +718,26 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /assets/{id}:
+    /assets/{projectid}/{id}:
         put:
-            operationId: upsertAsset
-            summary: Add or update an asset
-            description: Adds or updates an asset when the id is known
+            operationId: updateAsset
+            summary: Update an asset
+            description: Can only update the list of AIRs
             parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the asset being updated
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the asset being manipulated
+                  description: The id of the asset being updated
             responses:
                 '200':
                     description: Successful update operation
@@ -575,15 +769,22 @@ paths:
         get:
             operationId: findAssetById
             summary: Gets an asset
-            description: Gets a single asset with the given ID
+            description: Gets a single asset with the given id
             parameters:
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the asset being manipulated
                 - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the asset being manipulated
+                  description: The id of the asset being manipulated
             responses:
                 '200':
                     description: Successful operation
@@ -605,12 +806,19 @@ paths:
             description: Deletes a single asset with the given ID.
             parameters:
                 - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The project UUID of the asset being deleted
+                - in: path
                   name: id
                   required: true
                   schema:
                       type: string
                       format: uuid
-                  description: The UUID of the asset being manipulated
+                  description: The id of the asset being deleted
             responses:
                 '204':
                     description: Successful operation
@@ -622,11 +830,35 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /asset-data-dictionary:
+    /project:
+        post:
+            operationId: addProject
+            summary: Creates a new Project
+            description: Creates a new Project
+            responses:
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The new project name, fo dd id and asset dd id
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/project'
         get:
-            operationId: findAllAssetDataDictionaryEntries
-            summary: Get the assets data dictionary
-            description: Gets all of the data dictionary keys and values for assets
+            operationId: findAllProjects
+            summary: Gets the full list of projects
+            description: Gets the full list of projects
             responses:
                 '200':
                     description: Successful operation
@@ -635,7 +867,197 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/asset_data_dictionary_entry'
+                                    $ref: '#/components/schemas/project_with_id'
+                            example:
+                                - id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                  name: 'Project #1'
+                                - id: 0ee6c05d-c82c-494f-b13c-82f8d64178a1
+                                  name: 'Project #2'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /project/{id}:
+        put:
+            operationId: renameProject
+            summary: Renames a project
+            description: Renames an existing project
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the project being renamed
+
+            responses:
+                '200':
+                    description: Successful rename operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project'
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The properties of the project to rename
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: string # key = 'name'
+                            format: json
+        get:
+            operationId: findProjectById
+            summary: Gets a project
+            description: Gets a single project with the given ID
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the project being manipulated
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        delete:
+            operationId: deleteProject
+            summary: Deletes a project
+            description: Deletes a project with the given ID.
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the project being manipulated
+            responses:
+                '204':
+                    description: Successful operation
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        post:
+            operationId: copyProject
+            summary: Creates a new Project which is a copy of the specified one
+            description: Copies a Project
+            parameters:
+                -   in: path
+                    name: id
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The UUID of the project being copied
+            responses:
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The name of the new project
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: string # key = 'name'
+                            format: json
+
+    /asset-data-dictionary:
+        get:
+            operationId: findAllAssetDataDictionaries
+            summary: Gets the full list of asset data dictionaries
+            description: Gets the full list of asset data dictionaries
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/asset_data_dictionary'
+                            example:
+                                -   id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                    name: 'asset dd #1'
+                                -   id: 0ee6c05d-c82c-494f-b13c-82f8d64178a1
+                                    name: 'asset dd #2'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+
+    /asset-data-dictionary/{id}:
+        get:
+            operationId: findAllAssetDataDictionaryEntries
+            summary: Get the assets data dictionary
+            description: Gets all of the data dictionary keys and values for assets
+            parameters:
+                -   in: path
+                    name: id
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The UUID of the data dictionary being requested
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/data_dictionary_entry'
                             example:
                                 - id: Ss_15_10_33_34
                                   text: Ground gas collection and venting systems
@@ -651,11 +1073,11 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-objective-data-dictionary:
+    /functional-output-data-dictionary:
         get:
-            operationId: findAllFunctionalObjectiveDataDictionaryEntries
-            summary: Get the functional objectives data dictionary
-            description: Gets all of the data dictionary keys and values for functional objectives
+            operationId: findAllFunctionalOutputDataDictionaries
+            summary: Gets the full list of functional output data dictionaries
+            description: Gets the full list of functional output data dictionaries
             responses:
                 '200':
                     description: Successful operation
@@ -664,14 +1086,12 @@ paths:
                             schema:
                                 type: array
                                 items:
-                                    $ref: '#/components/schemas/functional_objective_data_dictionary_entry'
+                                    $ref: '#/components/schemas/functional_output_data_dictionary'
                             example:
-                                - id: EF_35_10_30
-                                  text: External stairs
-                                - id: EF_37_17_15
-                                  text: Chimneys
-                                - id: EF_70_80
-                                  text: Lighting
+                                -   id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                    name: 'functional output dd #1'
+                                -   id: 0ee6c05d-c82c-494f-b13c-82f8d64178a1
+                                    name: 'functional output dd #2'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -680,6 +1100,46 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+
+    /functional-output-data-dictionary/{id}:
+        get:
+            operationId: findAllFunctionalOutputDataDictionaryEntries
+            summary: Get the functional objects data dictionary for the dictionary id
+            description: Gets all of the data dictionary keys and values for functional objects
+            parameters:
+                -   in: path
+                    name: id
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description:
+                        The UUID of the data dictionary being requested
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/data_dictionary_entry'
+                            example:
+                                - id: EF_35_10_30
+                                  text: EF_35_10_30-External stairs
+                                - id: EF_37_17_15
+                                  text: EF_37_17_15-Chimneys
+                                - id: EF_70_80
+                                  text: EF_70_80-Lighting
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+
 components:
     schemas:
         organisational_objective:
@@ -693,32 +1153,28 @@ components:
                     description: "The set of organisational information requirements associated with this organisational objective"
                     type: array
                     items:
-                        type: string
+                        $ref: '#/components/schemas/oir'
                     example:
-                        - 'OIR #1'
-                        - 'OIR #2'
-                frs:
-                    description: "The IDs of the set of functional requirement that link to this organisational objective"
-                    type: array
-                    items:
-                        type: string
-                        format: uuid
-                    example:
-                        - 1cfda9b4-1466-4695-8ab2-c19848fa4542
-                        - 884deff4-9a42-4436-8ef2-561777a4f3fd
-                        - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+                        - id:  fc3a0c12-2720-494f-90d9-83b37030f114
+                          oir: 'OIR 1'
+                        - id:  c88e33d0-6738-41aa-9f0e-86b85032e194
+                          oir: 'OIR #2'
+                is_deleted:
+                    description: "Whether the oo is deleted or not, 0=not deleted,1=deleted"
+                    type: boolean
+                    example: false
             required:
                 - name
                 - oirs
-                - frs
+                - is_deleted
+
             example:
                 name: 'Objective #1'
                 oirs:
                     - 'OIR #1'
                     - 'OIR #2'
-                frs:
-                    - 1cfda9b4-1466-4695-8ab2-c19848fa4542
-                    - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                is_deleted: false
+
         organisational_objective_with_id:
             allOf:
                 - $ref: '#/components/schemas/organisational_objective'
@@ -734,20 +1190,172 @@ components:
                 id: 064fecac-d5e8-4ee5-8e96-d4bc63cc95ed
                 name: 'Objective #1'
                 oirs:
-                    - 'OIR #1'
-                    - 'OIR #2'
+                    -   id: fc3a0c12-2720-494f-90d9-83b37030f114
+                        oir: 'OIR 1'
+                    -   id: c88e33d0-6738-41aa-9f0e-86b85032e194
+                        oir: 'OIR #2'
+
+        project_organisational_objective_update:
+            type: object
+            properties:
+                id:
+                    description: "the poo id"
+                    type: string
+                    format: UUID
+                oo_version_id:
+                    description: "The oo version id to update to (null if no update reqd)"
+                    type: string
+                    format: UUID
+                    example:
+                        -   oo_version_id: 12345678-d5e8-4ee5-8e96-d4bc63cc95ed
+
+                frs:
+                    description: "The IDs of the set of functional requirement that link to this project organisational objective"
+                    type: array
+                    items :
+                        type: string
+                        format: uuid
+                    example:
+                        - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                        - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                        - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+                oir_ids:
+                    description: "The IDs of the organisational information requirements to be used by the project organisational objective"
+                    type: array
+                    items:
+                        type: string
+                        format: uuid
+                    example:
+                        - fc3a0c12-2720-494f-90d9-83b37030f114
+                        - c88e33d0-6738-41aa-9f0e-86b85032e194
+
+            required: # only specified fields will be updated
+                - id
+                - oir_ids
+
+            example:
+                id: '064fecac-d5e8-4ee5-8e96-d4bc63cc95ee'
+                frs:
+                    - '1cfda9b4-1466-4695-8ab2-c19848fa4542'
+                    - '884deff4-9a42-4436-8ef2-561777a4f3fd'
+                oo_version_id: '12345678-9a42-4436-8ef2-561777a4f3fd'
+
+        project_organisational_objective:
+            type: object
+            properties:
+                project_id:
+                    description: "the project the poo belongs to"
+                    type: string
+                    format: UUID
+                name:
+                    description: "The name for the poo, based on the version of the oo"
+                    type: string
+                oo_version_id:
+                    description: "The UUID of the project's current oo version"
+                    type: string
+                    format: uuid
+                oo_is_deleted:
+                    description: "Whether the oo is deleted or not, 0=not deleted,1=deleted"
+                    type: boolean
+                    example: false
+                oo_versions:
+                    description: "The set of oo_versions from project current to latest organisational"
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/oo_version'
+                    example:
+                        -   id: 12345678-d5e8-4ee5-8e96-d4bc63cc95ed
+                            name: "OO #1"
+                            dateCreated: "xxxx"
+                        -   id: 12345678-d5e8-4ee5-8e96-d4bc63cc95ed
+                            name: "OO #2"
+                            dateCreated: "xxxx"
+                oirs:
+                    description: "The set of organisational information requirements associated with this project organisational objective"
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/oir'
+                    example:
+                    -   id: fc3a0c12-2720-494f-90d9-83b37030f114
+                        oir: 'OIR 1'
+                    -   id: c88e33d0-6738-41aa-9f0e-86b85032e194
+                        oir: 'OIR #2'
+                frs:
+                    description: "The IDs of the set of functional requirement that link to this project organisational objective"
+                    type: array
+                    items :
+                        type: string
+                        format: uuid
+                    example:
+                        - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                        - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                        - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
+            required:
+                - project_id
+
+            example:
+                project_id: '064fecac-d5e8-4ee5-8e96-d4bc63cc95ee'
+                oirs:
+                    -   id: fc3a0c12-2720-494f-90d9-83b37030f114
+                        oir: 'OIR 1'
+                    -   id: c88e33d0-6738-41aa-9f0e-86b85032e194
+                        oir: 'OIR #2'
+                frs:
+                    - 1cfda9b4-1466-4695-8ab2-c19848fa4542
+                    - 884deff4-9a42-4436-8ef2-561777a4f3fd
+                is_deleted: false
+
+        project_organisational_objective_with_id:
+            allOf:
+                - $ref: '#/components/schemas/project_organisational_objective'
+            type: object
+            properties:
+                id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
+                deleted_oirs:
+                    description: "The set of organisational information requirements currently deleted for this project organisational objective"
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/oir'
+            required:
+                - id
+
+            example:
+                id: 064fecac-d5e8-4ee5-8e96-d4bc63cc95ed
+                project_id: '064fecac-d5e8-4ee5-8e96-d4bc63cc95ee'
+                oirs:
+                    -   id: fc3a0c12-2720-494f-90d9-83b37030f114
+                        oir: 'OIR 1'
+                    -   id: c88e33d0-6738-41aa-9f0e-86b85032e194
+                        oir: 'OIR #2'
+                deleted_oirs:
+                    -   id: fc3a0c12-2720-494f-90d9-83b37030f115
+                        oir: 'OIR 15'
+                    -   id: c88e33d0-6738-41aa-9f0e-86b85032e195
+                        oir: 'OIR #25'
+                is_deleted: false
+                ooVersion:
+                    name: 'Organisational Objective #1 Version 2'
+                    oovId: 3a1e57a7-bc10-48e4-b8a7-2ced7ba38e73
+                    date_created: 12344555656
                 frs:
                     - 1cfda9b4-1466-4695-8ab2-c19848fa4542
                     - 884deff4-9a42-4436-8ef2-561777a4f3fd
         functional_requirement:
             type: object
             properties:
+                project_id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
                 name:
                     description: "The functional requirement"
                     type: string
                     example: 'FR #1'
                 fos:
-                    description: "The IDs of the set of functional objectives linked to this functional requirement"
+                    description: "The IDs of the set of functional objects linked to this functional requirement"
                     type: array
                     items:
                         type: string
@@ -783,13 +1391,14 @@ components:
                     - 0d72e486-74cf-45bc-b11e-cbb7a16b698f
                     - 91990373-dc68-4705-ace8-2a4d36d5bcce
                     - fbdd7a8a-57a6-46d1-a2d1-af57943fe5cc
-        functional_objective:
+        functional_output:
             type: object
             properties:
                 data_dictionary_entry:
-                    $ref: '#/components/schemas/functional_objective_data_dictionary_entry'
+                    description: "The fo data dictionary entry"
+                    $ref: '#/components/schemas/data_dictionary_entry'
                 firs:
-                    description: "The set of functional information requirements associated with this functional objective"
+                    description: "The set of functional information requirements associated with this functional output"
                     type: array
                     items:
                         type: string
@@ -797,7 +1406,7 @@ components:
                         - 'FIR #1'
                         - 'FIR #2'
                 assets:
-                    description: "The IDs of the set of assets linked to this functional objective"
+                    description: "The IDs of the set of assets linked to this functional object"
                     type: array
                     items:
                         type: string
@@ -812,8 +1421,8 @@ components:
                 - assets
             example:
                 data_dictionary_entry:
-                    id: 'EF_37_17_15'
-                    text: 'Chimneys'
+                    id: EF_15
+                    text: EF_15-Earthworks and remediation #(output only)
                 firs:
                     - 'FIR #1'
                     - 'FIR #2'
@@ -821,9 +1430,9 @@ components:
                     - 1cfda9b4-1466-4695-8ab2-c19848fa4542
                     - 884deff4-9a42-4436-8ef2-561777a4f3fd
                     - 2853000a-ec64-4d5b-9dcd-f73d8a79e1cc
-        functional_objective_with_id:
+        functional_output_with_id:
             allOf:
-                - $ref: '#/components/schemas/functional_objective'
+                - $ref: '#/components/schemas/functional_output'
             type: object
             properties:
                 id:
@@ -848,7 +1457,8 @@ components:
             type: object
             properties:
                 data_dictionary_entry:
-                    $ref: '#/components/schemas/asset_data_dictionary_entry'
+                    description: "The asset data dictionary entry"
+                    $ref: '#/components/schemas/data_dictionary_entry'
                 airs:
                     description: "The set of asset information requirements associated with this asset"
                     type: array
@@ -862,11 +1472,12 @@ components:
                 - airs
             example:
                 data_dictionary_entry:
-                    id: 'Ss_15_30_15_65'
-                    text: 'Preliminary concrete cleaning systems'
+                    id: Ss_15_30_15_65
+                    text: Ss_15_30_15_65-Preliminary concrete cleaning systems  #(output only)
                 airs:
                     - 'AIR #1'
                     - 'AIR #2'
+
         asset_with_id:
             allOf:
                 - $ref: '#/components/schemas/asset'
@@ -882,40 +1493,147 @@ components:
                 id: 5799ee92-f25c-4173-aecd-dfa871719065
                 data_dictionary_entry:
                     id: 'Ss_15_30_15_65'
-                    text: 'Preliminary concrete cleaning systems'
+                    text: 'Ss_15_30_15_65 - Preliminary concrete cleaning systems'  #(output only)
                 airs:
                     - 'AIR #1'
                     - 'AIR #2'
-        asset_data_dictionary_entry:
+        data_dictionary_entry:
             type: object
             properties:
                 id:
                     description: The ID of this entry
                     type: string
                 text:
-                    description: The text of this entry
+                    description: The text of this entry  #(output only)
                     type: string
             required:
                 - id
+                - dictionary_id
                 - text
             example:
                 id: Ss_15_30_15_65
-                text: Preliminary concrete cleaning systems
-        functional_objective_data_dictionary_entry:
+                text: Ss_15_30_15_65-Preliminary concrete cleaning systems  #(output only)
+
+        asset_data_dictionary:
             type: object
             properties:
                 id:
-                    description: The ID of this entry
+                    description: The UUID of this entity
                     type: string
-                text:
-                    description: The text of this entry
+                    format: uuid
+                name:
+                    description: The name of the data dictionary
                     type: string
+                    example:
+                        'Sample Asset Data Dictionary'
+            required:
+                - name
+
+        functional_output_data_dictionary:
+            type: object
+            properties:
+                id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
+                name:
+                    description: The name of the data dictionary
+                    type: string
+                    example:
+                        'Sample FO Data Dictionary'
+            required:
+                - name
+        project:
+            type: object
+            properties:
+                name:
+                    description: The name of the project
+                    type: string
+                    minLength: 1
+                    example: 'Sample Project'
+                fo_dd_id:
+                    description: The UUID of the functional output data dictionary
+                    type: string
+                    format: uuid
+                asset_dd_id:
+                    description: The UUID of the asset data dictionary
+                    type: string
+                    format: uuid
+
+            required:
+                - name
+                - fo_dd_id
+                - asset_dd_id
+            example:
+                name: 'Sample project'
+                fo_dd_id: 5799ee92-f25c-4173-aecd-dfa871719065
+                asset_dd_id: 1234ee92-f25c-4173-aecd-dfa871719065
+        project_with_id:
+            allOf:
+                - $ref: '#/components/schemas/project'
+            type: object
+            properties:
+                id:
+                    description: The UUID of this entity
+                    type: string
+                    format: uuid
             required:
                 - id
-                - text
+                - name
+                - fo_dd_id
+                - asset_dd_id
             example:
-                id: EF_37_17_15
-                text: Chimneys
+                id: 5799ee92-f25c-4173-aecd-dfa871719065
+                name: 'Sample project'
+                fo_dd_id: 5799ee92-f25c-4173-aecd-dfa871719065
+                asset_dd_id: 1234ee92-f25c-4173-aecd-dfa871719065
+
+        oo_version:
+            type: object
+            properties:
+                id:
+                    description: The id of the oo version
+                    type: string
+                    format: uuid
+                oo_id:
+                    description: The UUID of the organisational objective
+                    type: string
+                    format: uuid
+                name:
+                    description: The name for this version of the oo
+                    type: string
+                date_created:
+                    description: The creation date of the oo version
+                    type: integer
+                    format: int64
+            required:
+                - id
+                - oo_id
+                - name
+                - date_created
+            example:
+                id: 3a1e57a7-bc10-48e4-b8a7-2ced7ba38e73
+                oo_id: 1234ee92-f25c-4173-aecd-dfa871719065
+                name: 'Organisational objective #1 version 2'
+                date_created: 56763653535
+
+        oir:
+            type: object
+            properties:
+                id:
+                    description: The UUID id of the oir
+                    type: string
+                    format: uuid
+                oir:
+                    description: The text of the oir
+                    type: string
+            required:
+                - oir
+
+            example:
+                id: 3a1e57a7-bc10-48e4-b8a7-2ced7ba38e73
+                oir: OIR#1
+
     responses:
         BadRequest:
             description: Bad request - The service was unable to understand the request or information required in the request was missing.

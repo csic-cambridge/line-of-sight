@@ -1,0 +1,110 @@
+databaseChangeLog:
+- changeSet:
+    id: 1659104585416-1
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: oir_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: project_id
+            type: CHAR(36)
+        tableName: deleted_oir
+- changeSet:
+    id: 1659104585416-2
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: project_id
+        indexName: FK_DELETEDOIR_ON_PROJECT_idx
+        tableName: deleted_oir
+- changeSet:
+    id: 1659104585416-4
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: project_id
+        baseTableName: deleted_oir
+        constraintName: FK_DELETEDOIR_ON_PROJECT
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: CASCADE
+        onUpdate: NO ACTION
+        referencedColumnNames: id
+        referencedTableName: project
+        validate: true
+- changeSet:
+      id: 1659104585416-5
+      author: philliprushby (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: id
+                          type: CHAR(36 BYTE)
+                tableName: oirs
+
+- changeSet:
+      id: 1659104585416-6
+      author: Philip Rushby
+      changes:
+          - sql:
+                dbms: 'mysql, mariadb'
+                splitStatements: false
+                stripComments: true
+                sql:
+                    update oirs set id = 'dcd5f889-bc87-4896-96b3-ca5c89325b89' where oirs = "OIR \#1";
+                    update oirs set id = 'c81e58f3-3b34-40a7-b250-1c1941153dd0' where oirs = "OIR \#2";
+                    update oirs set id = '603b9d7a-f224-46fa-8751-6aa08f62952b' where oirs = "OIR \#3";
+                    update oirs set id = 'fc3a0c12-2720-494f-90d9-83b37030f114' where oirs = "OIR \#4";
+- changeSet:
+      id: 1659104585416-7
+      author: philliprushby (generated)
+      changes:
+          - addPrimaryKey:
+                columnNames: id
+                constraintName: PRIMARY
+                tableName: oirs
+- changeSet:
+      id: 1659104585416-8
+      author: philliprushby (generated)
+      changes:
+          - addNotNullConstraint:
+                columnDataType: char(36)
+                columnName: id
+                tableName: oirs
+                validate: true
+- changeSet:
+      id: 1659104585416-9
+      author: philliprushby (generated)
+      changes:
+          - dropDefaultValue:
+                columnDataType: char(36)
+                columnName: id
+                tableName: oirs
+
+- changeSet:
+      id: 1659104585416-12
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: oir_id
+                baseTableName: deleted_oir
+                constraintName: FK_DELETEDOIR_ON_OIR
+                deferrable: false
+                initiallyDeferred: false
+                onDelete:  CASCADE
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: oirs
+                validate: true

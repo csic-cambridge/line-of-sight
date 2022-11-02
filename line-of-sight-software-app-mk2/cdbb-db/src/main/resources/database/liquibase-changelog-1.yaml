@@ -1,0 +1,108 @@
+# This changelog renames functional objective to functional output
+databaseChangeLog:
+    - changeSet:
+          id: 1654003373310-1
+          author: philliprushby (generated)
+          changes:
+              -   renameTable:
+                      newTableName: functional_output
+                      oldTableName: functional_objective
+    - changeSet:
+          id: 1654003373310-2
+          author: philliprushby (generated)
+          changes:
+              changes:
+                  -   renameTable:
+                          newTableName: functional_output_dictionary
+                          oldTableName: functional_objective_dictionary
+
+    - changeSet:
+          id: 1654003373310-4
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: data_dictionary_entry_id
+                    baseTableName: functional_output
+                    constraintName: FK_FUNCTIONALOUTPUT_ON_DATADICTIONARYENTRY
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: RESTRICT
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: functional_output_dictionary
+                    validate: true
+    - changeSet:
+          id: 1654003373310-5
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: fo_id
+                    baseTableName: firs
+                    constraintName: fk_firs_on_functional_output
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: RESTRICT
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: functional_output
+                    validate: true
+    - changeSet:
+          id: 1654003373310-6
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: fo_id
+                    baseTableName: fo_assets
+                    constraintName: fk_fo_assets_on_functional_output
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: RESTRICT
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: functional_output
+                    validate: true
+    - changeSet:
+          id: 1654003373310-7
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: fo_id
+                    baseTableName: fr_fo
+                    constraintName: fk_fr_fo_on_functional_output
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: RESTRICT
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: functional_output
+                    validate: true
+    - changeSet:
+          id: 1654003373310-8
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: functional_output
+                    constraintName: FK_FUNCTIONALOBJECTIVE_ON_DATADICTIONARYENTRY
+    - changeSet:
+          id: 1654003373310-9
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: firs
+                    constraintName: fk_firs_on_functional_objective
+    - changeSet:
+          id: 1654003373310-10
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: fo_assets
+                    constraintName: fk_fo_assets_on_functional_objective
+    - changeSet:
+          id: 1654003373310-11
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: fr_fo
+                    constraintName: fk_fr_fo_on_functional_objective
+
+

@@ -1,0 +1,215 @@
+databaseChangeLog:
+    - changeSet:
+          id: 1655731358032-1
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: asset
+                    constraintName: FK_ASSET_ON_PROJECT
+    - changeSet:
+          id: 1655731358032-2
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: project_id
+                    baseTableName: asset
+                    constraintName: FK_ASSET_ON_PROJECT
+                    onDelete: CASCADE
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: project
+    - changeSet:
+          id: 1655731358032-3
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: functional_output
+                    constraintName: FK_FUNCTIONALOUTPUT_ON_PROJECT
+    - changeSet:
+          id: 1655731358032-4
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: project_id
+                    baseTableName: functional_output
+                    constraintName: FK_FUNCTIONALOUTPUT_ON_PROJECT
+                    onDelete: CASCADE
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: project
+
+    - changeSet:
+          id: 1655731358032-7
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: project_organisational_objective
+                    constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_PROJECT
+    - changeSet:
+          id: 1655731358032-8
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: project_id
+                    baseTableName: project_organisational_objective
+                    constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_PROJECT
+                    onDelete: CASCADE
+                    onUpdate: NO ACTION
+                    referencedColumnNames: id
+                    referencedTableName: project
+    - changeSet:
+          id: 1655731358032-9
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: functional_requirement
+                    constraintName: FUNCTIONAL_REQUIREMENT_ON_PROJECT
+    - changeSet:
+          id: 1655731358032-10
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: project_id
+                    baseTableName: functional_requirement
+                    constraintName: FUNCTIONAL_REQUIREMENT_ON_PROJECT
+                    onDelete: CASCADE
+                    onUpdate: NO ACTION
+                    referencedColumnNames: id
+                    referencedTableName: project
+    -   changeSet:
+            id: 1655731358032-11
+            author: philliprushby (generated)
+            changes:
+                -   dropForeignKeyConstraint:
+                        baseTableName: poo_frs
+                        constraintName: fk_oo_frs_on_project_organisational_objective
+    -   changeSet:
+            id: 1655731358032-12
+            author: philliprushby (generated)
+            changes:
+                -   addForeignKeyConstraint:
+                        baseColumnNames: poo_id
+                        baseTableName: poo_frs
+                        constraintName: fk_oo_frs_on_project_organisational_objective
+                        onDelete: CASCADE
+                        onUpdate: RESTRICT
+                        referencedColumnNames: id
+                        referencedTableName: project_organisational_objective
+    -   changeSet:
+            id: 1655731358032-13
+            author: philliprushby (generated)
+            changes:
+                -   dropForeignKeyConstraint:
+                        baseTableName: firs
+                        constraintName: fk_firs_on_functional_output
+    - changeSet:
+          id: 1655731358032-14
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: fo_id
+                    baseTableName: firs
+                    constraintName: fk_firs_on_functional_output
+                    onDelete: CASCADE
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: functional_output
+
+    -   changeSet:
+            id: 1655731358032-15
+            author: philliprushby (generated)
+            changes:
+                -   dropForeignKeyConstraint:
+                        baseTableName: oirs
+                        constraintName: fk_oirs_on_organisational_objective
+    - changeSet:
+          id: 1655731358032-16
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: oo_id
+                    baseTableName: oirs
+                    constraintName: fk_oirs_on_organisational_objective
+                    onDelete: CASCADE
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: organisational_objective
+    - changeSet:
+          id: 1655731358032-17
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: oo_version
+                    constraintName: FK_OOV_ON_ORGANISATIONAL_OBJECTIVE
+    - changeSet:
+          id: 1655731358032-18
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: oo_id
+                    baseTableName: oo_version
+                    constraintName: FK_OOV_ON_ORGANISATIONAL_OBJECTIVE
+                    onDelete: CASCADE
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: organisational_objective
+
+    - changeSet:
+         id: 1655731358032-19
+         author: philliprushby (generated)
+         changes:
+             - dropForeignKeyConstraint:
+                   baseTableName: fo_assets
+                   constraintName: fk_fo_assets_on_asset
+    - changeSet:
+         id: 1655731358032-20
+         author: philliprushby (generated)
+         changes:
+             - addForeignKeyConstraint:
+                   baseColumnNames: asset_id
+                   baseTableName: fo_assets
+                   constraintName: fk_fo_assets_on_asset
+                   onDelete: CASCADE
+                   onUpdate: RESTRICT
+                   referencedColumnNames: id
+                   referencedTableName: asset
+
+    - changeSet:
+          id: 1655731358032-21
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: airs
+                    constraintName: fk_airs_on_asset
+    - changeSet:
+          id: 1655731358032-22
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: asset_id
+                    baseTableName: airs
+                    constraintName: fk_airs_on_asset
+                    onDelete: CASCADE
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: asset
+
+    - changeSet:
+          id: 1655731358032-23
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: fr_fo
+                    constraintName: fk_fr_fo_on_functional_output
+    - changeSet:
+          id: 1655731358032-24
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: fo_id
+                    baseTableName: fr_fo
+                    constraintName: fk_fr_fo_on_functional_output
+                    onDelete: CASCADE
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: functional_output

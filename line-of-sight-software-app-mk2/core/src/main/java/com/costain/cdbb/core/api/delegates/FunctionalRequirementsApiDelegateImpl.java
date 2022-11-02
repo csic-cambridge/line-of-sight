@@ -48,16 +48,16 @@ public class FunctionalRequirementsApiDelegateImpl implements FunctionalRequirem
 
     @Override
     public Mono<ResponseEntity<Flux<FunctionalRequirementWithId>>> findAllFunctionalRequirements(
-            ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(repository.findAll())
+        UUID projectId, ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(repository.findByProjectIdOrderByNameAsc(projectId))
                 .map(dao -> frHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @Override
-    public Mono<ResponseEntity<FunctionalRequirementWithId>> findFunctionalRequirementById(UUID id,
-            ServerWebExchange exchange) {
+    public Mono<ResponseEntity<FunctionalRequirementWithId>> findFunctionalRequirementById(
+        UUID projectId, UUID id, ServerWebExchange exchange) {
         return Mono.fromCallable(() -> repository.findById(id).orElse(null))
             .map(dao -> frHelper.fromDao(dao))
             .map(ResponseEntity::ok)
@@ -66,8 +66,10 @@ public class FunctionalRequirementsApiDelegateImpl implements FunctionalRequirem
 
     @Override
     public Mono<ResponseEntity<FunctionalRequirementWithId>> addFunctionalRequirement(
-            Mono<FunctionalRequirement> functionalRequirement, ServerWebExchange exchange) {
-        return functionalRequirement.map(dto -> frHelper.fromDto(dto))
+        UUID projectId, Mono<FunctionalRequirement> functionalRequirement, ServerWebExchange exchange) {
+        System.out.println("addFunctionalRequirement: projectId=" + projectId + ", functionalRequirement "
+            + functionalRequirement.toString());
+        return functionalRequirement.map(dto -> frHelper.fromDto(projectId, dto))
             .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
             .map(savedDao -> frHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
@@ -75,9 +77,10 @@ public class FunctionalRequirementsApiDelegateImpl implements FunctionalRequirem
     }
 
     @Override
-    public Mono<ResponseEntity<FunctionalRequirementWithId>> upsertFunctionalRequirement(UUID id,
+    public Mono<ResponseEntity<FunctionalRequirementWithId>> updateFunctionalRequirement(
+        UUID projectId, UUID id,
             Mono<FunctionalRequirement> functionalRequirement, ServerWebExchange exchange) {
-        return functionalRequirement.map(dto -> frHelper.fromDto(id, dto))
+        return functionalRequirement.map(dto -> frHelper.fromDto(projectId, id, dto))
             .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
             .map(savedDao -> frHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
@@ -85,7 +88,8 @@ public class FunctionalRequirementsApiDelegateImpl implements FunctionalRequirem
     }
 
     @Override
-    public Mono<ResponseEntity<Void>> deleteFunctionalRequirement(UUID id, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<Void>> deleteFunctionalRequirement(
+        UUID projectId, UUID id, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
         return Mono.fromRunnable(() -> repository.deleteById(id))
             .map(x -> re)

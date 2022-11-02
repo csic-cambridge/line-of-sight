@@ -1,0 +1,208 @@
+databaseChangeLog:
+    - changeSet:
+          id: 1655471788267-1
+          author: philliprushby (generated)
+          changes:
+              - createTable:
+                    columns:
+                        - column:
+                              constraints:
+                                  nullable: false
+                                  primaryKey: true
+                              name: id
+                              type: INT
+                        - column:
+                              name: oo_id
+                              type: CHAR(36)
+                        - column:
+                              name: name
+                              type: VARCHAR(255)
+                        - column:
+                              defaultValueComputed: current_timestamp()
+                              name: date_created
+                              type: timestamp
+                    tableName: oo_version
+    - changeSet:
+          id: 1655471788267-2
+          author: philliprushby (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              defaultValueComputed: 'NULL'
+                              name: oov_id
+                              type: INT
+                    tableName: project_organisational_objective
+    - changeSet:
+          id: 1655471788267-3
+          author: philliprushby (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              name: project_id
+                              type: CHAR(36 BYTE)
+                    tableName: asset
+    - changeSet:
+          id: 1655471788267-4
+          author: philliprushby (generated)
+          changes:
+              - addColumn:
+                    columns:
+                        - column:
+                              constraints:
+                                  nullable: false
+                              name: project_id
+                              type: CHAR(36 BYTE)
+                    tableName: functional_output
+    - changeSet:
+          id: 1655471788267-5
+          author: philliprushby (generated)
+          changes:
+              - createIndex:
+                    columns:
+                        - column:
+                              name: project_id
+                    indexName: FK_FUNCTIONAL_OUTPUT_ON_PROJECT_idx
+                    tableName: functional_output
+    - changeSet:
+          id: 1655471788267-6
+          author: philliprushby (generated)
+          changes:
+              - createIndex:
+                    columns:
+                        - column:
+                              name: oo_id
+                    indexName: FK_OOV_ON_OO_idx
+                    tableName: oo_version
+    - changeSet:
+          id: 1655471788267-7
+          author: philliprushby (generated)
+          changes:
+              - createIndex:
+                    columns:
+                        - column:
+                              defaultValueComputed: 'NULL'
+                              name: oov_id
+                    indexName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_OO_VERSION_idx
+                    tableName: project_organisational_objective
+    - changeSet:
+          id: 1655471788267-8
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: oo_id
+                    baseTableName: oo_version
+                    constraintName: FK_OOV_ON_ORGANISATIONAL_OBJECTIVE
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: NO ACTION
+                    onUpdate: NO ACTION
+                    referencedColumnNames: id
+                    referencedTableName: organisational_objective
+                    validate: true
+    - changeSet:
+          id: 1655471788267-9
+          author: philliprushby (generated)
+          changes:
+              - addForeignKeyConstraint:
+                    baseColumnNames: oov_id
+                    baseTableName: project_organisational_objective
+                    constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_OO_VERSION
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: NO ACTION
+                    onUpdate: NO ACTION
+                    referencedColumnNames: id
+                    referencedTableName: oo_version
+                    validate: true
+    - changeSet:
+          id: 1655471788267-10
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: project_organisational_objective
+                    constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_ORGANISATIONAL_OBJECTIVE
+    - changeSet:
+          id: 1655471788267-11
+          author: philliprushby (generated)
+          changes:
+              - dropColumn:
+                    columnName: accepted_last_modified_timestamp
+                    tableName: project_organisational_objective
+    - changeSet:
+          id: 1655471788267-12
+          author: philliprushby (generated)
+          changes:
+              - dropColumn:
+                    columnName: last_modified_timestamp
+                    tableName: organisational_objective
+    - changeSet:
+          id: 1655471788267-13
+          author: philliprushby (generated)
+          changes:
+              - dropColumn:
+                    columnName: name
+                    tableName: organisational_objective
+    - changeSet:
+          id: 1655471788267-14
+          author: philliprushby (generated)
+          changes:
+              - dropColumn:
+                    columnName: oo_id
+                    tableName: project_organisational_objective
+
+    - changeSet:
+          id: 1655471788267-15
+          author: Philip Rushby
+          changes:
+              - sql:
+                    dbms: 'mysql, mariadb'
+                    splitStatements: false
+                    stripComments: true
+                    sql:
+                        update asset set project_id = '387dac90-e188-11ec-8fea-0242ac120002';
+                        update functional_output set project_id = '387dac90-e188-11ec-8fea-0242ac120002';
+                        update organisational_objective set is_deleted = 0;
+                        insert oo_version (id, oo_id, name)
+                        values
+                            (1, '064fecac-d5e8-4ee5-8e96-d4bc63cc95ed', 'Objective \#1'),
+                            (2, 'fc2aae01-5543-4218-adda-99f459e61295', 'Objective \#2'),
+                            (3, 'ee183d1b-f9f4-4d7d-8c0a-53f81b198ced', 'Objective \#3');
+                        update project_organisational_objective
+                        set oov_id = 1 where id = '4d0a44c2-0a49-45c7-914c-bb1a3cf14509';
+                        update project_organisational_objective
+                        set oov_id = 2 where id = '6e767c64-3865-4215-b8d8-e7feec9517ce';
+                        update project_organisational_objective
+                        set oov_id = 3 where id = 'd30f022f-067e-4b7e-8d02-b2ad32d1fb0a';
+    - changeSet:
+        id: 1655471788267-16
+        author: philliprushby (generated)
+        changes:
+            -   addForeignKeyConstraint:
+                    baseColumnNames: project_id
+                    baseTableName: functional_output
+                    constraintName: FK_FUNCTIONALOUTPUT_ON_PROJECT
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: RESTRICT
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: project
+                    validate: true
+    - changeSet:
+        id: 1655471788267-17
+        author: philliprushby (generated)
+        changes:
+            -   addForeignKeyConstraint:
+                    baseColumnNames: project_id
+                    baseTableName: asset
+                    constraintName: FK_ASSET_ON_PROJECT
+                    deferrable: false
+                    initiallyDeferred: false
+                    onDelete: RESTRICT
+                    onUpdate: RESTRICT
+                    referencedColumnNames: id
+                    referencedTableName: project
+                    validate: true
+

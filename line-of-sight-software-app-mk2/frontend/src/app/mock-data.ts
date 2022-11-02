@@ -1,7 +1,7 @@
 import { Asset } from './asset'
 import {OrganisationalObjective} from "./organisational-objective";
 import {FunctionalRequirement} from "./functional-requirement";
-import {FunctionalObjective} from "./functional-objective";
+import {FunctionalOutput} from "./functional-output";
 
 export const MOCK_OBJECTIVES: Array<OrganisationalObjective> = [
     {id: '064fecac-d5e8-4ee5-8e96-d4bc63cc95ed', name: 'Objective #1', oirs: ['OIR #1', 'OIR #2'], frs: ['1cfda9b4-1466-4695-8ab2-c19848fa4542']},
@@ -14,7 +14,7 @@ export const MOCK_FRS: Array<FunctionalRequirement> = [
     {id: '2853000a-ec64-4d5b-9dcd-f73d8a79e1cc', name: 'FR #3', fos: ['0d72e486-74cf-45bc-b11e-cbb7a16b698f']},
     {id: '53f26727-63ae-4570-a91a-074f3fbdb110', name: 'FR #4', fos: []}
 ];
-export const MOCK_FOS: Array<FunctionalObjective> = [
+export const MOCK_FOS: Array<FunctionalOutput> = [
     {id: '0d72e486-74cf-45bc-b11e-cbb7a16b698f', data_dictionary_entry: { id: 'EF_35_10_30', text: 'External stairs'}, firs: ['FIR #1', 'FIR #2'], assets: ['5799ee92-f25c-4173-aecd-dfa871719065', '27217551-7641-4e1b-a297-11b49adb91b4']},
     {id: '91990373-dc68-4705-ace8-2a4d36d5bcce', data_dictionary_entry: { id: 'EF_37_17_15', text: 'Chimneys'}, firs: ['FIR #3'], assets: ['5799ee92-f25c-4173-aecd-dfa871719065']},
     {id: 'fbdd7a8a-57a6-46d1-a2d1-af57943fe5cc', data_dictionary_entry: { id: 'EF_70_80', text: 'Lighting'}, firs: [], assets: []}

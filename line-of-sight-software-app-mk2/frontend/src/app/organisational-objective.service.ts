@@ -22,7 +22,14 @@ export class OrganisationalObjectiveService {
     }
 
     save(organisationalObjective: OrganisationalObjective): Observable<OrganisationalObjective> {
-        return this.http.put<OrganisationalObjective>(this.serviceUrl + '/' + organisationalObjective.id, organisationalObjective);
+        return organisationalObjective.id === null
+            ? this.http.post<OrganisationalObjective>(this.serviceUrl, organisationalObjective)
+            : this.http.put<OrganisationalObjective>(this.serviceUrl + '/' + organisationalObjective.id, organisationalObjective);
+    }
+
+    delete(ooId: string): Observable<any> {
+        console.log("Organisational Objective Id to delete: ", ooId);
+        return this.http.delete(this.serviceUrl + '/' + ooId);
     }
 
 }

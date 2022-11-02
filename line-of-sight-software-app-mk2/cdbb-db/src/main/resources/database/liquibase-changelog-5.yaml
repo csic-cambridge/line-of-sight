@@ -1,0 +1,60 @@
+databaseChangeLog:
+    - changeSet:
+          id: 1655983589853-1
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: project_organisational_objective
+                    constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_OO_VERSION
+    - changeSet:
+          id: 1655983589853-2
+          author: philliprushby (generated)
+          changes:
+              - modifyDataType:
+                    columnName: id
+                    newDataType: char(36)
+                    tableName: oo_version
+
+    - changeSet:
+          id: 1655983589853-3
+          author: philliprushby (generated)
+          changes:
+              - modifyDataType:
+                    columnName: oov_id
+                    newDataType: char(36)
+                    tableName: project_organisational_objective
+
+    - changeSet:
+          id: 1655983589853-4
+          author: Philip Rushby
+          changes:
+              - sql:
+                    dbms: 'mysql, mariadb'
+                    splitStatements: false
+                    stripComments: true
+                    sql:
+                        update oo_version set id = '3a1e57a7-bc10-48e4-b8a7-2ced7ba38e73' where name = "Objective \#1";
+                        update oo_version set id = '7ef6865b-bbc4-4ed9-9b55-579ead245769' where name = "Objective \#2";
+                        update oo_version set id = '7fde45d4-f88c-4ce4-b6e1-eaa68fca46d3' where name = "Objective \#3";
+                        update project_organisational_objective set oov_id = '3a1e57a7-bc10-48e4-b8a7-2ced7ba38e73'
+                        where id = '4d0a44c2-0a49-45c7-914c-bb1a3cf14509';
+                        update project_organisational_objective SET oov_id = '7ef6865b-bbc4-4ed9-9b55-579ead245769'
+                        where id = '6e767c64-3865-4215-b8d8-e7feec9517ce';
+                        update project_organisational_objective set oov_id = '7fde45d4-f88c-4ce4-b6e1-eaa68fca46d3'
+                        where id = 'd30f022f-067e-4b7e-8d02-b2ad32d1fb0a';
+
+    -   changeSet:
+            id: 1655983589853-5
+            author: philliprushby (generated)
+            changes:
+               -   addForeignKeyConstraint:
+                        baseColumnNames: oov_id
+                        baseTableName: project_organisational_objective
+                        constraintName: FK_PROJECTORGANISATIONALOBJECTIVE_ON_OOVERSION
+                        deferrable: false
+                        initiallyDeferred: false
+                        onDelete: CASCADE
+                        onUpdate: NO ACTION
+                        referencedColumnNames: id
+                        referencedTableName: oo_version
+                        validate: true

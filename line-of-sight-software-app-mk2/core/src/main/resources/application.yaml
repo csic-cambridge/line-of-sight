@@ -1,4 +1,7 @@
-
+profiles:
+    active=@spring.profile.from.maven@
+debug:
+    true
 logging:
     level:
         org:
@@ -21,11 +24,33 @@ spring:
             mode=never:
 
     liquibase:
-        change-log: 'classpath:database/liquibase-changelog.yaml'
+        change-log: 'classpath:database/liquibase-changelog-main.yaml'
     web.cors.allowed-origins:
         - "http://localhost:8080"
         - "http://localhost:4200"
     security.user.password: "TJuw3udSWLbHBRc"
+
+---
+spring:
+    profiles: azure-active-directory
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    jwk-set-uri: https://login.microsoftonline.com/a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26/discovery/v2.0/keys
+                    issuer-uri: https://login.microsoftonline.com/{a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26}/v2.0
+
+    #cloud:
+     #   azure:
+      #      active-directory:
+       #         enabled: true
+        #        profile:
+         #           tenant-id: a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26
+          #      credential:
+           #         client-id: 12238474-6457-44c0-8485-ab57ae490c98
+            #        client-secret: 1b9a2b19-57d8-4060-81aa-40fc13ef5d50
+
+
 management:
     endpoint.health.show-details: always
     endpoints.web.exposure.include:
@@ -35,3 +60,6 @@ management:
         - integrationgraph
         - liquibase
         - mappings
+
+
+

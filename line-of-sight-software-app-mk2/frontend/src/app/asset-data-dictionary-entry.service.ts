@@ -19,10 +19,10 @@ export class AssetDataDictionaryEntryService {
         this.serviceUrl = environment.apiBaseUrl + '/api/asset-data-dictionary';
     }
 
-    getAssetDataDictionaryEntries(): Observable<Array<DataDictionaryEntry>> {
+    getAssetDataDictionaryEntries(projectId: string): Observable<Array<DataDictionaryEntry>> {
         if(!this.cache$) {
             console.log("Caching asset data dictionary entries");
-            this.cache$ = this.http.get<Array<DataDictionaryEntry>>(this.serviceUrl).pipe(shareReplay());
+            this.cache$ = this.http.get<Array<DataDictionaryEntry>>(this.serviceUrl + '/' + projectId).pipe(shareReplay());
         }
         return this.cache$;
     }

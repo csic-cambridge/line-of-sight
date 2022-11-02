@@ -18,8 +18,12 @@
 package com.costain.cdbb.core.api.delegates;
 
 import com.costain.cdbb.api.AssetDataDictionaryApiDelegate;
-import com.costain.cdbb.model.AssetDataDictionaryEntry;
+import com.costain.cdbb.model.AssetDataDictionary;
+import com.costain.cdbb.model.DataDictionaryEntry;
+import com.costain.cdbb.model.helpers.AssetDataDictionaryHelper;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
+import com.costain.cdbb.repositories.AssetDataDictionaryRepository;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -27,21 +31,34 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+
 @Service
 public class AssetDataDictionaryApiDelegateImpl implements AssetDataDictionaryApiDelegate {
 
-    private AssetDataDictionaryEntryRepository repository;
+    @Autowired
+    private AssetDataDictionaryEntryRepository ddeRepository;
 
     @Autowired
-    public void setRepository(AssetDataDictionaryEntryRepository repository) {
-        this.repository = repository;
+    private AssetDataDictionaryRepository ddRepository;
+
+    @Autowired
+    private AssetDataDictionaryHelper assetDataDictionaryHelper;
+
+    @Override
+    public Mono<ResponseEntity<Flux<AssetDataDictionary>>> findAllAssetDataDictionaries(ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(ddRepository.findAll())
+                .map(dao -> assetDataDictionaryHelper.fromDao(dao)))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @Override
-    public Mono<ResponseEntity<Flux<AssetDataDictionaryEntry>>> findAllAssetDataDictionaryEntries(
-            ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(repository.findAll())
-                .map(dao -> new AssetDataDictionaryEntry().id(dao.getId()).text(dao.getText())))
+    public Mono<ResponseEntity<Flux<DataDictionaryEntry>>> findAllAssetDataDictionaryEntries(
+        UUID id,ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(ddeRepository.findByAssetDictionaryId(id))
+                .map(dao -> new DataDictionaryEntry()
+                    .id(dao.getId())
+                    .text(dao.getId() + "-" + dao.getText())))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
