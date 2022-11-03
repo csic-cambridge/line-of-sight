@@ -2,12 +2,14 @@ profiles:
     active=@spring.profile.from.maven@
 debug:
     true
+
 logging:
     level:
         org:
             hibernate:
                 SQL: debug
-
+            springframework:
+                security: DEBUG
 spring:
     datasource:
         url: jdbc:mariadb://127.0.0.1:3306/cdbb?allowMultiQueries=true
@@ -19,6 +21,7 @@ spring:
             ddl-auto:create
         show-sql: true
         properties.hibernate.enable_lazy_load_no_trans: true
+        # properties.hibernate.hbm2ddl.auto: update [use only to generate audit tables during dev]
     sql:
         init:
             mode=never:
@@ -28,31 +31,35 @@ spring:
     web.cors.allowed-origins:
         - "http://localhost:8080"
         - "http://localhost:4200"
-    security.user.password: "TJuw3udSWLbHBRc"
+    #security.user.password: "TJuw3udSWLbHBRc"
 
----
-spring:
-    profiles: azure-active-directory
     security:
         oauth2:
-            resourceserver:
-                jwt:
-                    jwk-set-uri: https://login.microsoftonline.com/a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26/discovery/v2.0/keys
-                    issuer-uri: https://login.microsoftonline.com/{a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26}/v2.0
+            client:
+                registration:
+                    google:
+                        client-id: 400646194801-hfhivbe58mb2sjpqmjrl54q4seis712j.apps.googleusercontent.com
+                        client-secret: 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
+                    azure:
+                        client-id: 12238474-6457-44c0-8485-ab57ae490c98
+                        client-secret: y4O8Q~UfemE0FnRA2stYoJaYij4l79OTuNTv_bnE
+                        scope: email, openid, profile
+                        redirect-uri: http://localhost:8080/login/oauth2/code/azure
+                        authentication-scheme: header
+                        client-authentication-scheme: form
+                        authorization-grant-type: authorization_code
 
-    #cloud:
-     #   azure:
-      #      active-directory:
-       #         enabled: true
-        #        profile:
-         #           tenant-id: a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26
-          #      credential:
-           #         client-id: 12238474-6457-44c0-8485-ab57ae490c98
-            #        client-secret: 1b9a2b19-57d8-4060-81aa-40fc13ef5d50
+                provider:
+                    azure:
+                        issuer: https://login.microsoftonline.com/a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26/v2.0
+                        authorization-uri: https://login.microsoftonline.com/a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26/oauth2/v2.0/authorize
+                        token-uri: https://login.microsoftonline.com/a76f7f54-71f8-4ab4-8cb5-a1a21a6b5d26/oauth2/v2.0/token
+                        jwk-set-uri: https://login.microsoftonline.com/common/discovery/keys
 
 
 management:
     endpoint.health.show-details: always
+    security.enabled: false
     endpoints.web.exposure.include:
         - health
         - httptrace
@@ -60,6 +67,4 @@ management:
         - integrationgraph
         - liquibase
         - mappings
-
-
 

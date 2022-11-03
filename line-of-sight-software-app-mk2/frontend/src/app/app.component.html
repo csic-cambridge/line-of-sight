@@ -2,15 +2,24 @@
 <div class="app-container">
     <div *ngIf="this.getRouter().url !== '/login'" >
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">
+            <div class="navbar-brand">
                 <span style="font-size: 28px;"><i>Line of Sight</i></span>
                 <span *ngIf="this.getRouter().url === '/project'"> - Project: <b>{{this.getProjectName()}}</b></span>
-            </a>
+                <br/>
+                <span style="font-size: 10px">You are logged in as <b>{{this.getLoggedInUsername()}}</b></span>
+            </div>
             <div class="col">
-                <button type="button" class="btn btn-outline-danger action-btn-grp pull-right" (click)="logout()">Logout</button>
-                <button type="button" class="btn btn-outline-info action-btn-grp pull-right">Super User</button>
-                <button type="button" class="btn btn-outline-info action-btn-grp pull-right" (click)="goToOOGraph()">Organisational Objectives</button>
-                <button type="button" class="btn btn-outline-info action-btn-grp pull-right" (click)="goToProjectsDashboard()">Projects</button>
+                <button type="button" class="btn btn-outline-danger action-btn-grp pull-right"
+                        (click)="logout()">Logout</button>
+                <button type="button" class="btn btn-outline-info action-btn-grp pull-right"
+                        [disabled]="!this.permissionService.loggedInUser.value.is_super_user"
+                        (click)="goToSuperuserDashboard()">Super User</button>
+                <button type="button" class="btn btn-outline-info action-btn-grp pull-right"
+                        [disabled]="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_OOS)"
+                        (click)="goToOOGraph()">Organisational Objectives</button>
+                <button type="button" class="btn btn-outline-info action-btn-grp pull-right"
+                        [disabled]="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_PROJECTS_DASHBOARD)"
+                        (click)="goToProjectsDashboard()">Projects</button>
             </div>
         </nav>
         <hr/>

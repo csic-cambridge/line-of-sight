@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
+@Audited
 @Table(name = "functional_requirement")
 @Getter
 @Setter(AccessLevel.PROTECTED)

@@ -1,0 +1,1104 @@
+databaseChangeLog:
+- changeSet:
+    id: 1662045079298-1
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: asset_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: airs
+            type: VARCHAR(255)
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: airs_aud
+- changeSet:
+    id: 1662045079298-2
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: project_id
+            type: CHAR(36)
+        - column:
+            name: data_dictionary_entry_id
+            type: VARCHAR(255)
+        tableName: asset_aud
+- changeSet:
+    id: 1662045079298-3
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: name
+            type: VARCHAR(255)
+        tableName: asset_dictionary_aud
+- changeSet:
+    id: 1662045079298-4
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: asset_dictionary_id
+            type: CHAR(36)
+        - column:
+            name: text
+            type: VARCHAR(255)
+        tableName: asset_dictionary_entry_aud
+- changeSet:
+    id: 1662045079298-5
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: oir_id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: project_id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: deleted_oir_aud
+- changeSet:
+    id: 1662045079298-6
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: fo_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: firs
+            type: VARCHAR(255)
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: firs_aud
+- changeSet:
+    id: 1662045079298-7
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: fo_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: asset_id
+            type: CHAR(36)
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: fo_assets_aud
+- changeSet:
+    id: 1662045079298-8
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: fr_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: fo_id
+            type: CHAR(36)
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: fr_fo_aud
+- changeSet:
+    id: 1662045079298-9
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: project_id
+            type: CHAR(36)
+        - column:
+            name: data_dictionary_entry_id
+            type: VARCHAR(255)
+        tableName: functional_output_aud
+- changeSet:
+    id: 1662045079298-10
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: name
+            type: VARCHAR(255)
+        tableName: functional_output_dictionary_aud
+- changeSet:
+    id: 1662045079298-11
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: fo_dictionary_id
+            type: CHAR(36)
+        - column:
+            name: text
+            type: VARCHAR(255)
+        tableName: functional_output_dictionary_entry_aud
+- changeSet:
+    id: 1662045079298-12
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: project_id
+            type: CHAR(36)
+        tableName: functional_requirement_aud
+- changeSet:
+    id: 1662045079298-13
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: oirs
+            type: VARCHAR(255)
+        - column:
+            name: oo_id
+            type: VARCHAR(255)
+        tableName: oirs_aud
+- changeSet:
+    id: 1662045079298-14
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: date_created
+            type: datetime
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: oo_id
+            type: CHAR(36)
+        tableName: oo_version_aud
+- changeSet:
+    id: 1662045079298-15
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            defaultValueBoolean: false
+            name: is_deleted
+            type: BIT
+        tableName: organisational_objective_aud
+- changeSet:
+    id: 1662045079298-16
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: poo_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: fr_id
+            type: CHAR(36)
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: poo_frs_aud
+- changeSet:
+    id: 1662045079298-17
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: asset_dd_id
+            type: CHAR(36)
+        - column:
+            name: fo_dd_id
+            type: CHAR(36)
+        tableName: project_aud
+- changeSet:
+    id: 1662045079298-18
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            name: project_id
+            type: CHAR(36)
+        - column:
+            name: oov_id
+            type: CHAR(36)
+        tableName: project_organisational_objective_aud
+- changeSet:
+    id: 1662045079298-19
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+            name: timestamp
+            type: BIGINT
+        - column:
+            name: username
+            type: VARCHAR(255)
+        tableName: revinfo
+- changeSet:
+    id: 1662045079298-20
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: permission_id
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: user_id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: user_permission_aud
+- changeSet:
+    id: 1662045079298-21
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: project_permission_id
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: project_id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: user_id
+            type: VARCHAR(255)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        tableName: user_project_permission_aud
+- changeSet:
+    id: 1662045079298-22
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FK265grt2gb2wul3dr1dnkj776m
+        tableName: functional_output_dictionary_aud
+- changeSet:
+    id: 1662045079298-23
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FK2ja8qfju4y0tr1ge5114stlvw
+        tableName: deleted_oir_aud
+- changeSet:
+    id: 1662045079298-24
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FK4fdtokejq6bnwru0oci9tii0
+        tableName: user_permission_aud
+- changeSet:
+    id: 1662045079298-25
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FK6sloxq37lmw35i7a5f9qbj70j
+        tableName: asset_dictionary_entry_aud
+- changeSet:
+    id: 1662045079298-26
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FK6wpjq3bmiv5ralcjd61xd6wa3
+        tableName: user_project_permission_aud
+- changeSet:
+    id: 1662045079298-27
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FK75o5gy10hd9ar0dkn203y4myk
+        tableName: organisational_objective_aud
+- changeSet:
+    id: 1662045079298-28
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FK83hmwuonp8y3aqawjju022d6a
+        tableName: oo_version_aud
+- changeSet:
+    id: 1662045079298-29
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKghnnwtvv3j1v3l05qpqo3s7hl
+        tableName: functional_output_aud
+- changeSet:
+    id: 1662045079298-30
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKk2y69n6xuwan2iwwis54utbke
+        tableName: asset_aud
+- changeSet:
+    id: 1662045079298-31
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKmi6pibtbgroc71fk3f7i3an3x
+        tableName: asset_dictionary_aud
+- changeSet:
+    id: 1662045079298-32
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKo0g3ia0t3uqny4ev1053tcas2
+        tableName: oirs_aud
+- changeSet:
+    id: 1662045079298-33
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKpluorckvp1ipi0dx58te31fyr
+        tableName: project_organisational_objective_aud
+- changeSet:
+    id: 1662045079298-34
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKpnojd25gxjyn8jg0mj5k96mcl
+        tableName: project_aud
+- changeSet:
+    id: 1662045079298-35
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKscigtn7rt59wamf3o1hx089mg
+        tableName: functional_requirement_aud
+- changeSet:
+    id: 1662045079298-36
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKte8unv4lxuyqx3r82fdacevuk
+        tableName: functional_output_dictionary_entry_aud
+- changeSet:
+    id: 1662045079298-37
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: firs_aud
+        constraintName: FK1ou09gu3244o9jf6axqsowqf2
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-38
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: functional_output_dictionary_aud
+        constraintName: FK265grt2gb2wul3dr1dnkj776m
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-39
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: fo_assets_aud
+        constraintName: FK2dxb8sqc9sa8ndtvhovq8rm2q
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-40
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: deleted_oir_aud
+        constraintName: FK2ja8qfju4y0tr1ge5114stlvw
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-41
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: user_permission_aud
+        constraintName: FK4fdtokejq6bnwru0oci9tii0
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-42
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: asset_dictionary_entry_aud
+        constraintName: FK6sloxq37lmw35i7a5f9qbj70j
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-43
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: user_project_permission_aud
+        constraintName: FK6wpjq3bmiv5ralcjd61xd6wa3
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-44
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: organisational_objective_aud
+        constraintName: FK75o5gy10hd9ar0dkn203y4myk
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-45
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: oo_version_aud
+        constraintName: FK83hmwuonp8y3aqawjju022d6a
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-46
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: poo_frs_aud
+        constraintName: FK8c6jo4l3aoutte3t6h4udxl61
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-47
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: fr_fo_aud
+        constraintName: FKd7nbvx16hicqfksteqn85g0yr
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-48
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: functional_output_aud
+        constraintName: FKghnnwtvv3j1v3l05qpqo3s7hl
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-49
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: data_dictionary_entry_id
+        baseTableName: asset
+        constraintName: FKi7ik130nmyefi8g6105ptqude
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: asset_dictionary_entry
+        validate: true
+- changeSet:
+    id: 1662045079298-50
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: airs_aud
+        constraintName: FKjqkgdqsp6mlt48x79rn1axa7c
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-51
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: asset_aud
+        constraintName: FKk2y69n6xuwan2iwwis54utbke
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-52
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: asset_dictionary_aud
+        constraintName: FKmi6pibtbgroc71fk3f7i3an3x
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-53
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: data_dictionary_entry_id
+        baseTableName: functional_output
+        constraintName: FKnwiels7oyfpwcxn32qh2n1g8f
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: functional_output_dictionary_entry
+        validate: true
+- changeSet:
+    id: 1662045079298-54
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: oirs_aud
+        constraintName: FKo0g3ia0t3uqny4ev1053tcas2
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-55
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: project_organisational_objective_aud
+        constraintName: FKpluorckvp1ipi0dx58te31fyr
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-56
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: project_aud
+        constraintName: FKpnojd25gxjyn8jg0mj5k96mcl
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-57
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: functional_requirement_aud
+        constraintName: FKscigtn7rt59wamf3o1hx089mg
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+    id: 1662045079298-58
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: functional_output_dictionary_entry_aud
+        constraintName: FKte8unv4lxuyqx3r82fdacevuk
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+- changeSet:
+      id: 1662105668823-1
+      author: philliprushby (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          name: user_id
+                          type: CHAR(36 BYTE)
+                tableName: revinfo
+- changeSet:
+      id: 1662105668823-2
+      author: philliprushby (generated)
+      changes:
+          - dropColumn:
+                columnName: username
+                tableName: revinfo

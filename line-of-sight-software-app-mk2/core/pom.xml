@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.costain.cdbb</groupId>
         <artifactId>cdbb</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -45,17 +45,14 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
-        <!--<dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>-->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-jose</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-resource-server</artifactId>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -135,6 +132,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.9.10</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -203,6 +205,73 @@
                 <spring.profile.from.maven>active-directory</spring.profile.from.maven>
             </properties>
 
+        </profile>
+        <profile>
+            <id>test-build-docker</id>
+            <activation>
+                <file>
+                    <exists>Dockerfile</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>${docker-maven-plugin.version}</version>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <buildArgs>
+                                <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                            </buildArgs>
+                            <images>
+                                <image>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                        <tags>
+                                            <tag>${project.version}</tag>
+                                            <!--<tag>${git.branch}</tag>-->
+                                        </tags>
+                                        <labels>
+                                            <maven.project.groupId>${project.groupId}</maven.project.groupId>
+                                            <maven.project.artifactId>${project.artifactId}</maven.project.artifactId>
+                                            <maven.project.version>${project.version}</maven.project.version>
+                                        </labels>
+                                    </build>
+                                    <name>%g:%l</name>
+                                </image>
+                            </images>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>docker-clean</id>
+                                <goals>
+                                    <goal>remove</goal>
+                                </goals>
+                                <phase>clean</phase>
+                            </execution>
+                            <execution>
+                                <id>docker-build</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>docker-source</id>
+                                <goals>
+                                    <goal>source</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>docker-push</id>
+                                <goals>
+                                    <goal>push</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

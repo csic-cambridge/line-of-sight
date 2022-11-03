@@ -5,7 +5,7 @@
 
     <groupId>com.costain.cdbb</groupId>
     <artifactId>cdbb</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <packaging>pom</packaging>
     <name>Line Of Sight Software App MK2</name>
     <description>Line of Sight</description>
@@ -19,8 +19,9 @@
 
     <properties>
         <dependency-check-maven.version>7.0.0</dependency-check-maven.version>
-        <docker-maven-plugin.version>0.33.0</docker-maven-plugin.version>
+        <docker-maven-plugin.version>0.40.2</docker-maven-plugin.version>
         <docker.build.directory>${project.build.directory}</docker.build.directory>
+        <docker.repository>${project.build.directory}</docker.repository>
         <editorconfig-maven-plugin.version>0.1.1</editorconfig-maven-plugin.version>
         <findsecbugs-plugin.version>1.8.0</findsecbugs-plugin.version>
         <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
@@ -553,6 +554,11 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>xml-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -574,71 +580,78 @@
         </plugins>
     </reporting>
 
+
     <profiles>
-        <profile>
-            <id>build-docker</id>
-            <activation>
-                <file>
-                    <exists>Dockerfile</exists>
-                </file>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker-maven-plugin.version}</version>
-                        <configuration>
-                            <verbose>true</verbose>
-                            <images>
-                                <image>
-                                    <build>
-                                        <contextDir>${project.basedir}</contextDir>
-                                        <tags>
-                                            <tag>${project.version}</tag>
-                                            <tag>${git.branch}</tag>
-                                        </tags>
-                                        <labels>
-                                            <maven.project.groupId>${project.groupId}</maven.project.groupId>
-                                            <maven.project.artifactId>${project.artifactId}</maven.project.artifactId>
-                                            <maven.project.version>${project.version}</maven.project.version>
-                                        </labels>
-                                    </build>
-                                    <name>${docker.repostory}/${project.artifactId}:${project.version}</name>
-                                </image>
-                            </images>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>docker-clean</id>
-                                <goals>
-                                    <goal>remove</goal>
-                                </goals>
-                                <phase>clean</phase>
-                            </execution>
-                            <execution>
-                                <id>docker-build</id>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>docker-source</id>
-                                <goals>
-                                    <goal>source</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>docker-push</id>
-                                <goals>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+        <!--       <profile>
+               <id>build-docker</id>
+               <activation>
+                   <file>
+                       <exists>Dockerfile</exists>
+                   </file>
+               </activation>
+               <build>
+                   <plugins>
+                       <plugin>
+                           <groupId>io.fabric8</groupId>
+                           <artifactId>docker-maven-plugin</artifactId>
+                           <version>${docker-maven-plugin.version}</version>
+                           <configuration>
+                               <verbose>true</verbose>
+                               <buildArgs>
+                                   <JAR_FILE>${project.build.directory}/${project.build.finalName}.jar</JAR_FILE>
+                               </buildArgs>
+                               <images>
+                                   <image>
+                                       <build>
+                                           <contextDir>${project.basedir}</contextDir>
+                                           <tags>
+                                               <tag>${project.version}</tag>
+                                               <tag>${git.branch}</tag>
+                                           </tags>
+                                           <labels>
+                                               <maven.project.groupId>${project.groupId}</maven.project.groupId>
+                                               <maven.project.artifactId>${project.artifactId}</maven.project.artifactId>
+                                               <maven.project.version>${project.version}</maven.project.version>
+                                           </labels>
+                                       </build>
+                                       <name>${docker.repository}/${project.artifactId}:${project.version}</name>
+                                       <name>${docker.repository}/${project.artifactId}</name>
+                                       <name>%g:%l</name>
+                                   </image>
+                               </images>
+                           </configuration>
+                           <executions>
+                               <execution>
+                                   <id>docker-clean</id>
+                                   <goals>
+                                       <goal>remove</goal>
+                                   </goals>
+                                   <phase>clean</phase>
+                               </execution>
+                               <execution>
+                                   <id>docker-build</id>
+                                   <goals>
+                                       <goal>build</goal>
+                                   </goals>
+                               </execution>
+                               <execution>
+                                   <id>docker-source</id>
+                                   <goals>
+                                       <goal>source</goal>
+                                   </goals>
+                               </execution>
+                               <execution>
+                                   <id>docker-push</id>
+                                   <goals>
+                                       <goal>push</goal>
+                                   </goals>
+                               </execution>
+                           </executions>
+                       </plugin>
+                   </plugins>
+               </build>
+           </profile>
+       -->
         <profile>
             <id>versions</id>
             <properties>

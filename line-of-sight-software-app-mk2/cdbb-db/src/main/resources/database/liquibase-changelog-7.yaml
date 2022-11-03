@@ -1,0 +1,124 @@
+databaseChangeLog:
+- changeSet:
+    id: 1660032850837-4
+    author: philliprushby (generated)
+    changes:
+    - dropTable:
+        tableName: user_permission
+- changeSet:
+      id: 1660032850837-5
+      author: philliprushby (generated)
+      changes:
+          - dropTable:
+                tableName: user
+- changeSet:
+      id: 1660032850837-6
+      author: philliprushby (generated)
+      changes:
+          - createTable:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                              primaryKey: true
+                              primaryKeyName: pk_user
+                          name: id
+                          type: CHAR(36)
+                    - column:
+                          name: email_address
+                          type: VARCHAR(100)
+                    - column:
+                          defaultValueBoolean: false
+                          name: is_super_user
+                          type: BIT
+                tableName: user
+- changeSet:
+      id: 1660032850837-7
+      author: philliprushby (generated)
+      changes:
+          - createTable:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                              primaryKey: true
+                          name: user_id
+                          type: CHAR(36)
+                    - column:
+                          constraints:
+                              nullable: false
+                              primaryKey: true
+                          name: permission_id
+                          type: SMALLINT
+                    - column:
+                          constraints:
+                              nullable: false
+                              primaryKey: true
+                          name: project_id
+                          type: CHAR(36)
+                tableName: user_permission
+- changeSet:
+      id: 1660032850837-8
+      author: philliprushby (generated)
+      changes:
+          - createIndex:
+                columns:
+                    - column:
+                          name: permission_id
+                indexName: FK_USERPERMISSION_ON_PERMISSION_idx
+                tableName: user_permission
+- changeSet:
+      id: 1660032850837-9
+      author: philliprushby (generated)
+      changes:
+          - createIndex:
+                columns:
+                    - column:
+                          name: project_id
+                indexName: FK_USERPERMISSION_ON_PROJECT_idx
+                tableName: user_permission
+- changeSet:
+      id: 1660032850837-10
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: permission_id
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_PERMISSION
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: permission
+                validate: true
+- changeSet:
+      id: 1660032850837-11
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: project_id
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_PROJECT
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: project
+                validate: true
+- changeSet:
+      id: 1660032850837-12
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: user_id
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_USER
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: user
+                validate: true

@@ -22,10 +22,11 @@ Handles the User database entity
 public class UserDAO {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "INT")
-    @Type(type = "int")
-    private Integer id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
+    @Type(type = "uuid-char")
+    private UUID userId;
 
     /*
     emailAddress property - must be unique
@@ -39,8 +40,12 @@ public class UserDAO {
     @Column(nullable = false)
     private boolean isSuperUser;
 
-    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private Set<UserProjectPermissionDAO> userProjectPermissionDAOs;
+    public void setIsSuperUser(boolean isSuperUser) {
+        this.isSuperUser = isSuperUser;
+    }
+
+    //@OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    //private Set<UserProjectPermissionDAO> userProjectPermissionDAOs;
 
     /*
     User string representation
@@ -48,7 +53,7 @@ public class UserDAO {
     @Override
     public String toString() {
         return "User {" +
-            "id=" + id +
+            "id=" + userId +
             ", emailAddress=" + emailAddress +
             ", isSuperUser=" + isSuperUser +
             '}';
@@ -63,7 +68,7 @@ public class UserDAO {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof UserDAO userDAO)) return false;
-        return Objects.equals(id, userDAO.id) &&
+        return Objects.equals(userId, userDAO.userId) &&
             Objects.equals(emailAddress, userDAO.getEmailAddress()) &&
             Objects.equals(isSuperUser, userDAO.isSuperUser)
             ;
@@ -74,6 +79,6 @@ public class UserDAO {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(id, emailAddress, isSuperUser);
+        return Objects.hash(userId, emailAddress, isSuperUser);
     }
 }

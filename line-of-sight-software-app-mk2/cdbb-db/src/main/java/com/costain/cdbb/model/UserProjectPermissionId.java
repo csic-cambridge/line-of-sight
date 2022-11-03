@@ -15,24 +15,25 @@ import java.util.UUID;
 @NoArgsConstructor
 /*
 Provides an embeddable id for UserProjectPermissionDAO
-consisting of user, project and Permission objects
+consisting of user, project and ProjectPermission objects
  */
 public class UserProjectPermissionId implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public UserProjectPermissionId (Integer userId, UUID projectId, Integer permissionId) {
+    public UserProjectPermissionId (UUID userId, UUID projectId, Integer permissionId) {
         this.userId = userId;
         this.projectId = projectId;
         this.permissionId = permissionId;
     }
     @Column(name="user_id")
-    private Integer userId;
+    @Type(type = "uuid-char")
+    private UUID userId;
 
     @Column(name="project_id")
     @Type(type = "uuid-char")
     private UUID projectId;
 
-    @Column(name="permission_id")
+    @Column(name="project_permission_id")
     private Integer permissionId;
 
     /*

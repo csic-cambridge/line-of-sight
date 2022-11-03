@@ -1,32 +1,34 @@
 import { Injectable } from '@angular/core';
-import {HttpClient, HttpParams} from "@angular/common/http";
-import {environment} from "../environments/environment";
-import {Observable} from "rxjs";
-
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../environments/environment';
+import {Observable} from 'rxjs';
+import { CookieService } from 'ngx-cookie-service';
+import { Router } from '@angular/router';
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService {
-    private serviceUrl;
-    private logoutServiceurl;
+    private getProvidersUrl;
+    private logoutUrl;
 
     constructor(
-        private http: HttpClient,
+        private router: Router,
+        private http: HttpClient, private cookieService: CookieService
     ) {
-        this.serviceUrl = environment.apiBaseUrl + '/login';
-        this.logoutServiceurl = environment.apiBaseUrl + '/logout';
-
+        this.getProvidersUrl = environment.apiBaseUrl + '/api/oauth-providers';
+        this.logoutUrl = environment.apiBaseUrl + '/logout';
     }
 
-    login(values: any): Observable<any> {
-        console.log('Authentication service login for user', values.username);
-        const params = new HttpParams().append('username', values.username).append('password', values.password);
+    public login(): void {
+        this.router.navigate(['/login']);
+    }
 
-        return this.http.post<any>(this.serviceUrl, params);
+    public getProvider(): Observable<any> {
+        return this.http.post<any>(this.getProvidersUrl, null);
     }
 
     logout(): Observable<any> {
-        console.log('Authentication service logout');
-        return this.http.post<any>(this.logoutServiceurl, null);
+        console.log('Authentication service: logout');
+        return this.http.post<any>(this.logoutUrl, null);
     }
 }

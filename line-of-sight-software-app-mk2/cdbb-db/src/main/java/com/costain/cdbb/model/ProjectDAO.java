@@ -18,11 +18,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import org.hibernate.envers.Audited;
 
 @Entity
+@Audited
 @Table(name = "project")
 @Getter
 @Setter//(AccessLevel.PROTECTED)
@@ -49,8 +52,8 @@ public class ProjectDAO {
     @JoinColumn(name = "foDdId", referencedColumnName = "id")
     private FunctionalOutputDataDictionaryDAO foDataDictionary;
 
-    @OneToMany(mappedBy = "project", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private Set<UserProjectPermissionDAO> userProjectPermissionDaos;
+    @OneToMany(mappedBy = "id.projectId", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    private List<UserProjectPermissionDAO> userProjectPermissionDao;
 
     @OneToMany(mappedBy = "projectId", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<ProjectOrganisationalObjectiveDAO> projectOrganisationalObjectiveDaos;

@@ -98,7 +98,7 @@ public class TestProjectManager {
 
         // now delete it
         apiManager.doSuccessfulDeleteApiRequest(
-            "http://localhost:" + port + "/api/project/" + projectId);
+            "http://localhost:" + port + "/api/project/pid/" + projectId);
 
         // ensure all data for project is deleted
 

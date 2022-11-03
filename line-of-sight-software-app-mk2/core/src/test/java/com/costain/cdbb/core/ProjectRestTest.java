@@ -51,8 +51,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -64,9 +62,9 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("no_security")
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class ProjectWebTest {
+public class ProjectRestTest {
 
-    private final Logger logger = LoggerFactory.getLogger(ProjectWebTest.class);
+
 
     @LocalServerPort
     private int port;
@@ -144,7 +142,7 @@ public class ProjectWebTest {
         System.out.println("Starting test deleteProjectFn");
         Optional<ProjectDAO> optProject = projectId != null ? projectRepository.findById(projectId) : Optional.empty();
         if (optProject.isEmpty()) {
-            logger.warn("Project " + projectId + " not found for deletion");
+            System.out.println("Project " + projectId + " not found for deletion");
             return;
         }
         //ProjectDAO project = optProject.get();
@@ -157,7 +155,7 @@ public class ProjectWebTest {
 
         // now delete it
         apiManager.doSuccessfulDeleteApiRequest(
-            "http://localhost:" + port + "/api/project/" + projectId);
+            "http://localhost:" + port + "/api/project/pid/" + projectId);
 
         // ensure all data for project is deleted
 
@@ -231,7 +229,7 @@ public class ProjectWebTest {
         copyProjectJsonObject.put("name", startOfCopiedProjectName);
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             copyProjectJsonObject.toString(),
-            "http://localhost:" + port + "/api/project/" + SAMPLE_PROJECT_ID);
+            "http://localhost:" + port + "/api/project/pid/" + SAMPLE_PROJECT_ID);
         String personResultAsJsonStr = response.getBody();
 
         JSONObject jsonObject = new JSONObject(personResultAsJsonStr);
@@ -325,26 +323,11 @@ public class ProjectWebTest {
     }
 
     @Test
-    public void getFunctionalOutputDataDictionaries() throws Exception {
-        System.out.println("Starting test getFunctionalOutputDataDictionaries");
-        // assumes only the original set up dictionary
-        final ResponseEntity<String> projectResponse = apiManager.doSuccessfulGetApiRequest(
-            "http://localhost:" + port + "/api/project/" + SAMPLE_PROJECT_ID);
-        final JSONObject jsonProjectResponse = new JSONObject(projectResponse.getBody());
-        assertAll(
-            () -> assertEquals(jsonProjectResponse.get("id"), SAMPLE_PROJECT_ID,
-                "Get sample project does not have correct id"),
-            () -> assertEquals(jsonProjectResponse.get("name"), SAMPLE_PROJECT_NAME,
-                "Get sample project does not have correct name")
-        );
-    }
-
-    @Test
     public void fetchSampleProject() {
         // fetch the sample project as the front-end would do
         // 1) fetch project
-        final ResponseEntity<String> projectResponse = apiManager.doSuccessfulGetApiRequest(
-            "http://localhost:" + port + "/api/project/" + SAMPLE_PROJECT_ID);
+        /*final ResponseEntity<String> projectResponse = apiManager.doSuccessfulGetApiRequest(
+            "http://localhost:" + port + "/api/project/pid/" + SAMPLE_PROJECT_ID);
         try {
             final JSONObject jsonProjectResponse = new JSONObject(projectResponse.getBody());
             assertAll(
@@ -353,10 +336,11 @@ public class ProjectWebTest {
                 () -> assertEquals(jsonProjectResponse.get("name"), SAMPLE_PROJECT_NAME,
                     "Get sample project does not have correct name")
             );
-            System.out.println("Project header fetched");
-            // fetch poos
-            final ResponseEntity<String> pooResponse =  apiManager.doSuccessfulGetApiRequest(
-                "http://localhost:" + port + "/api/project-organisational-objectives/" + SAMPLE_PROJECT_ID);
+            System.out.println("Project header fetched");*/
+        // fetch poos
+        final ResponseEntity<String> pooResponse =  apiManager.doSuccessfulGetApiRequest(
+                "http://localhost:" + port + "/api/project-organisational-objectives/pid/" + SAMPLE_PROJECT_ID);
+        try {
             final JSONArray jsonPooResponseRaw = new JSONArray(pooResponse.getBody());
             List<JSONObject> jsonPooResponse = IntStream
                 .range(0, jsonPooResponseRaw.length())
@@ -376,8 +360,6 @@ public class ProjectWebTest {
                     .forEach(jsonObject -> {
                         try {
                             assertFalse((boolean) jsonObject.get("oo_is_deleted"), "The json object is deleted");
-                            assertEquals(jsonProjectResponse.get("id"), SAMPLE_PROJECT_ID,
-                                "Get sample project does not have correct id");
                         } catch (JSONException e) {
                             fail(e);
                         }
@@ -409,7 +391,7 @@ public class ProjectWebTest {
             renameProjectJsonObject.put("name", NewProjectName);
             apiManager.doSuccessfulPutApiRequest(
                 renameProjectJsonObject.toString(),
-                "http://localhost:" + port + "/api/project/" + createdProjectId);
+                "http://localhost:" + port + "/api/project/pid/" + createdProjectId);
         } catch (Exception e) {
             e.printStackTrace();
             fail(e);

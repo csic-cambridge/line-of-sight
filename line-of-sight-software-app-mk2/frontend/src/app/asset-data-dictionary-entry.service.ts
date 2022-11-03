@@ -20,8 +20,7 @@ export class AssetDataDictionaryEntryService {
     }
 
     getAssetDataDictionaryEntries(projectId: string): Observable<Array<DataDictionaryEntry>> {
-        if(!this.cache$) {
-            console.log("Caching asset data dictionary entries");
+        if (!this.cache$) {
             this.cache$ = this.http.get<Array<DataDictionaryEntry>>(this.serviceUrl + '/' + projectId).pipe(shareReplay());
         }
         return this.cache$;

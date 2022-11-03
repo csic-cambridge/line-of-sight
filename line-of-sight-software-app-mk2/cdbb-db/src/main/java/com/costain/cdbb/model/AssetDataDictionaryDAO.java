@@ -3,12 +3,14 @@ package com.costain.cdbb.model;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
+@Audited
 @Table(name="asset_dictionary")
 @Getter
 @Setter(AccessLevel.PROTECTED)

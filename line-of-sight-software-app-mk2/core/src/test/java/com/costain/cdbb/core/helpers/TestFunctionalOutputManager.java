@@ -116,7 +116,7 @@ public class TestFunctionalOutputManager {
         String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             payload,
-            "http://localhost:" + port + "/api/functional-outputs/" + projectId);
+            "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId);
         // build FunctionalOutputDAO result from response
         String ddResultAsJsonStr = response.getBody();
         JSONObject functionalOutputJsonObject = new JSONObject(ddResultAsJsonStr);
@@ -152,7 +152,7 @@ public class TestFunctionalOutputManager {
 
     public void deleteFunctionalOutput(UUID projectId, int port, FunctionalOutputDAO functionalOutput) {
         apiManager.doSuccessfulDeleteApiRequest(
-            "http://localhost:" + port + "/api/functional-outputs/" + projectId + "/" + functionalOutput.getId());
+            "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId + "/" + functionalOutput.getId());
         // check it has been deleted from database
         assertFalse(functionalOutputRepository.findById(functionalOutput.getId()).isPresent());
     }

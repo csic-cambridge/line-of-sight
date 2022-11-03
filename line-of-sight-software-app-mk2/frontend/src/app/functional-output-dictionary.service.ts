@@ -9,7 +9,6 @@ import {FunctionalOutputDictionary} from "./functional-output-dictionary";
     providedIn: 'root'
 })
 export class FunctionalOutputDictionaryService {
-
     private serviceUrl;
     private cache$: Observable<Array<FunctionalOutputDictionary>> | undefined;
 
@@ -20,15 +19,13 @@ export class FunctionalOutputDictionaryService {
     }
 
     getFunctionalOutputDictionaries(): Observable<Array<FunctionalOutputDictionary>> {
-        if(!this.cache$) {
-            console.log("Caching fo data dictionary entries");
+        if (!this.cache$) {
             this.cache$ = this.http.get<Array<FunctionalOutputDictionary>>(this.serviceUrl).pipe(shareReplay());
         }
         return this.cache$;
     }
 
-    getFODDEntries() : Observable<Array<FunctionalOutputDictionary>> {
+    getFODDEntries(): Observable<Array<FunctionalOutputDictionary>> {
         return this.http.get<Array<FunctionalOutputDictionary>>(this.serviceUrl);
     }
-
 }

@@ -1,0 +1,10 @@
+export enum UserPermissionIds{
+    VIEW_PROJECTS_DASHBOARD = '1010',
+    ADD_COPY_RENAME_PROJECTS = '1011',
+    DELETE_PROJECTS = '1012',
+    IMPORT_PROJECTS = '1110',
+    EXPORT_PROJECTS = '1111',
+    VIEW_OOS = '1210',
+    EDIT_OOS = '1211',
+    EDIT_DDS = '1311'
+}

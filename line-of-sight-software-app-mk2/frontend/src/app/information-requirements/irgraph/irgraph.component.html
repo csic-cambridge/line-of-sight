@@ -1,16 +1,24 @@
 <div class="container-xxl" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
     <div class="row buttons-div">
         <div class="col" align="center">
-            <button type="button" class="btn btn-outline-primary" (click)="pooUpdateAlert()">Organisational Objectives</button>
+            <button type="button" class="btn btn-outline-primary"
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
+                    (click)="pooUpdateAlert()">Organisational Objectives</button>
         </div>
         <div class="col" align="center">
-            <button type="button" class="btn btn-outline-primary" (click)="openModal('functionalRequirementsContent',true)">Functional Requirements</button>
+            <button type="button" class="btn btn-outline-primary"
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
+                    (click)="openModal('functionalRequirementsContent',true)">Functional Requirements</button>
         </div>
         <div class="col" align="center">
-            <button type="button" class="btn btn-outline-primary" (click)="openModal('functionalOutputContent',true)">Functional Outputs</button>
+            <button type="button" class="btn btn-outline-primary"
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
+                    (click)="openModal('functionalOutputContent',true)">Functional Outputs</button>
         </div>
         <div class="col" align="center">
-            <button type="button" class="btn btn-outline-primary" (click)="openModal('assetContent',true)">Assets</button>
+            <button type="button" class="btn btn-outline-primary"
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_ASSETS)"
+                    (click)="openModal('assetContent',true)">Assets</button>
         </div>
     </div>
 
@@ -20,10 +28,12 @@
         <div class="col">
             <div class="d-flex flex-column justify-content-around h-100">
                 <div *ngFor="let poo of poos" class="card text-center information-requirement w-50 mx-auto">
-                    <a (click)="openPrePopulatedModal('poos', poo.id, poo.name, true)">
+                    <a (click)="openPrePopulatedModal('poos', poo.id, poo.name, true, $event)">
                        <h5 class="card-header" id="{{poo.id}}"
-                            (mouseover)="mouseEnterPOO($event)" (mouseleave)="mouseLeavePOO($event)"
-                            (dragstart)="pooLinkStart($event)" draggable="true">{{poo.name}}
+                            (mouseover)="mouseEnterPOO($event)"
+                           (mouseleave)="mouseLeavePOO($event)"
+                            (dragstart)="pooLinkStart($event)"
+                           [draggable]="true">{{poo.name}}
                         </h5>
                         <div *ngIf="poo.oo_versions.length > 1 || poo.oo_is_deleted===true" style="background-color:lightgrey">
                             <span *ngIf="poo.oo_is_deleted===true" style="color:red;"><br/>(Organisationally deleted)</span>
@@ -44,10 +54,15 @@
         <div class="col">
             <div class="d-flex flex-column justify-content-around h-100">
                 <div *ngFor="let fr of frs" class="card text-center information-requirement w-50 mx-auto"
-                     (dragover)="allowLinkToFR($event)" (drop)="linkToFR($event)">
-                    <a (click)="openPrePopulatedModal('funcRequirements', fr.id, fr.name, true)">
-                        <h5 class="card-header" (mouseover)="mouseEnterFR($event)" (mouseleave)="mouseLeaveFR($event)"
-                            (dragstart)="frLinkStart($event)" draggable="true" id="{{fr.id}}">{{fr.name}}
+                     (dragover)="allowLinkToFR($event)"
+                     (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS) && linkToFR($event)">
+                    <a (click)="openPrePopulatedModal('funcRequirements', fr.id, fr.name, true, $event)">
+                        <h5 class="card-header"
+                            (mouseover)="mouseEnterFR($event)"
+                            (mouseleave)="mouseLeaveFR($event)"
+                            (dragstart)="frLinkStart($event)"
+                            [draggable]="true"
+                            id="{{fr.id}}">{{fr.name}}
                         </h5>
                     </a>
                 </div>
@@ -56,10 +71,15 @@
         <div class="col">
             <div class="d-flex flex-column justify-content-around h-100">
                 <div *ngFor="let fo of fos" class="card text-center information-requirement w-50 mx-auto"
-                     (dragover)="allowLinkToFO($event)" (drop)="linkToFO($event)">
-                    <a (click)="openPrePopulatedModal('funcOutput', fo.data_dictionary_entry.id, fo.data_dictionary_entry.text, true)">
-                        <h5 class="card-header" (mouseover)="mouseEnterFO($event)" (mouseleave)="mouseLeaveFO($event)"
-                            (dragstart)="foLinkStart($event)" draggable="true" id="{{fo.id}}">{{fo.data_dictionary_entry.text}}
+                     (dragover)="allowLinkToFO($event)"
+                     (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS) && linkToFO($event)">
+                    <a (click)="openPrePopulatedModal('funcOutput', fo.data_dictionary_entry.id, fo.data_dictionary_entry.text, true, $event)">
+                        <h5 class="card-header"
+                            (mouseover)="mouseEnterFO($event)"
+                            (mouseleave)="mouseLeaveFO($event)"
+                            (dragstart)="foLinkStart($event)"
+                            [draggable]="true"
+                            id="{{fo.id}}">{{fo.data_dictionary_entry.text}}
                         </h5>
                     </a>
                     <div class="card-body" *ngIf="fo.firs.length>0">
@@ -73,8 +93,10 @@
         <div class="col">
             <div class="d-flex flex-column justify-content-around">
                 <div class="card text-center information-requirement w-50 mx-auto" *ngFor="let asset of assets"
-                     (dragover)="allowLinkToAsset($event)" (drop)="linkToAsset($event)">
-                    <a (click)="openPrePopulatedModal('asset', asset.data_dictionary_entry.id, asset.data_dictionary_entry.text, true)">
+                     (dragover)="allowLinkToAsset($event)"
+                     (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS) && linkToAsset($event)">
+                    <a (click)="openPrePopulatedModal('asset', asset.data_dictionary_entry.id, asset.data_dictionary_entry.text, true, $event)"
+                    >
                         <h5 class="card-header" (mouseover)="mouseEnterAsset($event)" (mouseleave)="mouseLeaveAsset($event)"
                             id="{{asset.id}}">{{asset.data_dictionary_entry.text}}
                         </h5>
@@ -107,7 +129,7 @@
                     <form #poo = 'ngForm' (ngSubmit)="saveProjectOrganisationalObjective(poo.value)">
                         <!-- POO -->
                         <div class="form-group">
-                            <h3 id="pooId"><b>{{selectedPOOName}}</b></h3>
+                            <h3 #elPOOId id="pooId"><b>{{selectedPOOName}}</b></h3>
 
                             <div *ngFor="let poo of poos">
                                 <input *ngIf="poo.name === selectedPOOName" [(ngModel)]="poo.id" id="pooMainId" name="pooMainId"
@@ -142,12 +164,15 @@
                                 <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked OIRs)</label></label></h6>
                             <div id="pooOIRDiv" class="form=group" *ngFor="let poo of poos">
                                 <div *ngFor="let oir of poo.oirs" id="OIRContent">
-                                    <input class="custom-label-css" *ngIf="poo.name === selectedPOOName && poo.oirs.length>0" (change)="onPOOOIRChange($event, oir)"
+                                    <input class="custom-label-css" *ngIf="poo.name === selectedPOOName && poo.oirs.length>0"
+                                           [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
+                                           (change)="onPOOOIRChange($event, oir)"
                                            id="pooOIRSelect" type="checkbox" value="{{oir.oir}}" checked />
                                     <label class="custom-label-css" *ngIf="poo.name === selectedPOOName && poo.oirs.length>0" for="pooOIRSelect">{{oir.oir}}</label>
                                 </div>
                                 <div *ngFor="let oir of poo.deleted_oirs" id="deletedOIRContent">
                                     <input class="custom-label-css" *ngIf="poo.name === selectedPOOName && poo.deleted_oirs.length>0" (change)="onPOOOIRChange($event, oir)"
+                                           [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
                                            id="pooDeletedOIRSelect" type="checkbox" value="{{oir.oir}}" unchecked />
                                     <label class="custom-label-css" *ngIf="poo.name === selectedPOOName && poo.deleted_oirs.length>0" for="pooOIRSelect">{{oir.oir}}</label>
                                 </div>
@@ -162,6 +187,7 @@
                                 <div *ngFor="let fr of poo.frs" id="pooFRContent"> <!-- (change)="onPOOFRChange(fr)" -->
                                     <div *ngFor="let funcreq of frs">
                                         <input class="custom-checkbox-css" *ngIf="poo.name === selectedPOOName && poo.frs.length>0 && funcreq.id === fr"
+                                               [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
                                                (change)="onPOOFRChange($event, fr)" id="pooFRSelect" type="checkbox" value="{{fr}}" checked />
                                         <label class="custom-label-css" *ngIf="poo.name === selectedPOOName && poo.frs.length>0 && funcreq.id === fr"
                                                for="pooFRSelect">{{funcreq.name}}</label>
@@ -172,6 +198,7 @@
                                 <div class="input-group">
                                     <ngx-bootstrap-multiselect
                                         name="frsArray"
+                                        [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
                                         [options]="pooFROptions"
                                         [texts]="pooFRTexts"
                                         [settings]="mySettings"
@@ -184,12 +211,14 @@
                             <div *ngFor="let poo of poos">
                                 <div *ngIf="poo.name === selectedPOOName">
                                     <ng-container *ngIf="poo.frs.length === 0">
-                                        <button type="button" class="btn btn-outline-danger" (click)="deleteProjectOrganisationalObjective(poo.id, poo.name)">Delete</button>
+                                        <button type="button" class="btn btn-outline-danger" (click)="deleteProjectOrganisationalObjective(poo.id, poo.name)"
+                                                [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_POOS)">Delete</button>
                                     </ng-container>
                                 </div>
                             </div>
                             <ng-container>
-                                <button id="pooSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!poo.valid">Save</button>
+                                <button #elPOOSubmitBtn id="pooSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary"
+                                        [disabled]="!poo.valid">Save</button>
                                 <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="openModal('pooContent',false)">Cancel</button>
                             </ng-container>
 
@@ -215,8 +244,10 @@
                         <!-- FR -->
                         <div class="form-group">
                             <h5><label for="frName" class="form-label text-right" style="margin: 10pt">Title</label></h5>
-                            <input id="frName" name="name" #frName="ngModel" required [class.is-invalid]="frName.invalid" class="form-control element-text is-invalid" list="frDatalistOptions"
-                                   (change)="getFRValue('form', '')" placeholder="Functional Requirement Title ... " autocomplete="off" ngModel>
+                            <input #elFRId id="frName" name="name" #frName="ngModel" required [class.is-invalid]="frName.invalid"
+                                   class="form-control element-text is-invalid" list="frDatalistOptions"
+                                   [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
+                                   (change)="getFRValue('form', elFRId.value)" placeholder="Functional Requirement Title ... " autocomplete="off" ngModel>
                            <datalist id="frDatalistOptions">
                                 <option *ngFor="let fr of frs" value="{{fr.name}}">
                                     {{fr.name}}
@@ -238,6 +269,7 @@
                                 <div *ngFor="let fo of fr.fos" id="fosContent"> <!-- (change)="onFRFOSChange(fos)" -->
                                     <div *ngFor="let funcOutput of fos">
                                         <input class="custom-checkbox-css" id="frFOSSelect" type="checkbox"
+                                               [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
                                                *ngIf="fr.name === selectedFRText &&  fr.fos.length > 0 && funcOutput.id === fo"
                                                (change)="onFRFOSChange(fo)" value="{{ fo }}" checked/>
                                         <label class="custom-label-css" for="frFOSSelect"
@@ -249,6 +281,7 @@
                                 <div class="input-group">
                                     <ngx-bootstrap-multiselect
                                         name="fosArray"
+                                        [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
                                         [options]="frFOOptions"
                                         [texts]="frFOTexts"
                                         [settings]="mySettings"
@@ -275,15 +308,17 @@
                             <div *ngFor="let fr of frs">
                                 <div *ngIf="fr.name === selectedFRText">
                                     <ng-container *ngIf="fr.fos.length === 0 && pooLinkedToFRArray.length === 0">
-                                        <button type="button" class="btn btn-outline-danger" (click)="deleteFuncRequirement(fr.id, fr.name)">Delete</button>
+                                        <button type="button" class="btn btn-outline-danger"
+                                                [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_FRS)"
+                                                (click)="deleteFuncRequirement(fr.id, fr.name)">Delete</button>
                                     </ng-container>
                                 </div>
                             </div>
                             <ng-container>
-                                <button id="frSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!fr.valid">Save</button>
+                                <button #elFRSubmitBtn id="frSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary"
+                                        [disabled]="!fr.valid">Save</button>
                                 <button type="button" class="btn btn-outline-secondary" (click)="openModal('functionalRequirementsContent', false)">Cancel</button>
                             </ng-container>
-            <!--                <pre>{{ fr.value | json }}</pre>-->
                         </div>
                     </form>
                 </div>
@@ -307,7 +342,8 @@
                         <div class="form-group">
                             <h5><label for="fosId" class="form-label text-right" style="margin: 10pt">Title</label></h5>
 
-                                <input id="fosId" name="id" #fosId="ngModel" required [class.is-invalid]="fosId.invalid"
+                                <input #elFOId id="fosId" name="id" #fosId="ngModel" required [class.is-invalid]="fosId.invalid"
+                                        [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
                                         class="form-control element-text is-invalid"
                                         list="foDatalistOptions" (change)="fosChange($event)"
                                         placeholder="Functional Output Name / Title ... "
@@ -331,14 +367,18 @@
                         <div class="form-group">
                             <h5><label for="firText" style="margin: 10pt">Functional Information Requirement <i>(FIR)</i></label></h5>
                             <div class="input-group">
-                                <input id="firText" name="firs" class="form-control element-text" placeholder="New FIR ... " ngModel>
+                                <input id="firText" name="firs" class="form-control element-text"
+                                       [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_FIRS)"
+                                       placeholder="New FIR ... " ngModel>
                             </div>
 
                             <h6><label for="FIRContentList" style="margin: 10pt"><b>Linked FIR</b>
                                 <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FIRs)</label></label></h6>
                             <div id="foFIRDiv" class="form=group" *ngFor="let fo of fos">
                                 <div *ngFor="let fir of fo.firs" id="FIRContentList">
-                                    <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.firs.length>0" (change)="onFOFIRChange(fir)"
+                                    <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.firs.length>0"
+                                           (change)="onFOFIRChange(fir)"
+                                           [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_FIRS)"
                                            id="foFirSelect" type="checkbox" value="{{ fir }}" checked/>
                                     <label class="custom-label-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.firs.length>0" for="foFirSelect">{{ fir }}</label>
                                 </div>
@@ -352,11 +392,14 @@
                             </label></h6>
 
                             <div id="foAssetDiv" class="form=group" *ngFor="let fo of fos">
-                                <div *ngFor="let foAsset of fo.assets" id="foAssetContent"> <!-- (change)="onFOAssetChange(asset)" -->
+                                <div *ngFor="let foAsset of fo.assets" id="foAssetContent">
                                     <div *ngFor="let asset of assets">
-                                        <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId && fo.assets.length>0 && asset.id === foAsset" (change)="onFOAssetChange(foAsset)"
+                                        <input class="custom-checkbox-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId && fo.assets.length>0 && asset.id === foAsset"
+                                               (change)="onFOAssetChange(foAsset)"
+                                               [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
                                                id="foAssetSelect" type="checkbox" value="{{ foAsset }}" checked />
-                                        <label class="custom-label-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0 && asset.id === foAsset" for="foAssetSelect">{{ asset.data_dictionary_entry.text }}</label>
+                                        <label class="custom-label-css" *ngIf="fo.data_dictionary_entry.id === selectedFOId &&  fo.assets.length>0 && asset.id === foAsset"
+                                               for="foAssetSelect">{{ asset.data_dictionary_entry.text }}</label>
                                     </div>
                                 </div>
                             </div>
@@ -364,6 +407,7 @@
                                 <div class="input-group">
                                     <ngx-bootstrap-multiselect
                                         name="assetsArray"
+                                        [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
                                         [options]="foAssetOptions"
                                         [texts]="foAssetTexts"
                                         [settings]="mySettings"
@@ -390,15 +434,17 @@
                             <div *ngFor="let fo of fos">
                                 <div *ngIf="fo.data_dictionary_entry.id === selectedFOId">
                                     <ng-container *ngIf="fo.firs.length === 0 && fo.assets.length === 0 && frLinkedToFOArray.length === 0">
-                                        <button type="button" class="btn btn-outline-danger" (click)="deleteFuncOutput(fo.id,fo.data_dictionary_entry.text)">Delete</button>
+                                        <button type="button" class="btn btn-outline-danger"
+                                                [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_FOS)"
+                                                (click)="deleteFuncOutput(fo.id,fo.data_dictionary_entry.text)">Delete</button>
                                     </ng-container>
                                 </div>
                             </div>
                             <ng-container>
-                                <button id="foSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!fosId.valid">Save</button>
+                                <button #elFOSubmitBtn id="foSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary"
+                                        [disabled]="!fosId.valid">Save</button>
                                 <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="openModal('functionalOutputContent', false)">Cancel</button>
                             </ng-container>
-<!--                            <pre>{{ fo.value | json }}</pre>-->
                         </div>
                     </form>
                 </div>
@@ -421,7 +467,8 @@
                         <!-- ASSET -->
                         <div class="form-group">
                             <h5><label for="assetId" class="form-label text-right" style="margin: 10pt">Title</label></h5>
-                            <input id="assetId" name="id" #assetId="ngModel" required [class.is-invalid]="assetId.invalid" class="form-control element-text is-invalid"
+                            <input #elAssetId id="assetId" name="id" #assetId="ngModel" required [class.is-invalid]="assetId.invalid" class="form-control element-text"
+                                   [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_ASSETS)"
                                    list="assetDatalistOptions" (change)="getAssetValue('form','')" placeholder="Asset Name / Title ... " autocomplete="off" ngModel>
                             <datalist id="assetDatalistOptions">
                                 <option *ngFor="let asset of assetDataDictionary" value="{{asset.text}}">
@@ -439,14 +486,18 @@
                         <div class="form-group">
                             <h5><label for="airText" style="margin: 10pt">Asset Information Requirement <i>(AIR)</i></label></h5>
                             <div class="input-group">
-                                <input id="airText" name="airs" class="form-control element-text" placeholder="New AIR ... " autocomplete="off" ngModel>
+                                <input id="airText" name="airs" class="form-control element-text"
+                                       [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_AIRS)"
+                                       placeholder="New AIR ... " autocomplete="off" ngModel>
                             </div>
 
                             <h6><label for="assetAirContentList" style="margin: 10pt"><b>Linked AIR</b>
                                 <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked AIRs)</label></label></h6>
                             <div id="assetAIRDiv" class="form=group" *ngFor="let asset of assets">
                                 <div class="form-check form-switch" *ngFor="let air of asset.airs" id="assetAirContentList">
-                                    <input class="custom-checkbox-css" *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId &&  asset.airs.length>0" (change)="onAssetAIRChange(air)"
+                                    <input class="custom-checkbox-css" *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId &&  asset.airs.length>0"
+                                           [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_AIRS)"
+                                           (change)="onAssetAIRChange(air)"
                                            id="assetAirSelect" type="checkbox" value="{{ air }}" checked />
                                     <label class="custom-label-css" *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId &&  asset.airs.length>0" for="assetAirSelect">{{ air }}</label>
                                 </div>
@@ -466,20 +517,24 @@
                                 </div>
                             </div>
                         </div>
-                    <div class="modal-footer">
-                        <div *ngFor="let asset of assets">
-                            <div *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId">
-                                <ng-container *ngIf="asset.airs.length === 0 && foLinkedToAssetArray.length === 0">
-                                    <button type="button" class="btn btn-outline-danger" (click)="deleteAsset(asset.id, asset.data_dictionary_entry.text)">Delete</button>
-                                </ng-container>
+                        <div class="modal-footer">
+                            <div *ngFor="let asset of assets">
+                                <div *ngIf="asset.data_dictionary_entry.id === selectedAssetDDId">
+                                    <ng-container *ngIf="asset.airs.length === 0 && foLinkedToAssetArray.length === 0">
+                                        <button type="button" class="btn btn-outline-danger"
+                                                [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_ASSETS)"
+                                                (click)="deleteAsset(asset.id, asset.data_dictionary_entry.text)">Delete</button>
+                                    </ng-container>
+                                </div>
                             </div>
-                        </div>
-                        <ng-container>
-                            <button id="assetSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!assetId.valid">Save</button>
-                            <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="openModal('assetContent', false)">Cancel</button>
-                        </ng-container>
+                            <ng-container>
+                                <button #elAssetSubmitBtn id="assetSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary"
+                                        [disabled]="!assetId.valid">Save</button>
+                                <button type="button" data-dismiss="modal" class="btn btn-outline-secondary"
+                                        (click)="openModal('assetContent', false)">Cancel</button>
+                            </ng-container>
 
-                    </div>
+                        </div>
                     </form>
                 </div>
             </div>

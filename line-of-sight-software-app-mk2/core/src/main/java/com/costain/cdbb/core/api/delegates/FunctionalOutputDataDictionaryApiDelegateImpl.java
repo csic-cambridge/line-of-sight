@@ -32,7 +32,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-
+/**
+ * Handles the api calls from a client with root /api/functional-output-data-dictionary.
+ */
 @Service
 public class FunctionalOutputDataDictionaryApiDelegateImpl implements FunctionalOutputDataDictionaryApiDelegate {
 
@@ -56,6 +58,11 @@ public class FunctionalOutputDataDictionaryApiDelegateImpl implements Functional
         this.ddeRepository = ddeRepository;
     }
 
+    /**
+     * Fetch all the functional output data dictionaries.
+     * @return <p>Mono&lt;ResponseEntity&lt;Flux&lt;FunctionalOutputDataDictionary&gt;&gt;&gt;
+     * functional output data dictionaries</p>
+     */
     @Override
     public Mono<ResponseEntity<Flux<FunctionalOutputDataDictionary>>>
         findAllFunctionalOutputDataDictionaries(ServerWebExchange exchange) {
@@ -65,10 +72,16 @@ public class FunctionalOutputDataDictionaryApiDelegateImpl implements Functional
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Fetch all the entries for a requested functional output data dictionary.
+     * @param dataDictionaryId the id of the required functional output data dictionary
+     * @return <p>Mono&lt;ResponseEntity&lt;Flux&lt;DataDictionaryEntry&gt;&gt;&gt;
+     * functional output data dictionary entries</p>
+     */
     @Override
     public Mono<ResponseEntity<Flux<DataDictionaryEntry>>> findAllFunctionalOutputDataDictionaryEntries(
-        UUID id, ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(ddeRepository.findByFoDictionaryId(id))
+        UUID dataDictionaryId, ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(ddeRepository.findByFoDictionaryId(dataDictionaryId))
                 .map(dao -> new DataDictionaryEntry()
                     .id(dao.getId())
                     .text(dao.getId() + "-" + dao.getText())))

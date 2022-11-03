@@ -32,6 +32,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
+/**
+ * Handles the api calls from a client with root /api/organisational-objectives.
+ */
 
 @Service
 public class OrganisationalObjectivesApiDelegateImpl implements OrganisationalObjectivesApiDelegate {
@@ -52,7 +55,11 @@ public class OrganisationalObjectivesApiDelegateImpl implements OrganisationalOb
         this.ooHelper = ooHelper;
     }
 
-
+    /**
+     * Fetch all organisational objectives.
+     * @return <p>Mono&lt;ResponseEntity&lt;Flux&lt;OrganisationalObjectiveWithId&gt;&gt;&gt;
+     * organisational objectives</p>
+     */
     @Override
     public Mono<ResponseEntity<Flux<OrganisationalObjectiveWithId>>> findAllOrganisationalObjectives(
             ServerWebExchange exchange) {
@@ -62,15 +69,11 @@ public class OrganisationalObjectivesApiDelegateImpl implements OrganisationalOb
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    @Override
-    public Mono<ResponseEntity<OrganisationalObjectiveWithId>> findOrganisationalObjectiveById(UUID id,
-            ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> repository.findById(id).orElse(null))
-            .map(dao -> ooHelper.fromDao(dao))
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
-    }
-
+    /**
+     * Add an organisational objective.
+     * @param organisationalObjective the organisational objective being added
+     * @return Mono&lt;ResponseEntity&lt;OrganisationalObjectiveWithId&gt;&gt; the organisational objective added
+     */
     @Override
     public Mono<ResponseEntity<OrganisationalObjectiveWithId>> addOrganisationalObjective(
             Mono<OrganisationalObjective> organisationalObjective, ServerWebExchange exchange) {
@@ -83,10 +86,17 @@ public class OrganisationalObjectivesApiDelegateImpl implements OrganisationalOb
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Update an organisational objective.
+     * @param organisationalObjectiveId the id of the organisational objective to update
+     * @param organisationalObjective the updated functional requirement
+     * @return Mono&lt;ResponseEntity&lt;OrganisationalObjectiveWithId&gt;&gt; the organisational objective updated
+     */
     @Override
-    public Mono<ResponseEntity<OrganisationalObjectiveWithId>> updateOrganisationalObjective(UUID id,
+    public Mono<ResponseEntity<OrganisationalObjectiveWithId>>
+        updateOrganisationalObjective(UUID organisationalObjectiveId,
             Mono<OrganisationalObjective> organisationalObjective, ServerWebExchange exchange) {
-        return organisationalObjective.map(dto -> ooHelper.fromDto(id, dto))
+        return organisationalObjective.map(dto -> ooHelper.fromDto(organisationalObjectiveId, dto))
         .flatMap(dao ->
             Mono.fromCallable(() -> transactionTemplate.execute(transactionStatus -> ooHelper.updateOo(dao)))
         )
@@ -95,10 +105,16 @@ public class OrganisationalObjectivesApiDelegateImpl implements OrganisationalOb
         .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Delete an organisational objective.
+     * @param organisationalObjectiveId the id of the organisational objective being deleted
+     * @return Mono&lt;ResponseEntity&lt;Void&gt;&gt;
+     */
     @Override
-    public Mono<ResponseEntity<Void>> deleteOrganisationalObjective(UUID id, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<Void>>
+        deleteOrganisationalObjective(UUID organisationalObjectiveId, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> ooHelper.markAsDeleted(id))
+        return Mono.fromRunnable(() -> ooHelper.markAsDeleted(organisationalObjectiveId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }

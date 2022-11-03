@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -16,6 +17,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
+@Audited
 @Table(name = "deleted_oir")
 @Getter
 @Setter(AccessLevel.PROTECTED)

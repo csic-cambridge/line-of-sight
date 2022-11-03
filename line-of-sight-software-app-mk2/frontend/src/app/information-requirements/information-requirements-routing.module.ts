@@ -1,12 +1,9 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { IRGraphComponent } from './irgraph/irgraph.component';
-//import { DashboardComponent } from '../dashboard/dashboard.component'
-//import { OOGraphComponent } from '../oograph/oograph.component'
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {IRGraphComponent} from './irgraph/irgraph.component';
+
 
 const routes: Routes = [
-    //{path: 'dashboard', component: DashboardComponent},
-    //{path: 'oograph', component: OOGraphComponent},
     {path: '', component: IRGraphComponent}
 ];
 

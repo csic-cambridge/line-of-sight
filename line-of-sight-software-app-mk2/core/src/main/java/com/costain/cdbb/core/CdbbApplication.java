@@ -25,6 +25,13 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
+import org.springframework.web.reactive.function.client.WebClient;
+/**
+ * Entry point for Line of Sight Application.
+ */
 
 @SpringBootApplication(scanBasePackages = {"com.costain.cdbb"})
 @EntityScan("com.costain.cdbb.model")
@@ -39,5 +46,17 @@ public class CdbbApplication {
     @Bean
     public HttpTraceRepository httpTraceRepository() {
         return new InMemoryHttpTraceRepository();
+    }
+
+    @Bean
+    WebClient webClient(ReactiveClientRegistrationRepository clientRegistrationRepository,
+                        ServerOAuth2AuthorizedClientRepository authorizedClientRepository) {
+        ServerOAuth2AuthorizedClientExchangeFilterFunction oauth =
+            new ServerOAuth2AuthorizedClientExchangeFilterFunction(
+                clientRegistrationRepository, authorizedClientRepository);
+        oauth.setDefaultOAuth2AuthorizedClient(true);
+        return WebClient.builder()
+            .filter(oauth)
+            .build();
     }
 }

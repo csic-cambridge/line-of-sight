@@ -49,7 +49,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("no_security")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class OoWebTest {
+public class OoRestTest {
     @LocalServerPort
     private int port;
 
@@ -78,7 +78,6 @@ public class OoWebTest {
         System.out.println("Starting test getOrganisationalObjectives");
         // fetch all from database
         // fetch all from api
-        // fetch individually from api
         Iterable<OrganisationalObjectiveDAO> ooDaos = ooRepository.findByIsDeleted(false);
 
         ResponseEntity<String> response = apiManager.doSuccessfulGetApiRequest(
@@ -89,10 +88,29 @@ public class OoWebTest {
         );
 
         ooDaos.forEach(dao -> {
-            ResponseEntity<String> singleResponse = apiManager.doSuccessfulGetApiRequest(
-                "http://localhost:" + port + "/api/organisational-objectives/" + dao.getId());
+            // find the oo in response data
+            JSONObject jsonSingleResponse = null;
+            boolean matched = false;
+            for (int i = 0; i < jsonResponse.length(); i++) {
                 try {
-                    JSONObject jsonSingleResponse = new JSONObject(singleResponse.getBody());
+                    jsonSingleResponse = jsonResponse.getJSONObject(i);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    fail("JSONException while reading response array");
+                }
+                try {
+                    if (jsonSingleResponse != null
+                        && jsonSingleResponse.getString("id").equals(dao.getId().toString())) {
+                        matched = true;
+                        break;
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    fail("JSONException while reading id from response oo");
+                }
+            }
+            assertTrue(matched, "OO with id = " + dao.getId() + " not returned from fetch all OOs");
+            try {
                     JSONArray jsonOirsArray = jsonSingleResponse.getJSONArray("oirs");
                     List<String> responseOirs = new ArrayList<>();
                     for (int i = 0; i <  jsonOirsArray.length(); i++) {
@@ -103,10 +121,10 @@ public class OoWebTest {
                     for (OirDAO oirDao : dao.getOirDaos()) {
                         dbOirs.add(oirDao.getOir());
                     }
-                    assertAll(
-                        () -> assertEquals(HttpStatus.OK, singleResponse.getStatusCode()),
-                        () -> assertTrue(jsonSingleResponse.get("id").equals(dao.getId().toString())),
-                        () -> assertTrue(jsonSingleResponse.get("name").equals(dao.getName())),
+                JSONObject finalJsonSingleResponse = jsonSingleResponse;
+                assertAll(
+                        () -> assertTrue(finalJsonSingleResponse.get("id").equals(dao.getId().toString())),
+                        () -> assertTrue(finalJsonSingleResponse.get("name").equals(dao.getName())),
                         () -> assertTrue(responseOirs.containsAll(dbOirs) && dbOirs.containsAll(responseOirs))
                     );
                 } catch (JSONException e) {

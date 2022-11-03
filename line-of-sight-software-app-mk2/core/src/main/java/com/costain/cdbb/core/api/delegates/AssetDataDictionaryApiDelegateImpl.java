@@ -31,7 +31,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-
+/**
+ *Handles the api calls from a client with root /api/asset-data-dictionary.
+ */
 @Service
 public class AssetDataDictionaryApiDelegateImpl implements AssetDataDictionaryApiDelegate {
 
@@ -44,6 +46,10 @@ public class AssetDataDictionaryApiDelegateImpl implements AssetDataDictionaryAp
     @Autowired
     private AssetDataDictionaryHelper assetDataDictionaryHelper;
 
+    /**
+     * Fetch all the asset data dictionaries.
+     * @return Mono&lt;ResponseEntity&lt;Flux&lt;AssetDataDictionary&gt;&gt;&gt; asset data dictionaries
+     */
     @Override
     public Mono<ResponseEntity<Flux<AssetDataDictionary>>> findAllAssetDataDictionaries(ServerWebExchange exchange) {
         return Mono.fromCallable(() -> Flux.fromIterable(ddRepository.findAll())
@@ -52,10 +58,15 @@ public class AssetDataDictionaryApiDelegateImpl implements AssetDataDictionaryAp
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Fetch all the entries for a requested asset data dictionary.
+     * @param dataDictionaryId the id of the required asset data dictionary
+     * @return Mono&lt;ResponseEntity&lt;Flux&lt;DataDictionaryEntry&gt;&gt;&gt; asset data dictionary entries
+     */
     @Override
     public Mono<ResponseEntity<Flux<DataDictionaryEntry>>> findAllAssetDataDictionaryEntries(
-        UUID id,ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(ddeRepository.findByAssetDictionaryId(id))
+        UUID dataDictionaryId,ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(ddeRepository.findByAssetDictionaryId(dataDictionaryId))
                 .map(dao -> new DataDictionaryEntry()
                     .id(dao.getId())
                     .text(dao.getId() + "-" + dao.getText())))

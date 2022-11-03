@@ -1,0 +1,262 @@
+databaseChangeLog:
+- changeSet:
+    id: 1660032850837-13
+    author: philliprushby
+    changes:
+        -   renameTable:
+                catalogName: cdbb
+                newTableName: user_project_permission
+                oldTableName: user_permission
+                schemaName: public
+- changeSet:
+    id: 1660032850837-14
+    author: philliprushby
+    changes:
+        -   renameTable:
+                catalogName: cdbb
+                newTableName: project_permission
+                oldTableName: permission
+                schemaName: public
+
+- changeSet:
+      id: 1660580964004-5
+      author: philliprushby (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                          name: project_permission_id
+                          type: SMALLINT
+                tableName: user_project_permission
+- changeSet:
+      id: 1660580964004-6
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: project_permission_id
+                baseTableName: user_project_permission
+                constraintName: FK_USERPROJECTPERMISSION_ON_PERMISSION
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: project_permission
+                validate: true
+- changeSet:
+      id: 1660580964004-7
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: user_project_permission
+                constraintName: FK_USERPERMISSION_ON_PERMISSION
+- changeSet:
+      id: 1660580964004-8
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: user_project_permission
+                constraintName: FK_USERPERMISSION_ON_PROJECT
+- changeSet:
+      id: 1660580964004-9
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: user_project_permission
+                constraintName: FK_USERPERMISSION_ON_USER
+
+- changeSet:
+      id: 1660580964004-1
+      author: philliprushby (generated)
+      changes:
+          - dropPrimaryKey:
+                tableName: user_project_permission
+- changeSet:
+    id: 1660580964004-10
+    author: philliprushby (generated)
+    changes:
+       -   dropColumn:
+               columnName: permission_id
+               tableName: user_project_permission
+- changeSet:
+      id: 1660580964004-2
+      author: philliprushby (generated)
+      changes:
+          - addPrimaryKey:
+                columnNames: user_id, project_permission_id, project_id
+                constraintName: PRIMARY
+                tableName: user_project_permission
+
+- changeSet:
+      id: 1660580964004-4
+      author: philliprushby (generated)
+      changes:
+          - createIndex:
+                columns:
+                    - column:
+                          name: project_permission_id
+                indexName: FK_USERPERMISSION_ON_PERMISSION_idx
+                tableName: user_project_permission
+                unique: false
+
+
+- changeSet:
+      id: 1660582281796-1
+      author: philliprushby (generated)
+      changes:
+          - createTable:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                              primaryKey: true
+                          name: id
+                          type: SMALLINT
+                    - column:
+                          name: permission
+                          type: VARCHAR(25)
+                tableName: permission
+- changeSet:
+      id: 1660582281796-2
+      author: philliprushby (generated)
+      changes:
+          - createTable:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                              primaryKey: true
+                          name: user_id
+                          type: CHAR(36)
+                    - column:
+                          constraints:
+                              nullable: false
+                              primaryKey: true
+                          name: permission_id
+                          type: SMALLINT
+                tableName: user_permission
+- changeSet:
+      id: 1660582281796-3
+      author: philliprushby (generated)
+      changes:
+          - createIndex:
+                columns:
+                    - column:
+                          name: permission_id
+                indexName: FK_USERPERMISSION_ON_PERMISSION_idx
+                tableName: user_permission
+- changeSet:
+      id: 1660582281796-4
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: permission_id
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_PERMISSION
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: permission
+                validate: true
+- changeSet:
+      id: 1660582281796-5
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: user_id
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_USER
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: user
+                validate: true
+- changeSet:
+      id: 1660582281796-6
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: project_id
+                baseTableName: user_project_permission
+                constraintName: FK_USERPROJECTPERMISSION_ON_PROJECT
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: project
+                validate: true
+- changeSet:
+      id: 1660582281796-7
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: user_id
+                baseTableName: user_project_permission
+                constraintName: FK_USERPROJECTPERMISSION_ON_USER
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: NO ACTION
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: user
+                validate: true
+- changeSet:
+      id: 1660032850837-31
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: user_project_permission
+                constraintName: FK_USERPROJECTPERMISSION_ON_PERMISSION
+- changeSet:
+      id: 1660032850837-32
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_PERMISSION
+- changeSet:
+      id: 1660032850837-33
+      author: philliprushby
+      changes:
+          -   dropTable:
+                  catalogName: cdbb
+                  tableName: permission
+                  schemaName: public
+- changeSet:
+      id: 1660032850837-34
+      author: philliprushby
+      changes:
+          -   dropTable:
+                  catalogName: cdbb
+                  tableName: project_permission
+                  schemaName: public
+
+- changeSet:
+      id: 1660032850837-35
+      author: philliprushby (generated)
+      changes:
+          - dropForeignKeyConstraint:
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_USER
+- changeSet:
+      id: 1660032850837-36
+      author: philliprushby (generated)
+      changes:
+          - addForeignKeyConstraint:
+                baseColumnNames: user_id
+                baseTableName: user_permission
+                constraintName: FK_USERPERMISSION_ON_USER
+                deferrable: false
+                initiallyDeferred: false
+                onDelete: CASCADE
+                onUpdate: NO ACTION
+                referencedColumnNames: id
+                referencedTableName: user
+                validate: true

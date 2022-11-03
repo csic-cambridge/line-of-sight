@@ -44,43 +44,35 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
     }
 
     ngOnInit(): void {
-        console.log("Added Entity Link Component for", this.leftLink, "to", this.rightLink);
     }
 
     ngAfterViewInit(): void {
         const element = document.getElementById('topLevelBody');
-        if(element!==null) {
+        if(element !== null) {
             this.resizeObserver.observe(element);
         }
-        else {
-            console.error("Failed to add resize observer for link changes")
-        }
-        if (!this.createLink()) { // not sure why, but sometimes rightlink is not found (it should have rendered by now) but a second attempt will solve it.
+        if (!this.createLink()) {
+            // not sure why, but sometimes rightlink is not found (it should have rendered by now) but a second attempt will solve it.
             this.createLink();
         }
     }
 
-    createLink() : boolean{
-        if (this.leaderline === undefined && this.leftLink!==undefined && this.rightLink!==undefined) {
+    createLink(): boolean{
+        if (this.leaderline === undefined && this.leftLink !== undefined && this.rightLink !== undefined) {
             const startElement = document.getElementById(this.leftLink);
             const endElement = document.getElementById(this.rightLink);
-            console.log(this.leftLink, this.rightLink, startElement, endElement)
             if (startElement != null && endElement != null) {
                 this.leaderline = new LeaderLine(startElement, endElement,
                     {size: 2, color: IRGraphComponent.darkblue, startSocket: 'right', endSocket: 'left'}
                 );
                 return true;
             }
-            else {
-                console.error("Failed to add link startElement = " + startElement + ",  endElement = " + endElement)
-
-            }
         }
         return false;
     }
 
     onResize(): void {
-        if(this.leaderline!=null) {
+        if(this.leaderline != null) {
             this.leaderline.position();
         }
 

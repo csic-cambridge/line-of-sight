@@ -63,7 +63,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("no_security")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class FunctionalOutputsWebTest {
+public class FunctionalOutputsRestTest {
     @LocalServerPort
     private int port;
     private static UUID projectId;
@@ -113,23 +113,19 @@ public class FunctionalOutputsWebTest {
     @AfterAll
     public void runAfterAllTestsComplete() {
         try {
+            projectManager.delete(projectId, port);
             foManager.deleteFunctionalOutputDictionary(foDdDao.getId());
             assetManager.deleteAssetDictionary(assetDdDao.getId());
-            projectManager.delete(projectId, port);
         } catch (Exception e) {
             fail("Failed to delete initial project" + e);
         }
     }
 
     // test functionalOutputs: post, get, functionalOutputs/{id}: get,put,delete
-
-
-
-
     private void getAllFunctionalOutputs() {
         HttpEntity<String> response = apiManager.doSuccessfulGetApiRequest(
-            "http://localhost:" + port + "/api/functional-outputs/" + projectId);
-        // process result when fewer entries (note: prallel test may be creating these at the same time)
+            "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId);
+        // process result when fewer entries (note: parallel test may be creating these at the same time)
         String ddResultAsJsonStr = response.getBody();
         System.out.println("Get all functionalOutputs for project " + projectId + " response (1):" + ddResultAsJsonStr);
 
@@ -144,7 +140,7 @@ public class FunctionalOutputsWebTest {
         try {
             final FunctionalOutputDAO functionalOutput = foManager.createFunctionalOutput(projectId, port);
             response = apiManager.doSuccessfulGetApiRequest(
-                "http://localhost:" + port + "/api/functional-outputs/" + projectId);
+                "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId);
             // process result when no entries
             ddResultAsJsonStr = response.getBody();
             System.out.println("Get all functionalOutputs for project " + projectId + " response(2): "
@@ -257,7 +253,7 @@ public class FunctionalOutputsWebTest {
 
             ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
                 payload,
-                "http://localhost:" + port + "/api/functional-outputs/" + projectId
+                "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId
                     + "/" + foId);
             // process result
             String ddResultAsJsonStr = response.getBody();

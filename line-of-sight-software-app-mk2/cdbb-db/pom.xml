@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.costain.cdbb</groupId>
         <artifactId>cdbb</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,6 +35,11 @@
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
             <version>2.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-envers</artifactId>
+            <version>5.6.10.Final</version>
         </dependency>
     </dependencies>
 

@@ -106,7 +106,7 @@ public class TestAssetManager {
         String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             payload,
-            "http://localhost:" + port + "/api/assets/" + projectId);
+            "http://localhost:" + port + "/api/assets/pid/" + projectId);
         // build AssetDAO result from response
         String ddResultAsJsonStr = response.getBody();
         JSONObject assetJsonObject = new JSONObject(ddResultAsJsonStr);

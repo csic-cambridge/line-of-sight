@@ -75,7 +75,7 @@ public class TestFunctionalRequirementManager {
         String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             payload,
-            "http://localhost:" + port + "/api/functional-requirements/" + projectId);
+            "http://localhost:" + port + "/api/functional-requirements/pid/" + projectId);
         // build FunctionalRequirementDAO result from response
         String frResultAsJsonStr = response.getBody();
         JSONObject frJsonObject = new JSONObject(frResultAsJsonStr);
@@ -100,7 +100,7 @@ public class TestFunctionalRequirementManager {
 
     public void deleteFunctionalRequirement(UUID projectId, FunctionalRequirementDAO fr, int port) {
         apiManager.doSuccessfulDeleteApiRequest(
-            "http://localhost:" + port + "/api/functional-requirements/" + projectId + "/" + fr.getId());
+            "http://localhost:" + port + "/api/functional-requirements/pid/" + projectId + "/" + fr.getId());
         // check it has been deleted from database
         assertFalse(frRepository.findById(fr.getId()).isPresent());
 

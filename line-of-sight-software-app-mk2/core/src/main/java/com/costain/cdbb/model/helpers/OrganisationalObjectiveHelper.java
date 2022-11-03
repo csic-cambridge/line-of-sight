@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 
 @Component
@@ -63,6 +64,11 @@ public class OrganisationalObjectiveHelper {
     @Autowired
     ProjectOrganisationalObjectiveRepository pooRepository;
 
+    Mono<String> findMessageByUsername(String username) {
+        System.out.println("username = " + username);
+        return Mono.just("Hi " + username);
+    }
+
     public OrganisationalObjectiveWithId fromDao(OrganisationalObjectiveDAO dao) {
         OrganisationalObjectiveWithId dto = new OrganisationalObjectiveWithId()
                                                     .id(dao.getId())
@@ -70,8 +76,7 @@ public class OrganisationalObjectiveHelper {
                                                     .isDeleted(dao.isDeleted());
 
         dto.oirs(dao.getOirDaos() != null
-                ? dao.getOirDaos().stream().map(
-                    oirdao -> new Oir().id(oirdao.getId()).oir(oirdao.getOir())).toList()
+                ? dao.getOirDaos().stream().map(oirdao -> new Oir().id(oirdao.getId()).oir(oirdao.getOir())).toList()
                 : Collections.emptyList());
         return dto;
     }

@@ -38,7 +38,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("no_security")
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class DataDictionaryWebTest {
+public class DataDictionaryRestTest {
 
     @LocalServerPort
     private int port;

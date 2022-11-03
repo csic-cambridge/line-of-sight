@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from "@angular/common/http";
-import {environment} from "../environments/environment";
-import {Observable} from "rxjs";
-import {DataDictionaryEntry} from "./data-dictionary-entry";
-import {shareReplay} from "rxjs/operators";
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../environments/environment';
+import {Observable} from 'rxjs';
+import {DataDictionaryEntry} from './data-dictionary-entry';
+import {shareReplay} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -20,8 +20,7 @@ export class FunctionalOutputDataDictionaryEntryService {
     }
 
     getFunctionalOutputDataDictionaryEntries(projectId: string): Observable<Array<DataDictionaryEntry>> {
-        if(!this.cache$) {
-            console.log("Caching fo data dictionary entries");
+        if (!this.cache$) {
             this.cache$ = this.http.get<Array<DataDictionaryEntry>>(this.serviceUrl + '/' + projectId).pipe(shareReplay());
         }
         return this.cache$;

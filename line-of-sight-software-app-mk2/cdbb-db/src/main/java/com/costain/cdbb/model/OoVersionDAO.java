@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -25,6 +26,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
+@Audited
 @Table(name = "oo_version")
 @Getter
 @Setter(AccessLevel.PROTECTED)

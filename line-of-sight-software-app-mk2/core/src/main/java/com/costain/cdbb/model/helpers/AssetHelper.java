@@ -34,6 +34,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+/**
+ * Provides helper functions for managing and manipulating assets.
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -44,6 +47,11 @@ public class AssetHelper {
     @Autowired
     ProjectRepository projectRepository;
 
+    /**
+     * Create a dto from an asset dao.
+     * @param dao the source data
+     * @return AssetWithId the created dto
+     */
     public AssetWithId fromDao(AssetDAO dao) {
         AssetWithId dto = new AssetWithId();
         dto.id(dao.getId());
@@ -55,18 +63,26 @@ public class AssetHelper {
         return dto;
     }
 
+    /**
+     * Create an asset dao for an existing asset from an asset dto.
+     * @param id the id of the asset
+     * @param asset the source asset data
+     * @param projectId the project the asset belongs to
+     * @return AssetDAO the created asset dao
+     */
     public AssetDAO fromDto(UUID id, Asset asset, UUID projectId) {
         return fromDto(AssetDAO.builder().id(id), projectId,
             asset.getDataDictionaryEntry().getId(), asset.getAirs());
     }
 
+    /**
+     * Create an asset dao for a new asset from an asset dto.
+     * @param asset the source asset data
+     * @param projectId the project the asset belongs to
+     * @return AssetDAO the created asset dao
+     */
     public AssetDAO fromDto(AssetWithId asset, UUID projectId) {
         return fromDto(AssetDAO.builder(), projectId,
-            asset.getDataDictionaryEntry().getId(), asset.getAirs());
-    }
-
-    public AssetDAO fromDto(UUID id, AssetWithId asset, UUID projectId) {
-        return fromDto(AssetDAO.builder().id(id), projectId,
             asset.getDataDictionaryEntry().getId(), asset.getAirs());
     }
 

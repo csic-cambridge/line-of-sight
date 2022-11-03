@@ -13,8 +13,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
+import org.hibernate.envers.Audited;
 
 @Entity
+@Audited
 @Table(name="functional_output_dictionary_entry")
 @Getter
 @Setter(AccessLevel.PROTECTED)

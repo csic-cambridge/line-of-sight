@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### VS ###
+.vs/
+
 ### Maven versions plugin ###
 *.versionsBackup
 

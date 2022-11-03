@@ -1,14 +1,16 @@
 package com.costain.cdbb.repositories;
 
 import com.costain.cdbb.model.*;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.data.repository.CrudRepository;
 
+
+
 /*
-CrudRepository for UserProjectPermissionDAO
+CrudRepository for UserProjectPermissionsDAO
  */
 public interface UserProjectPermissionRepository extends CrudRepository<UserProjectPermissionDAO, UserProjectPermissionId> {
-    long countByProject(ProjectDAO project);
-    long countByUser(UserDAO user);
-    long countByUserAndProject(UserDAO user, ProjectDAO project);
-    UserProjectPermissionDAO findByUserAndPermissionAndProject(UserDAO user, PermissionDAO permission, ProjectDAO project);
+    List<UserProjectPermissionDAO> findById_UserIdAndId_ProjectId(UUID userId, UUID projectId);
+    int deleteById_UserIdAndId_ProjectId(UUID userId, UUID projectId);
 }

@@ -1,0 +1,115 @@
+<div class="container-xxl" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+    <div id="div" >
+        <div id="sidePanel"  class="row">
+            <div class="col">
+                <div class="modal-body">
+                    <form #user>
+                        <div class="form-group" id="search-users">
+                            <div id="userSelect">
+                                <h5><label for="userEmail" class="form-label text-right">Super User Dashboard</label></h5>
+                                <input #elUserEmail id="userEmail" name="userEmail" class="form-control element-text"
+                                       list="userOptions" (input)="userChange($event)" placeholder="Select User ..." autocomplete="off" ngModel>
+                                <datalist id="userOptions">
+                                    <option *ngFor="let user of users" value="{{user.email_address}}">
+                                        {{user.email_address}}{{user.is_super_user === true ? ' - Super User' : ''}}
+                                    </option>
+                                </datalist>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="user-permissions-body" class="modal-body" *ngIf="selectedUser !== undefined">
+                        <form #userPermissionsForm (ngSubmit)="saveSuperUserStatusAndUserPermissions(userPermissionsForm.value)">
+                            <div class="form-group">
+                                <h6 class="custom-header"><label class="form-label text-right"><b>Super User Privileges</b></label></h6>
+                                <div id="superUserPrivilegesDiv" class="form=group">
+                                    <input class="custom-label-css" (change)="onSuperUserStatusChange()" id="superUserSelect" type="checkbox"
+                                           value="{{this.selectedUser == undefined ? false : this.selectedUser.is_super_user}}" [checked]="this.selectedUser == undefined ? false : this.selectedUser.is_super_user"/>
+                                    <label class="custom-label-css">Super User</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group" *ngIf="!selectedSuperUserStatus">
+                                <h6 class="custom-header"><label class="form-label text-right"><b>User Permissions</b></label></h6>
+                                <div id="userPermissionsDiv" class="form=group">
+                                    <div *ngFor="let permission of userPermissions?.permissions" id="userPermissionsContent">
+                                        <input class="custom-label-css"
+                                               (change)="onUserPermissionsChange(permission.name)"
+                                               id="userPermissionsSelect" type="checkbox"
+                                               value="{{permission.is_granted}}"
+                                               [checked]="selectedUserPermissions.includes(permission.name)"/>
+                                        <label class="custom-label-css">{{permission.name}}</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="padding-top: 12px;">
+                                <ng-container>
+                                    <button id="userPermissionsSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary"
+                                            [disabled]="!isChangeSelectedForSuperUserStatus && !isChangeSelectedForUserPermissions">Save</button>
+                                    <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="clearUserContent()">Cancel</button>
+                                </ng-container>
+                            </div>
+
+                        </form>
+                    </div>
+
+                    <div id="open-project-permissions" class="modal-footer pull-left" *ngIf="selectedUser !== undefined && !selectedSuperUserStatus">
+                        <div style="margin-left: 0px;">
+                            <h6 class="custom-header"><label class="form-label text-right"><b>Project Permissions</b></label></h6>
+                            <ng-container>
+                                <button id="viewProjectPermissionsBtn" type="button" class="btn btn-outline-primary"
+                                        data-dismiss="modal" (click)="openProjectModal(true)">View Project Permissions</button>
+                            </ng-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Permissions Modal Content -->
+    <div id="projectPermissionsModal" class="modal fade" role="dialog" [ngStyle]="{'display': projectPermissionsIsOpen ? 'block' : 'none', 'opacity': 1}">
+        <div  class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" ngDraggable [handle]="projectPermissionsHandle">
+                <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #projectPermissionsHandle>
+                    <h3 class="modal-title">Project Permissions</h3>
+                    <button type="button" class="close" aria-label="Close" (click)="openProjectModal(false)">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form #projectPermissionsForm (ngSubmit)="saveProjectPermissions(projectPermissionsForm.value)">
+                        <div class="form-group">
+                            <div id="projectSelect">
+                                <input #elProjectName id="projectName" name="projectName" class="form-control element-text"
+                                       list="projectOptions" (input)="projectChange($event)" placeholder="Select Project ..." autocomplete="off" ngModel>
+                                <datalist id="projectOptions">
+                                    <option *ngFor="let project of projects" value="{{project.name}}">
+                                        {{project.name}}
+                                    </option>
+                                </datalist>
+                            </div>
+
+                            <div id="project-permissions" class="form=group">
+                                <div *ngFor="let permission of projectPermissions?.permissions" id="projectPermissionsContent">
+                                    <input class="custom-label-css" *ngIf="selectedProject !== undefined && projectPermissions !== undefined && projectPermissions.permissions.length>0"
+                                           (change)="onProjectPermissionChange(permission.name)" id="projectPermissionSelect" type="checkbox" value="{{permission.is_granted}}" [checked]="permission.is_granted"/>
+                                    <label class="custom-label-css" *ngIf="selectedProject !== undefined && projectPermissions !== undefined && projectPermissions.permissions.length>0"
+                                           for="projectPermissionSelect">{{permission.name}}</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <ng-container>
+                                <button id="projectPermissionsSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!isChangeSelectedForProjectPermissions">Save</button>
+                                <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="clearProjectContent()" [disabled]="!selectedProject">Cancel</button>
+                                <button type="button" data-dismiss="modal" class="btn btn-outline-danger" (click)="openProjectModal(false)">Close</button>
+                            </ng-container>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

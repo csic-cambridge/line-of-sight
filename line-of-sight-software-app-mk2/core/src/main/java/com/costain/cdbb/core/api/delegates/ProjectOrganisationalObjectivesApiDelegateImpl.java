@@ -31,6 +31,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Handles the api calls from a client with root /api/project-organisational-objectives.
+ */
 
 @Service
 public class ProjectOrganisationalObjectivesApiDelegateImpl implements ProjectOrganisationalObjectivesApiDelegate {
@@ -51,19 +54,33 @@ public class ProjectOrganisationalObjectivesApiDelegateImpl implements ProjectOr
     @Autowired
     private TransactionTemplate transactionTemplate;
 
+    /**
+     * Fetch all the project organisational objectives for a project.
+     * @param projectId the project id of the project whose project organisational objectives are required
+     * @return <p>Mono&lt;ResponseEntity&lt;Flux&lt;ProjectOrganisationalObjectiveWithId&gt;&gt;&gt;
+     * project organisational objectives belonging to project</p>
+     */
     @Override
     public Mono<ResponseEntity<Flux<ProjectOrganisationalObjectiveWithId>>> findAllProjectOrganisationalObjectives(
-        UUID id, ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(pooHelper.findByProjectActive(id))
+        UUID projectId, ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(pooHelper.findByProjectActive(projectId))
             .map(dao -> pooHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Update a project organisational objective in a project.
+     * @param projectId the project id of the project to which the project organisational objective is being updated
+     * @param pooId the id of the project organisational objective to update
+     * @param projectOrganisationalObjectiveWithId the updated project organisational objective
+     * @return <p>Mono&lt;ResponseEntity&lt;projectOrganisationalObjectiveWithId&gt;&gt;
+     * the project organisational objective updated</p>
+     */
     @Override
     public Mono<ResponseEntity<ProjectOrganisationalObjectiveWithId>>
-        updateProjectOrganisationalObjective(UUID projectid,
-                                             UUID pooid,
+        updateProjectOrganisationalObjective(UUID projectId,
+                                             UUID pooId,
                                              Mono<ProjectOrganisationalObjectiveUpdate>
                                                  projectOrganisationalObjectiveWithId,
                                              ServerWebExchange exchange) {
@@ -75,12 +92,18 @@ public class ProjectOrganisationalObjectivesApiDelegateImpl implements ProjectOr
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Delete a project organisational objective from a project.
+     * @param projectId the project id of the project from which the project organisational objective is being deleted
+     * @param pooId the id of the project organisational objective being deleted
+     * @return Mono&lt;ResponseEntity&lt;Void&gt;&gt;
+     */
     @Override
-    public Mono<ResponseEntity<Void>> deleteProjectOrganisationalObjective(UUID projectid,
-                                                                           UUID pooid,
+    public Mono<ResponseEntity<Void>> deleteProjectOrganisationalObjective(UUID projectId,
+                                                                           UUID pooId,
                                                                            ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> repository.deleteById(pooid))
+        return Mono.fromRunnable(() -> repository.deleteById(pooId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }

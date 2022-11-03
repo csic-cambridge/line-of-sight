@@ -43,7 +43,9 @@ import reactor.core.publisher.Mono;
 
 
 
-
+/**
+ * Handles the api calls from a client with root /api/project.
+ */
 
 @Service
 public class ProjectApiDelegateImpl implements ProjectApiDelegate {
@@ -70,6 +72,11 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
         this.projectHelper = projectHelper;
     }
 
+    /**
+     * Fetch all projects.
+     * @return <p>Mono&lt;ResponseEntity&lt;Flux&lt;ProjectWithId&gt;&gt;&gt;
+     * projects</p>
+     */
     @Override
     public Mono<ResponseEntity<Flux<ProjectWithId>>> findAllProjects(ServerWebExchange exchange) {
         return Mono.fromCallable(() -> Flux.fromIterable(repository.findAllByOrderByNameAsc())
@@ -78,13 +85,11 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    @Override
-    public Mono<ResponseEntity<ProjectWithId>> findProjectById(UUID id, ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> projectHelper.fromDao(repository.findById(id).orElse(null)))
-            .map(ResponseEntity::ok)
-            .defaultIfEmpty(ResponseEntity.notFound().build());
-    }
-
+    /**
+     * Add a project.
+     * @param project the project to be created
+     * @return Mono&lt;ResponseEntity&lt;ProjectWithId&gt;&gt; the project added
+     */
     @Override
     public Mono<ResponseEntity<ProjectWithId>> addProject(
         Mono<Project> project, ServerWebExchange exchange) {
@@ -111,13 +116,19 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
                             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Rename a project.
+     * @param projectId the project to be created
+     * @param body json with key = name
+     * @return Mono&lt;ResponseEntity&lt;Project&gt;&gt; the renamed project
+     */
     @Override
-    public Mono<ResponseEntity<Project>> renameProject(UUID id,
+    public Mono<ResponseEntity<Project>> renameProject(UUID projectId,
                                                        Mono<String> body,
                                                        ServerWebExchange exchange) {
         return body.map(dto -> {
             try {
-                return projectHelper.renameProject(dto, id);
+                return projectHelper.renameProject(dto, projectId);
             } catch (JSONException e) {
                 return null;
             }
@@ -128,14 +139,25 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
         .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Delete a project.
+     * @param projectId the project id of the project to be deleted
+     * @return Mono&lt;ResponseEntity&lt;Void&gt;&gt;
+     */
     @Override
-    public Mono<ResponseEntity<Void>> deleteProject(UUID id, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<Void>> deleteProject(UUID projectId, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> repository.deleteById(id))
+        return Mono.fromRunnable(() -> repository.deleteById(projectId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }
 
+    /**
+     * Copy a project.
+     * @param originalProjectId the project id of the project to be copied
+     * @param newProjectName name for the copied project
+     * @return Mono&lt;ResponseEntity&lt;ProjectWithId&gt;&gt; the copied project
+     */
     @Override
     public Mono<ResponseEntity<ProjectWithId>> copyProject(
         UUID originalProjectId, Mono<String> newProjectName, ServerWebExchange exchange) {

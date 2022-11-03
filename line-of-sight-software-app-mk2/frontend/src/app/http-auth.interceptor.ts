@@ -21,11 +21,13 @@ export class HttpAuthInterceptor implements HttpInterceptor {
         }),
         catchError((httpErrorResponse: HttpErrorResponse, event) => {
             if(httpErrorResponse.status===HttpStatusCode.Unauthorized) {
-                console.log("Unauthorised http call made", httpErrorResponse.url);
-                this.router.navigate(['/login'])
+                this.router.navigate(['/login']);
+            }
+            else if(httpErrorResponse.status===HttpStatusCode.Forbidden) {
+                window.alert('You do not have permission to perform this function');
             }
             return throwError(httpErrorResponse);
         })
-    )
+    );
   }
 }

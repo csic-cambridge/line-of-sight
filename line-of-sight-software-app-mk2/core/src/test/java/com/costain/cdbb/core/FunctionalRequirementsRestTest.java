@@ -58,7 +58,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("no_security")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class FunctionalRequirementsWebTest {
+public class FunctionalRequirementsRestTest {
     @LocalServerPort
     private int port;
     private static UUID projectId;
@@ -114,7 +114,7 @@ public class FunctionalRequirementsWebTest {
             fr = frManager.createFunctionalRequirement(projectId, port);
 
             HttpEntity<String> response = apiManager.doSuccessfulGetApiRequest(
-                "http://localhost:" + port + "/api/functional-requirements/" + projectId);
+                "http://localhost:" + port + "/api/functional-requirements/pid/" + projectId);
             // process result when no entries
             String frResultAsJsonStr = response.getBody();
             System.out.println("Get all Functional Requirements response: " + frResultAsJsonStr);
@@ -179,7 +179,7 @@ public class FunctionalRequirementsWebTest {
             String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
             ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
                 payload,
-                "http://localhost:" + port + "/api/functional-requirements/" + projectId + "/" + fr.getId());
+                "http://localhost:" + port + "/api/functional-requirements/pid/" + projectId + "/" + fr.getId());
             // process result
             String frResultAsJsonStr = response.getBody();
             JSONObject frJsonObject = new JSONObject(frResultAsJsonStr);

@@ -74,7 +74,7 @@ Update - Updates the POO latest version to the version id sent
 @ActiveProfiles("no_security")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class PooWebTest {
+public class PooRestTest {
     @LocalServerPort
     private int port;
     private static UUID projectId;
@@ -127,8 +127,8 @@ public class PooWebTest {
     @AfterAll
     public void runAfterAllTestsComplete() {
         try {
-            foManager.deleteFunctionalOutputDictionary(foDdDao.getId());
             projectManager.delete(projectId, port);
+            foManager.deleteFunctionalOutputDictionary(foDdDao.getId());
         } catch (Exception e) {
             fail("Failed to delete initial project" + e);
         }
@@ -189,9 +189,10 @@ public class PooWebTest {
                     () -> assertTrue(ooVersionJsonObject.getLong("date_created") > finalLastDateCreated,
                         "Expected date_created " + ooVersionJsonObject.getLong("date_created")
                         + " is unexpectedly < " + finalLastDateCreated),
-                    () -> assertTrue(ooVersionJsonObject.getString("name").contains("Objective #"),
-                        "Objective expected to contain 'Objective #' but was "
-                            + ooVersionJsonObject.getString("name")),
+                    //cannot do this assertion if new objectives made or renamed
+                    // () -> assertTrue(ooVersionJsonObject.getString("name").contains("Objective #"),
+                    //    "Objective expected to contain 'Objective #' but was "
+                    //        + ooVersionJsonObject.getString("name")),
                     () -> assertTrue(ooVersionJsonObject.getString("oo_id") != null,
                         "oo_id should not be null"),
                     () -> assertTrue(ooVersionJsonObject.getString("id") != null,
@@ -252,7 +253,7 @@ public class PooWebTest {
 
     private List<ProjectOrganisationalObjectiveDAO> fetchAndCheckCurrentPoosForProject() throws JSONException {
         ResponseEntity<String> response = apiManager.doSuccessfulGetApiRequest(
-            "http://localhost:" + port + "/api/project-organisational-objectives/" + projectId);
+            "http://localhost:" + port + "/api/project-organisational-objectives/pid/" + projectId);
         return checkPooResponseAgainstDatabase(response.getBody());
     }
 
@@ -284,7 +285,7 @@ public class PooWebTest {
         String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
         ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
             payload,
-            "http://localhost:" + port + "/api/project-organisational-objectives/" + projectId + "/" + poo.getId());
+            "http://localhost:" + port + "/api/project-organisational-objectives/pid/" + projectId + "/" + poo.getId());
         Optional<ProjectOrganisationalObjectiveDAO> optUpdatedPoo = pooRepository.findById(poo.getId());
         assertTrue(((Optional<?>) optUpdatedPoo).isPresent(), "Cannot find update poo");
 
@@ -425,7 +426,7 @@ public class PooWebTest {
 
             // STEP 10  check the poo is no longer retrieved from api
             ResponseEntity<String> response = apiManager.doSuccessfulGetApiRequest(
-                "http://localhost:" + port + "/api/project-organisational-objectives/" + projectId);
+                "http://localhost:" + port + "/api/project-organisational-objectives/pid/" + projectId);
             JSONArray pooJsonArray = new JSONArray(response.getBody());
             for (int i = 0; i < pooJsonArray.length(); i++) {
                 JSONObject pooJsonObject = pooJsonArray.getJSONObject(i);

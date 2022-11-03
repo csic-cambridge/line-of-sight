@@ -1,20 +1,24 @@
 <div class="container-xxl" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
     <div class="row buttons-div">
         <div class="col" align="center">
-            <button type="button" class="btn btn-outline-primary" (click)="openModal(true)">Organisational Objectives</button>
+            <button type="button" class="btn btn-outline-primary"
+                    (click)="openModal(true)"
+                    [disabled]="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_OOS)">
+                Organisational Objectives
+            </button>
         </div>
     </div>
     <hr>
 
-    <div class="row">
+    <div class="row" *ngIf="!this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_OOS)">
         <div class="col" align="center">
             <div class="col-3">
                 <div class="d-flex flex-column justify-content-around h-100">
                     <div *ngFor="let objective of objectives" class="card text-center oo-container w-50 mx-auto">
-                        <a (click)="openPrePopulatedModal(objective.id==null ? '' : objective.id, objective.name)">
-                            <h5 [ngClass]="objective.is_deleted===true ? 'strikethrough' : ''" class="card-header" id="{{objective.id}}">{{objective.name}}</h5>
+                        <a (click)="openPrePopulatedModal(objective.id === null ? '' : objective.id, objective.name, this.permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_OOS))">
+                            <h5 [ngClass]="objective.is_deleted===true ? 'strikethrough' : ''"
+                                class="card-header" id="{{objective.id}}">{{objective.name}}</h5>
                         </a>
-<!--                        <pre>{{ objective.is_deleted | json }}</pre>-->
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
                                 <li *ngFor="let oir of objective.oirs" class="list-group-item">{{oir.oir}}</li>
@@ -41,7 +45,7 @@
                         <!-- OO -->
                         <div class="form-group">
                             <h5><label for="ooId" class="form-label text-right" style="margin: 10pt">Title</label></h5>
-                            <input id="ooId" name="id" #ooId="ngModel" required [class.is-invalid]="ooId.invalid" class="form-control element-text is-invalid"
+                            <input #elOOId id="ooId" name="id" #ooId="ngModel" required [class.is-invalid]="ooId.invalid" class="form-control element-text is-invalid"
                                     list="ooDatalistOptions"
                                    (change)="ooChange($event)" placeholder="Organisational Objective Name / Title ... " autocomplete="off" ngModel>
 
@@ -83,10 +87,9 @@
                                 </div>
                             </div>
                             <ng-container>
-                                <button id="ooSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!oo.valid">Save</button>
+                                <button #elOOSubmitBtn id="ooSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!oo.valid">Save</button>
                                 <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="openModal(false)">Cancel</button>
                             </ng-container>
-            <!--                <pre>{{ oo.value | json }}</pre>-->
                         </div>
                     </form>
                 </div>

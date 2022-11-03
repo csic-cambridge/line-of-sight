@@ -29,7 +29,6 @@ import com.costain.cdbb.core.helpers.TestProjectManager;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
-import com.costain.cdbb.model.FunctionalOutputDataDictionaryDAO;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
 import com.google.gson.GsonBuilder;
@@ -61,7 +60,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 
 
-public class AssetsWebTest {
+public class AssetsRestTest {
     @LocalServerPort
     private int port;
     private static UUID projectId;
@@ -114,7 +113,7 @@ public class AssetsWebTest {
 
     private void deleteAsset(AssetDAO asset) {
         apiManager.doSuccessfulDeleteApiRequest(
-            "http://localhost:" + port + "/api/assets/" + projectId + "/" + asset.getId());
+            "http://localhost:" + port + "/api/assets/pid/" + projectId + "/" + asset.getId());
         // check it has been deleted from database
         assertFalse(assetRepository.findById(asset.getId()).isPresent());
     }
@@ -122,7 +121,7 @@ public class AssetsWebTest {
     @Test
     public void getAllAssets() {
         HttpEntity<String> response = apiManager.doSuccessfulGetApiRequest(
-            "http://localhost:" + port + "/api/assets/" + projectId);
+            "http://localhost:" + port + "/api/assets/pid/" + projectId);
         // process result when no entries
         String ddResultAsJsonStr = response.getBody();
         System.out.println("Get all assets response: " + ddResultAsJsonStr);
@@ -142,7 +141,7 @@ public class AssetsWebTest {
             final AssetDAO asset = assetManager.createAsset(projectId, port,
                 "Fir Test", ddEntryDaos.get(0));
             response = apiManager.doSuccessfulGetApiRequest(
-                "http://localhost:" + port + "/api/assets/" + projectId);
+                "http://localhost:" + port + "/api/assets/pid/" + projectId);
             // process result when no entries
             ddResultAsJsonStr = response.getBody();
             System.out.println("Get all assets response: " + ddResultAsJsonStr);
@@ -182,7 +181,7 @@ public class AssetsWebTest {
 
             ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
                 payload,
-                "http://localhost:" + port + "/api/assets/" + projectId + "/" + asset.getId());
+                "http://localhost:" + port + "/api/assets/pid/" + projectId + "/" + asset.getId());
             // process result
             String ddResultAsJsonStr = response.getBody();
             // build AssetDAO result from response

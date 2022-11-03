@@ -30,8 +30,12 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Handles the api calls from a client with root /api/assets api.
+ */
+
 @Service
-public class AssetApiDelegateImpl implements AssetsApiDelegate {
+public class AssetsApiDelegateImpl implements AssetsApiDelegate {
 
     private AssetRepository repository;
     private AssetHelper assetHelper;
@@ -46,6 +50,12 @@ public class AssetApiDelegateImpl implements AssetsApiDelegate {
         this.assetHelper = assetHelper;
     }
 
+
+    /**
+     * Fetch all the assets for a project.
+     * @param projectId the project id of the project whose assets are required
+     * @return Mono&lt;ResponseEntity&lt;Flux&lt;AssetWithId&gt;&gt;&gt; assets belonging to project
+     */
     @Override
     public Mono<ResponseEntity<Flux<AssetWithId>>> findAssetsByProject(UUID projectId, ServerWebExchange exchange) {
         return Mono.fromCallable(() -> Flux.fromIterable(repository.findByProjectId(projectId))
@@ -54,11 +64,12 @@ public class AssetApiDelegateImpl implements AssetsApiDelegate {
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-    @Override
-    public Mono<ResponseEntity<AssetWithId>> findAssetById(UUID projectId, UUID id, ServerWebExchange exchange) {
-        return AssetsApiDelegate.super.findAssetById(projectId, id, exchange);
-    }
-
+    /**
+     * Add an asset to a project.
+     * @param projectId the project id of the project to which the asset is being added
+     * @param asset the asset being added
+     * @return Mono&lt;ResponseEntity&lt;AssetWithId&gt;&gt; the asset added
+     */
     @Override
     public Mono<ResponseEntity<AssetWithId>> addAsset(UUID projectId, Mono<Asset> asset, ServerWebExchange exchange) {
         return asset.map(dto -> assetHelper.fromDto(null, dto, projectId))
@@ -68,20 +79,33 @@ public class AssetApiDelegateImpl implements AssetsApiDelegate {
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Update an asset in a project.
+     * @param projectId the project id of the project to which the asset is being updated
+     * @param assetId id of the asset to update
+     * @param asset the updated asset
+     * @return Mono&lt;ResponseEntity&lt;AssetWithId&gt;&gt; the asset updated
+     */
     @Override
-    public Mono<ResponseEntity<AssetWithId>> updateAsset(UUID projectId, UUID id,
+    public Mono<ResponseEntity<AssetWithId>> updateAsset(UUID projectId, UUID assetId,
                                                          Mono<Asset> asset, ServerWebExchange exchange) {
-        return asset.map(dto -> assetHelper.fromDto(id, dto, projectId))
+        return asset.map(dto -> assetHelper.fromDto(assetId, dto, projectId))
             .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
             .map(savedDao -> assetHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Delete an asset from a project.
+     * @param projectId the project id of the project from which the asset is being deleted
+     * @param assetId the id of the asset being deleted
+     * @return Mono&lt;ResponseEntity&lt;Void&gt;&gt;
+     */
     @Override
-    public Mono<ResponseEntity<Void>> deleteAsset(UUID projectId, UUID id, ServerWebExchange exchange) {
+    public Mono<ResponseEntity<Void>> deleteAsset(UUID projectId, UUID assetId, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> repository.deleteById(id))
+        return Mono.fromRunnable(() -> repository.deleteById(assetId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }

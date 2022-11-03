@@ -5,25 +5,38 @@ Objective Information Requirement (OIR).
 
 ## Project Dependencies
 
-The application require the following technologies to be available in the system for a successful build and run of the application,
+The application requires the following technologies to be available in the system for a successful build and run of the application,
 
 1. Java JDK version 17
 2. Maven latest stable version
 3. Angular
 4. Liquibase
-5. Docker
-6. MariaDB Docker Image
+5. Docker (if application and/or database to be Dockerised)
+6. MariaDB (as optional Docker Image)
 
 ## Getting Started
 
+### Configuration File
+Deployments of the application will require an external configuration file to be specified.
+This will be a YAML file and will include
+details of Authentication providers, database connections and other settings.  See the included application.yaml file for
+an example of the format and settings which can be specified.  Other settings can be added if specific functionality or features are required.
+
+### Authentication Providers
+The application uses OIDC (Open ID Connect) authentication providers.  Sample Google and Azure configurations are in the example
+but others may be added e.g. Facebook, Github etc. - see their documentation for the specific settings required.  
+Accounts with these providers will need to be available.
+
+### Database Connections
+The application can function with most SQL databases but only MariaDb and MySQL have been tested.
+The database connection string and credentials must be specified - see example file for MariaDb.
 ### Setting up Database
-The final deployment of Line of Sight Software application enables Data Persistence. For this purpose, instead of **in-memory** 
-database, an external database has been set up. For this purpose, **MariaDB** has been used which will be hosted
-in a **Docker** container. The set up of these have been explained further.  
+The Line of Sight Software application requires an external SQL database. 
+For this document, **MariaDB** has been used to illustrate the setup.  It can be hosted
+in a **Docker** container or standalone. The setup is explained below.  
 
 * ### Docker Setup
-    For Data persistence, docker is used to host a MariaDB image. Docker setup is different for Windows/MacOs and Linux systems and
-is explained in the sections below.
+    Docker can be used to host the back-end system and/or the database. 
 
   * #### Windows / MacOS
     Docker Desktop is used to install Docker on the Windows and MacOS systems. Docker Desktop is an easy to install application to
@@ -37,24 +50,28 @@ build and share containerized applications and microservices. Docker Desktop inc
 
     In order to install Docker Desktop, follow the instructions at the following links,
 
-    *Windows* - https://github.com/csic-cambridge/line-of-sight/tree/main/line-of-sight-software-app-mk2
-*MacOS* - https://docs.docker.com/desktop/mac/install/
-
-  * #### Linux
+  * *Windows* - https://docs.docker.com/desktop/install/windows-install/
+  * *MacOS* - https://docs.docker.com/desktop/mac/install/
+  * *Linux*
+  
     Docker Desktop (beta) version is available for Linux (Ubuntu and Debian Distributions only). Information regarding this can be obtained from
 [Docker Desktop For Linux(beta)](https://docs.docker.com/desktop/linux/)
 
     Instructions to install a more stable version of Docker on a Linux environment can be obtained from https://docs.docker.com/engine/install/
 
 * ### MariaDB Database Set up
-    MariaDB image is hosted within a Docker Container. Following the steps below with help in setting up a database, 
+    MariaDB image may be hosted within a Docker container or as a standalone system. 
+Follow the steps below with help in setting up a database.
 
-  * Install & run docker image
+ 
+  * If using Docker
+  
+    Install & run docker image
     ``` bash
     docker run --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3306:3306 -d docker.io/library/mariadb:10.3
     ```
 
-  * Start an interactive Bash session in the container
+    Start an interactive Bash session in the container
     (This is not required on Windows as the UI provides a CLI)
     ``` bash
     docker exec -ti mariadb bash
@@ -74,7 +91,7 @@ build and share containerized applications and microservices. Docker Desktop inc
     CREATE SCHEMA cdbb;
     ```
 
-Now Database is set up and ready to be used by the application. 
+Now the database is set up and ready to be used by the application. 
 
 ### Line of Sight Software Application Set up
 
@@ -84,15 +101,22 @@ The source of the project is hosted at [csic-cambridge GitHub](https://github.co
 git clone https://github.com/csic-cambridge/line-of-sight.git
 ```
 
-* ### Running from Source
+* ### Running from source
     Open Terminal (MacOS / Linux) or Command Prompt (Windows). Navigate to the folder where project is cloned and run the following commands,
 
-    ```bash
+    ```
     # Build the application 
      .\mvnw clean install -Ddev-build
-    
-    # Run the application after successful build process
-    .\mvnw -pl core -Pdev spring-boot:run
+   ```
+   
+  The created jar file will be:
+   ```
+    \line-of-sight\line-of-sight-software-app-mk2\core\target\cdbb-core-<version>-dev.jar
+  ```
+  
+* ### Run the application after successful build process
+    ```
+    .\mvnw -pl core --spring.config.location=file:<config file and path e.g. ../application.yaml> -Pdev spring-boot:run
     ```
 
     Once application has successfully started, open the following URL in a browser,
@@ -101,34 +125,44 @@ git clone https://github.com/csic-cambridge/line-of-sight.git
     http://localhost:8080
     ```
     
-    User will be presented with the login screen.
+  * Users on other computers must use the url of the hosting computer with port 8080.
+  
+  * Users will be presented with the configured name(s) of the authentication providers with which to login.
 
 * ### Running from executable JAR
 
-    Considering an executable JAR file is available to the user, open Terminal (MacOS / Linux) or Command Prompt (Windows), navigate to the location of the jar file and run the following command,
+    If an executable JAR file is to be used, open Terminal (MacOS / Linux) or Command Prompt (Windows), navigate to the location of the jar file and run the following command,
     
     ``` bash
-    java -jar cdbb-core-<version>-dev.jar
+    java -jar cdbb-core-<version>-dev.jar --spring.config.location=file:<config file and path>
     ```
     
-    This will run the application and then application can be accessed in a browser by navigating to **http://localhost:8080/**
-    
-    If the JAR file isn't available, then following the steps of **Running from Source**, use the **clean install** command.
-    
-    ```bash
-    # Build the application 
-     .\mvnw clean install -Ddev-build
-    ```
-    
-    Once completed, navigate to the **target** directory to retrieve the JAR file. The location of target directory is,
-    
-    ```bash
-    # Location
-    \line-of-sight\line-of-sight-software-app-mk2\core\target
-    
-    # File
-    cdbb-core-<version>-dev.jar
-    ```
+    This will run the application which can be accessed in a browser by navigating to **http://localhost:8080/**
+  (or url of remote computer).
+
+    If the JAR file isn't available, then see **Running from source** above.
+
+
+* ### Running application as a Docker container
+A Docker image can be created for the application with the following command
+
+    ./mvnw docker:remove docker:build -P test-build-docker -P dev
+
+To run the docker image make sure the database is set up and running beforehand.
+To run a Docker database set up as above, run the following command:
+
+```    
+   docker run --network="host" --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3306:3306 -d docker.io/library/mariadb:10.3
+ ```
+
+then the application can be run as:
+
+```
+   docker run  --network="host" -v <absolute path to config.yaml file>:/application.yaml cdbb
+ ```
+ 
+There are many combinations of how the application and database can be run depending on which systems are run in Docker and how the network settings are required.
+It is beyond the scope of this document to provide further options.
 
 ## Functionality
 The functionality and working of the Line of Sight Software Application is detailed in the [User Manual](https://github.com/csic-cambridge/line-of-sight/wiki/User-Manual)

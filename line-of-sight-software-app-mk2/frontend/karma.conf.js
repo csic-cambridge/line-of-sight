@@ -25,20 +25,29 @@ module.exports = function (config) {
       suppressAll: true // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/cdbb'),
-      subdir: '.',
-      reporters: [
-        { type: 'html' },
-        { type: 'text-summary' }
-      ]
+        dir: require('path').join(__dirname, './coverage/cdbb'),
+        subdir: '.',
+        reporters: [
+            {type: 'html'},
+            {type: 'text-summary'}
+        ],
+        check: {
+            global: {
+                statements: 10,
+                branches: 5,
+                functions: 10,
+                lines: 10
+            }
+        }
     },
-    reporters: ['progress', 'kjhtml'],
+    reporters: ['progress', 'kjhtml','coverage'],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    browsers: ['Chrome','ChromeHeadless'],
     singleRun: false,
-    restartOnFileChange: true
+    restartOnFileChange: true,
+      failOnEmptyTestSuite: false
   });
 };

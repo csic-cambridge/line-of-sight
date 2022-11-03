@@ -32,12 +32,13 @@ import reactor.core.publisher.Mono;
 @Component
 public class CustomWebFilter implements WebFilter {
     private static final String INDEX_PAGE = "/";
+    public static final String ANY_OTHER_ROUTE = "/**";
     public static final String DASHBOARD_ROUTE = "/dashboard";
     public static final String OOGRAPH_ROUTE = "/oograph";
     public static final String PROJECT_ROUTE = "/project";
     public static final String SUPERUSER_ROUTE = "/superuser"; //tbd
     static final Set<String> routes = new HashSet<>(
-        Arrays.asList(DASHBOARD_ROUTE, OOGRAPH_ROUTE, PROJECT_ROUTE, SUPERUSER_ROUTE));
+        Arrays.asList(ANY_OTHER_ROUTE, DASHBOARD_ROUTE, OOGRAPH_ROUTE, PROJECT_ROUTE, SUPERUSER_ROUTE));
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {

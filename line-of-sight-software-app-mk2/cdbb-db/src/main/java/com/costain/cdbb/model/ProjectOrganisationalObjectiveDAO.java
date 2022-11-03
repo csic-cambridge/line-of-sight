@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
+import org.hibernate.envers.Audited;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 
 @Entity
+@Audited
 @Table(name = "project_organisational_objective")
 @Getter
 @Setter(AccessLevel.PROTECTED)

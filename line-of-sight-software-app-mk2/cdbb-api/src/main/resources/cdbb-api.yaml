@@ -12,6 +12,32 @@ externalDocs:
 servers:
     - url: 'http://localhost:8080/api'
 paths:
+    /oauth-providers:
+        post:
+            operationId: fetchOauth2ProviderDetails
+            summary: Gets OAuth2.0 providers and urls for login page
+            description: Gets OAuth2.0 providers and urls for login page
+            responses:
+                '201':
+                    description: Successful fetch operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/login_provider'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: Empty
+                content:
+                    application/json:
+                        schema: {}
+
     /organisational-objectives:
         post:
             operationId: addOrganisationalObjective
@@ -115,33 +141,7 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/organisational_objective'
-        get:
-            operationId: findOrganisationalObjectiveById
-            summary: Gets an organisational objective
-            description: Gets a single organisational objective with the given ID
-            parameters:
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The UUID of the objective being manipulated
-            responses:
-                '200':
-                    description: Successful operation
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/organisational_objective_with_id'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorised'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-                '404':
-                    $ref: '#/components/responses/NotFound'
+
         delete:
             operationId: deleteOrganisationalObjective
             summary: Deletes an organisational objective
@@ -165,7 +165,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /project-organisational-objectives/{projectid}:
+    /project-organisational-objectives/pid/{projectid}:
         get:
             operationId: findAllProjectOrganisationalObjectives
             summary: Gets the full list of project organisational objectives
@@ -213,7 +213,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /project-organisational-objectives/{projectid}/{pooid}:
+    /project-organisational-objectives/pid/{projectid}/{pooid}:
         put:
             operationId: updateProjectOrganisationalObjective
             summary: Updates a project organisational objective
@@ -303,7 +303,7 @@ paths:
                 '404':
                     $ref: '#/components/responses/NotFound'
 
-    /functional-requirements/{projectid}:
+    /functional-requirements/pid/{projectid}:
         post:
             operationId: addFunctionalRequirement
             summary: Adds a new functional requirement
@@ -376,7 +376,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-requirements/{projectid}/{id}:
+    /functional-requirements/pid/{projectid}/{id}:
         put:
             operationId: updateFunctionalRequirement
             summary: Add or update a functional requirement
@@ -418,40 +418,6 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/functional_requirement'
-        get:
-            operationId: findFunctionalRequirementById
-            summary: Gets a functional requirement
-            description: Gets a single functional requirement with the given ID
-            parameters:
-                - in: path
-                  name: projectid
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The project UUID of the functional output being sought
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The UUID of the functional requirement being sought
-            responses:
-                '200':
-                    description: Successful operation
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/functional_requirement_with_id'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorised'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-                '404':
-                    $ref: '#/components/responses/NotFound'
         delete:
             operationId: deleteFunctionalRequirement
             summary: Deletes a functional requirement
@@ -482,7 +448,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-outputs/{projectid}:
+    /functional-outputs/pid/{projectid}:
         post:
             operationId: addFunctionalOutput
             summary: Adds a new functional output
@@ -544,7 +510,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /functional-outputs/{projectid}/{id}:
+    /functional-outputs/pid/{projectid}/{id}:
         put:
             operationId: updateFunctionalOutput
             summary: Add or update an functional output
@@ -592,40 +558,6 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/functional_output'
-        get:
-            operationId: findFunctionalOutputById
-            summary: Gets a functional output
-            description: Gets a single functional output with the given id
-            parameters:
-                - in: path
-                  name: projectid
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The project UUID of the functional output being manipulated
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The id of the functional output being manipulated
-            responses:
-                '200':
-                    description: Successful operation
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/functional_output_with_id'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorised'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-                '404':
-                    $ref: '#/components/responses/NotFound'
         delete:
             operationId: deleteFunctionalOutput
             summary: Deletes an functional output
@@ -656,7 +588,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /assets/{projectid}:
+    /assets/pid/{projectid}:
         post:
             operationId: addAsset
             summary: Adds a new asset
@@ -718,7 +650,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /assets/{projectid}/{id}:
+    /assets/pid/{projectid}/{id}:
         put:
             operationId: updateAsset
             summary: Update an asset
@@ -766,40 +698,7 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/asset'
-        get:
-            operationId: findAssetById
-            summary: Gets an asset
-            description: Gets a single asset with the given id
-            parameters:
-                - in: path
-                  name: projectid
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The project UUID of the asset being manipulated
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The id of the asset being manipulated
-            responses:
-                '200':
-                    description: Successful operation
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/asset_with_id'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorised'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-                '404':
-                    $ref: '#/components/responses/NotFound'
+
         delete:
             operationId: deleteAsset
             summary: Deletes an asset
@@ -881,14 +780,14 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-    /project/{id}:
+    /project/pid/{projectid}:
         put:
             operationId: renameProject
             summary: Renames a project
             description: Renames an existing project
             parameters:
                 - in: path
-                  name: id
+                  name: projectid
                   required: true
                   schema:
                       type: string
@@ -924,40 +823,14 @@ paths:
                         schema:
                             type: string # key = 'name'
                             format: json
-        get:
-            operationId: findProjectById
-            summary: Gets a project
-            description: Gets a single project with the given ID
-            parameters:
-                - in: path
-                  name: id
-                  required: true
-                  schema:
-                      type: string
-                      format: uuid
-                  description: The UUID of the project being manipulated
-            responses:
-                '200':
-                    description: Successful operation
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/project_with_id'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '401':
-                    $ref: '#/components/responses/Unauthorised'
-                '403':
-                    $ref: '#/components/responses/Forbidden'
-                '404':
-                    $ref: '#/components/responses/NotFound'
+
         delete:
             operationId: deleteProject
             summary: Deletes a project
             description: Deletes a project with the given ID.
             parameters:
                 - in: path
-                  name: id
+                  name: projectid
                   required: true
                   schema:
                       type: string
@@ -980,7 +853,7 @@ paths:
             description: Copies a Project
             parameters:
                 -   in: path
-                    name: id
+                    name: projectid
                     required: true
                     schema:
                         type: string
@@ -1139,9 +1012,285 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+    /me:
+        get:
+            operationId: fetchLoggedInUser
+            summary: Gets the logged in user
+            description:
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+
+    /user:
+        get:
+            operationId: findAllUsers
+            summary: Gets all non-deleted users
+            description:
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/user'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+
+    /user/{userid}:
+        get:
+            operationId: findUserById
+            summary: Gets a specific user,
+            description:
+            parameters:
+                - in: path
+                  name: userid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The user UUID of the requested user
+
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        put:
+            operationId: updateUser
+            summary: Updates a user
+            description: Updates an existing user
+            parameters:
+                - in: path
+                  name: userid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the user being updated
+
+            responses:
+                '200':
+                    description: Successful update operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user'
+                '201':
+                    description: Successful creation operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The properties of the user to update
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/user'
+
+
+    /project-permissions/{userid}/pid/{projectid}:
+        get:
+            operationId: findPermissionsByUserAndProject
+            summary: Gets all permissions for a user and project combination
+            description:
+            parameters:
+                - in: path
+                  name: userid
+                  required: true
+                  schema:
+                      type: string
+                      #format: uuid
+                  description: The user UUID of the requested user or 'me' for logged in user
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The user UUID of the requested project
+
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project_permissions'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        put:
+            operationId: updatePermissionsForUserAndProject
+            summary: Updates a user/project set of permissions
+            description:
+            parameters:
+                - in: path
+                  name: userid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the user being updated
+                - in: path
+                  name: projectid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The user UUID of the requested project
+
+            responses:
+                '200':
+                    description: Successful update operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project_permissions'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The permissions (on and off) of the user for the project
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/project_permissions'
+    /user-permissions/{userid}:
+        get:
+            operationId: findPermissionsByUser
+            summary: Gets all user permissions (except super user status))
+            description:
+            parameters:
+                - in: path
+                  name: userid
+                  required: true
+                  schema:
+                      type: string
+                      #format: uuid
+                  description: The user UUID of the requested user or 'me' for logged in user
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user_permissions'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+        put:
+            operationId: updatePermissionsForUser
+            summary: Updates set of user permissions for a user (except super user status)
+            description:
+            parameters:
+                - in: path
+                  name: userid
+                  required: true
+                  schema:
+                      type: string
+                      format: uuid
+                  description: The UUID of the user being updated
+            responses:
+                '200':
+                    description: Successful update operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user_permissions'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The permissions (on and off) of the user (not super user status)
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/user_permissions'
 
 components:
     schemas:
+        login_provider:
+            type: object
+            properties:
+                name:
+                    description: "Authentication Provider"
+                    type: string
+                    example: 'Google'
+                url:
+                    description: "The login url for the provider"
+                    type: string
+                    example: '/azure/login'
+            required:
+                - name
+                - url
+            example:
+                -   name: 'Google'
+                    url: '/google.com/login'
+                -   name: 'Azure'
+                    url: '/azure.com/login'
+
         organisational_objective:
             type: object
             properties:
@@ -1633,6 +1782,73 @@ components:
             example:
                 id: 3a1e57a7-bc10-48e4-b8a7-2ced7ba38e73
                 oir: OIR#1
+
+        user:
+            type: object
+            properties:
+                user_id:
+                    description: The UUID of the user
+                    type: string
+                    format: uuid
+                email_address:
+                    description: "The email address of the user"
+                    type: string
+                    example: 'fred.smith@gmail.com'
+                is_super_user:
+                    description: Whether super user or not
+                    type: boolean
+                    example: false
+
+            required:
+                - is_super_user
+
+            example:
+                user_id: 'FR #1'
+                email_address: 'name@example.com'
+                is_super_user: true
+
+        project_permissions:
+            type: object
+            properties:
+                user_id:
+                    description: The UUID of the user
+                    type: string
+                    format: uuid
+                project_id:
+                    description: The UUID of the project
+                    type: string
+                    format: uuid
+                permissions:
+                    description: All permissions for user/project
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/permission_type'
+
+        user_permissions:
+            type: object
+            properties:
+                user_id:
+                    description: The UUID of the user
+                    type: string
+                    format: uuid
+                permissions:
+                    description: All permissions for user (except super user)
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/permission_type'
+
+        permission_type:
+            type: object
+            properties:
+                id:
+                    description: Id of the permission type
+                    type: integer
+                name:
+                    description: The name of the permission type
+                    type: string
+                is_granted:
+                    description: whether permission type granted to this user
+                    type: boolean
 
     responses:
         BadRequest:
