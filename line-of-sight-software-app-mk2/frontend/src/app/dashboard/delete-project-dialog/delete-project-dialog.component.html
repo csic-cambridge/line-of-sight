@@ -1,0 +1,22 @@
+
+<!-- Modal -->
+<div class="modal fade" role="dialog" style="opacity: 1; display: block">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" ngDraggable [handle]="deleteProjectHandle">
+            <div class="modal-header" #deleteProjectHandle>
+                <h5 class="modal-title" id="exampleModalLabel">Delete Project</h5>
+                <button type="button" class="close" aria-label="Cancel" (click)="close()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the Project '{{this.project?.name}}'?</p>
+                <p style="color:red">WARNING: this action is irreversible</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" (click)="delete()">Yes</button>
+                <button type="button" class="btn btn-outline-secondary" (click)="close()">No</button>
+            </div>
+        </div>
+    </div>
+</div>

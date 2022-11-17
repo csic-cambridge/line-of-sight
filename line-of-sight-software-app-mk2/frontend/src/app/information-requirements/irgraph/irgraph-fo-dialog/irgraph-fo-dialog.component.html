@@ -1,0 +1,131 @@
+<!-- Functional Output Content -->
+
+<div class="modal-header" #funcOutputHandle>
+    <h3 class="modal-title">Functional Output</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="foForm" (ngSubmit)="save()" id="form">
+        <!-- FO -->
+        <div class="form-group">
+            <div class="flex-row">
+                <label for="fos-Id" class="form-label text-right h5">Title</label>
+                <label *ngIf="this.instance.isPopupOpen() && this.searchItems.length > 10"
+                       class="form-label float-right text-primary">
+                    10 of {{this.searchItems.length}} matches shown, please refine search
+                </label>
+            </div>
+            <input id="fos-Id"
+                   formControlName="foName"
+                   type="search" ngbAutofocus
+                   (selectItem)="itemSelected($event)"
+                   [ngbTypeahead]="search"
+                   [readOnly]="this.foForm.value.id !== ''"
+                   [resultFormatter]="formatter"
+                   [inputFormatter]="inputformatter"
+                   [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
+                   class="form-control element-text"
+                   placeholder="Functional Output Name / Title ... "
+                   #instance="ngbTypeahead"
+                   (focus)="focus$.next($any($event).target.value)"
+                   (click)="click$.next($any($event).target.value)"
+                   autocomplete="off">
+            <div id="copyNameFeedback" class="invalid-feedback">
+                <div *ngIf="foForm.controls.foName.errors?.['required']">
+                    Title is required.
+                </div>
+                <div *ngIf="foForm.controls.foName.errors?.['forbiddenName']">
+                    Functional Output <b>{{foForm.controls.foName.value.text}}</b> not found.
+                </div>
+            </div>
+        </div>
+        <!-- FIRs-->
+        <div class="form-group">
+            <h5><label for="firText">Functional Information Requirement <i>(FIR)</i></label></h5>
+            <div class="input-group flexContainer">
+                <input id="firText"
+                       class="form-control element-text inputField"
+                       formControlName="newFir"
+                       (change)="newFirChange($event)"
+                       placeholder="New FIR ... ">
+            </div>
+
+            <h6><label><b>Linked FIR</b>
+                <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FIRs)</label></label></h6>
+
+
+            <div formArrayName="firs" >
+                <div *ngFor="let fir of this.firs().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               [formControlName]="i"
+                               type="checkbox"
+                               (change)="firChange($event)"
+                               [attr.index]="i"
+                               [checked]="fir.value" />
+                        {{this.firNames().controls[i].value}}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!-- Assets -->
+        <div class="form-group">
+            <h5><label>Assets</label></h5>
+            <h6><label><b>Linked Assets</b>
+                <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked assets)</label>
+            </label></h6>
+            <div formArrayName="linkedAssets">
+                <div *ngFor="let asset of this.linkedAssets().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               [formControlName]="i"
+                               [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
+                               type="checkbox"
+                               (change)="assetChange($event)"
+                               [attr.index]="i"
+                               [checked]="asset.value" />
+                        {{this.linkedAssetNames().controls[i].value}}
+                    </label>
+                </div>
+            </div>
+            <div class="input-group">
+                <ngx-bootstrap-multiselect
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
+                    [options]="foAssetOptions"
+                    formControlName="selectedAssets"
+                    [texts]="foAssetTexts"
+                    (removed)="selectedAssetsChange($event)"
+                    [settings]="mySettings">
+                </ngx-bootstrap-multiselect>
+            </div>
+        </div>
+        <!-- FR Linked to the FO -->
+        <div class="form-group">
+            <h6><label><b>Functional Requirements Linked to Functional Output</b></label></h6>
+
+            <div formArrayName="linkedFrs">
+                <div *ngFor="let fr of this.linkedFrs().controls; let i=index">
+                    <label class="custom-label-css">
+                        {{fr.value}}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+
+    <button type="button" class="btn btn-outline-danger"
+            *ngIf="allowDelete()"
+            [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_FOS)"
+            (click)="delete()">Delete</button>
+
+    <ng-container>
+        <button type="submit" data-dismiss="modal" class="btn btn-outline-primary" form="form"
+                [disabled]="foForm.pristine">Save</button>
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary"
+                (click)="closeModal()">Cancel</button>
+    </ng-container>
+</div>

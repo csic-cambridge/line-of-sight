@@ -82,6 +82,13 @@ public class SecurityConfig {
                 .pathMatchers(CustomWebFilter.OOGRAPH_ROUTE).authenticated()
                 .pathMatchers(CustomWebFilter.PROJECT_ROUTE).authenticated()
                 .pathMatchers(CustomWebFilter.SUPERUSER_ROUTE).authenticated()
+                    .pathMatchers("/api/project/import").permitAll() // TEMPORARY FOR ROB
+                    .pathMatchers("/api/project/export/**").permitAll() // TEMPORARY FOR ROB
+                    .pathMatchers("/api/firs/import/**").permitAll() // TEMPORARY FOR ROB
+                    .pathMatchers("/api/airs/import/**").permitAll() // TEMPORARY FOR ROB
+                    .pathMatchers("/api/asset-data-dictionary").permitAll() // TEMPORARY FOR ROB
+                    .pathMatchers("/api/functional-output-data-dictionary").permitAll() // TEMPORARY FOR ROB
+
                 .pathMatchers("/api/**").access(authManagerHandler)
                 .pathMatchers("/").permitAll()
                 .pathMatchers("/actuator/**").access(authManagerHandler)

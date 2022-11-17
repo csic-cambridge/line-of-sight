@@ -11,6 +11,8 @@ externalDocs:
     url: https://www.cdbb.cam.ac.uk/research/digital-built-environment/line-sight-asset-management-methodology-support-organisational
 servers:
     - url: 'http://localhost:8080/api'
+# Note: all project_ids in paths must be preceded by "/pid/" in path for correct parsing
+# Any changes to the api must be accompanied by changes to the class com.costain.cdbb.core.permissions.ApiPermissions
 paths:
     /oauth-providers:
         post:
@@ -513,8 +515,8 @@ paths:
     /functional-outputs/pid/{projectid}/{id}:
         put:
             operationId: updateFunctionalOutput
-            summary: Add or update an functional output
-            description: Updates FIRs and Assets to those provided
+            summary: Update a functional output
+            description: Updates FIRs to those provided
             parameters:
                 - in: path
                   name: projectid
@@ -588,6 +590,84 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+    /firs/import/pid/{projectid}:
+        post:
+            operationId: importFunctionalInformationRequirements
+            summary: Import FO/FIRS
+            description: Imports FO with FIRS to project
+            parameters:
+                -   in: path
+                    name: projectid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The project UUID receiving the FIRs
+            responses:
+                '200':
+                    description: Successful import operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/functional_output_with_id'
+
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The csv file containing FO and FIR pairs
+                required: true
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: base64
+    /airs/import/pid/{projectid}:
+        post:
+            operationId: importAssetInformationRequirements
+            summary: Import Asset/AIRs
+            description: Imports Asset with AIRS to project
+            parameters:
+                -   in: path
+                    name: projectid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The project UUID receiving the AIRs
+            responses:
+                '200':
+                    description: Successful import operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/asset_with_id'
+
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: The csv file containing FO and FIR pairs
+                required: true
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: base64
     /assets/pid/{projectid}:
         post:
             operationId: addAsset
@@ -729,6 +809,61 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+    /project/import:
+        post:
+            operationId: importProject
+            summary: Imports a Project
+            description: Imports a project using file upload
+            responses:
+                '201':
+                    description: Successful import operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/project_with_id'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The project name and upload data (name is first part of upload data)
+                required: true
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: base64
+    /project/export/pid/{projectid}:
+        get:
+            operationId: exportProject
+            summary: Exports the specified project as a download to the client
+            description: Exports the specified project as a download to the client
+            parameters:
+                -   in: path
+                    name: projectid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The project UUID of the asset being exported
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/octet-stream:
+                            schema:
+                                type: string
+                                format: base64
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
     /project:
         post:
             operationId: addProject
@@ -748,12 +883,12 @@ paths:
                 '403':
                     $ref: '#/components/responses/Forbidden'
             requestBody:
-                description: The new project name, fo dd id and asset dd id
+                description: The new project name, fo dd id and asset dd id and optional projectId to import FO's from and optional projectId to import assets from
                 required: true
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/project'
+                            $ref: '#/components/schemas/project_with_import_project_ids'
         get:
             operationId: findAllProjects
             summary: Gets the full list of projects
@@ -881,6 +1016,80 @@ paths:
                             type: string # key = 'name'
                             format: json
 
+    /project/fodd/{foddid}:
+        get:
+            operationId: findProjectsUsingFoDataDictionary
+            summary: Gets a list of projects using the specified functional output data dictionary
+            description: Gets a list of projects using the specified functional output data dictionary
+            parameters:
+                -   in: path
+                    name: foddid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The UUID of the fo data dictionary the projects must use
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/project_with_id'
+                            example:
+                                -   id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                    name: 'asset dd #1'
+                                -   id: 0ee6c05d-c82c-494f-b13c-82f8d64178a1
+                                    name: 'asset dd #2'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+    /project/assetdd/{assetdid}:
+        get:
+            operationId: findProjectsUsingAssetDataDictionary
+            summary: Gets a list of projects using the specified asset data dictionary
+            description: Gets a list of projects using the specified asset data dictionary
+            parameters:
+                -   in: path
+                    name: assetdid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The UUID of the fo data dictionary the projects must use
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/project_with_id'
+                            example:
+                                -   id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                    name: 'project #1'
+                                    fo_dd_id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                    asset_dd_id: 1234ee92-f25c-4173-aecd-dfa871719065
+                                -   id: 0ee6c05d-c82c-494f-b13c-82f8d64178a1
+                                    name: 'project #2'
+                                    fo_dd_id: 5799ee92-f25c-4173-aecd-dfa871719065
+                                    asset_dd_id: 1234ee92-f25c-4173-aecd-dfa871719065
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
     /asset-data-dictionary:
         get:
             operationId: findAllAssetDataDictionaries
@@ -908,7 +1117,31 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
-
+        post:
+            operationId: importAssetDataDictionary
+            summary: Imports an asset data dictionary
+            description: Imports an asset data dictionary using file upload
+            responses:
+                '201':
+                    description: Successful import operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/asset_data_dictionary'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The dictionary name and upload data (name is first line of upload data)
+                required: true
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: base64
     /asset-data-dictionary/{id}:
         get:
             operationId: findAllAssetDataDictionaryEntries
@@ -946,6 +1179,8 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+
+
     /functional-output-data-dictionary:
         get:
             operationId: findAllFunctionalOutputDataDictionaries
@@ -973,6 +1208,31 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+        post:
+            operationId: importFunctionalOutputDataDictionary
+            summary: Imports a functional output data dictionary
+            description: Imports a functional output data dictionary using file upload
+            responses:
+                '201':
+                    description: Successful import operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/functional_output_data_dictionary'
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+            requestBody:
+                description: The dictionary name and upload data (name is first part of upload data)
+                required: true
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: base64
 
     /functional-output-data-dictionary/{id}:
         get:
@@ -1012,6 +1272,7 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+
     /me:
         get:
             operationId: fetchLoggedInUser
@@ -1649,18 +1910,17 @@ components:
         data_dictionary_entry:
             type: object
             properties:
-                id:
-                    description: The ID of this entry
+                entry_id:
+                    description: The entry id of this entry
                     type: string
                 text:
                     description: The text of this entry  #(output only)
                     type: string
             required:
-                - id
-                - dictionary_id
+                - entry_id
                 - text
             example:
-                id: Ss_15_30_15_65
+                entryid: Ss_15_30_15_65
                 text: Ss_15_30_15_65-Preliminary concrete cleaning systems  #(output only)
 
         asset_data_dictionary:
@@ -1737,6 +1997,19 @@ components:
                 fo_dd_id: 5799ee92-f25c-4173-aecd-dfa871719065
                 asset_dd_id: 1234ee92-f25c-4173-aecd-dfa871719065
 
+        project_with_import_project_ids:
+            allOf:
+            -   $ref: '#/components/schemas/project'
+            type: object
+            properties:
+                import_firs_project_id:
+                    description: The UUID of the project from which FIRs are to be imported
+                    type: string
+                    format: uuid
+                import_airs_project_id:
+                    description: The UUID of the project from which AIRs are to be imported
+                    type: string
+                    format: uuid
         oo_version:
             type: object
             properties:

@@ -1,9 +1,9 @@
 import { Routes, RouterModule } from '@angular/router';
-import { LoginComponent } from './login/login.component';
+import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { OOGraphComponent } from './oograph/oograph.component';
-import { SuperuserComponent } from './superuser/superuser.component';
-import { NotFoundComponent } from './not-found/not-found.component';
+import { SuperuserComponent } from './components/superuser/superuser.component';
+import { NotFoundComponent } from './components/not-found/not-found.component';
 import {AuthGuardService} from './services/auth-guard.service';
 
 const routes: Routes = [

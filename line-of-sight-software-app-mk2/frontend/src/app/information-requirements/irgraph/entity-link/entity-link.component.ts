@@ -6,11 +6,11 @@ import {
     OnInit,
     OnDestroy,
     OnChanges,
-    SimpleChanges,
+    SimpleChanges, HostListener,
 } from '@angular/core';
-import {DOCUMENT} from "@angular/common";
+import {DOCUMENT} from '@angular/common';
 import 'leader-line';
-import {IRGraphComponent} from "../irgraph.component";
+import {IRGraphComponent} from '../irgraph.component';
 
 declare let LeaderLine: any;
 
@@ -28,17 +28,17 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
 
     constructor(@Inject(DOCUMENT) private document: any) {
     }
-
     ngOnChanges(changes: SimpleChanges): void {
     }
 
     ngOnDestroy(): void {
-        if(this.leaderline!==undefined) {
+        if (this.leaderline !== undefined) {
             this.leaderline.remove();
         }
-        const element = document.getElementById('topLevelBody');
-        if(element!==null) {
+        const element = document.getElementById('leader-line-container');
+        if (element !== null) {
             this.resizeObserver.unobserve(element);
+
             this.resizeObserver.disconnect();
         }
     }
@@ -47,8 +47,8 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
     }
 
     ngAfterViewInit(): void {
-        const element = document.getElementById('topLevelBody');
-        if(element !== null) {
+        const element = document.getElementById('leader-line-container');
+        if (element !== null) {
             this.resizeObserver.observe(element);
         }
         if (!this.createLink()) {
@@ -63,7 +63,12 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
             const endElement = document.getElementById(this.rightLink);
             if (startElement != null && endElement != null) {
                 this.leaderline = new LeaderLine(startElement, endElement,
-                    {size: 2, color: IRGraphComponent.darkblue, startSocket: 'right', endSocket: 'left'}
+                    {
+                        size: 2,
+                        color: IRGraphComponent.darkblue,
+                        startSocket: 'right',
+                        endSocket: 'left'
+                    }
                 );
                 return true;
             }
@@ -72,9 +77,9 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
     }
 
     onResize(): void {
-        if(this.leaderline != null) {
+        if (this.leaderline != null) {
             this.leaderline.position();
         }
-
     }
+
 }

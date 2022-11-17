@@ -21,52 +21,56 @@ import java.util.AbstractMap;
 import java.util.Map;
 
 public class ProjectPermissionTypes {
-    public static final int PROJECT_PERMISSION_VIEW_PROJECT_ID = 2010;
-    public static final int PROJECT_PERMISSION_EDIT_POO_ID = 2110;
-    public static final int PROJECT_PERMISSION_DELETE_POO_ID = 2111;
+    public static final ProjectPermissionId PROJECT_PERMISSION_VIEW_PROJECT_ID = new ProjectPermissionId(2010);
+    public static final ProjectPermissionId PROJECT_PERMISSION_EDIT_POO_ID = new ProjectPermissionId(2110);
+    public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_POO_ID = new ProjectPermissionId(2111);
 
-    public static final int PROJECT_PERMISSION_EDIT_FR_ID = 2210;
-    public static final int PROJECT_PERMISSION_DELETE_FR_ID = 2211;
+    public static final ProjectPermissionId PROJECT_PERMISSION_EDIT_FR_ID = new ProjectPermissionId(2210);
+    public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_FR_ID = new ProjectPermissionId(2211);
 
-    public static final int PROJECT_PERMISSION_EDIT_FO_ID = 2310;
-    public static final int PROJECT_PERMISSION_DELETE_FO_ID = 2311;
-    public static final int PROJECT_PERMISSION_ADD_FIR_ID = 2315;
-    public static final int PROJECT_PERMISSION_DELETE_FIR_ID = 2316;
+    public static final ProjectPermissionId PROJECT_PERMISSION_EDIT_FO_ID = new ProjectPermissionId(2310);
+    public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_FO_ID = new ProjectPermissionId(2311);
+    public static final ProjectPermissionId PROJECT_PERMISSION_ADD_FIR_ID = new ProjectPermissionId(2315);
+    public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_FIR_ID = new ProjectPermissionId(2316);
 
-    public static final int PROJECT_PERMISSION_ADD_ASSET = 2410;
-    public static final int PROJECT_PERMISSION_ADD_AIR_ID = 2411;
-    public static final int PROJECT_PERMISSION_DELETE_AIR_ID = 2412;
-    public static final int PROJECT_PERMISSION_DELETE_ASSET_ID = 2413;
+    public static final ProjectPermissionId PROJECT_PERMISSION_ADD_ASSET_ID = new ProjectPermissionId(2410);
+    public static final ProjectPermissionId PROJECT_PERMISSION_ADD_AIR_ID = new ProjectPermissionId(2411);
+    public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_AIR_ID = new ProjectPermissionId(2412);
+    public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_ASSET_ID = new ProjectPermissionId(2413);
 
-    public static final int PROJECT_PERMISSION_IMPORT_DATA_ID = 2510;
+    public static final ProjectPermissionId PROJECT_PERMISSION_IMPORT_DATA_ID = new ProjectPermissionId(2510);
 
     public static final Map<Integer, String> projectPermissionTypes = Map.ofEntries(
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_VIEW_PROJECT_ID, "View project graph"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_POO_ID, "Edit project organisational objectives(POO)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_VIEW_PROJECT_ID.getId(), "View project graph"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_POO_ID.getId(),
+            "Edit project organisational objectives(POO)"),
         new AbstractMap.SimpleEntry<>(
-        PROJECT_PERMISSION_DELETE_POO_ID, "Delete project organisational objectives(POO)"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_FR_ID, "Edit functional requirements(FR)"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_FR_ID, "Delete functional requirements(FR)"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_FO_ID, "Edit functional outputs(FO)"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_FO_ID, "Delete functional outputs(FO)"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_ADD_FIR_ID, "Add functional information requirements (FIR)"),
+        PROJECT_PERMISSION_DELETE_POO_ID.getId(), "Delete project organisational objectives(POO)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_FR_ID.getId(), "Edit functional requirements(FR)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_FR_ID.getId(), "Delete functional requirements(FR)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_FO_ID.getId(), "Edit functional outputs(FO)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_FO_ID.getId(), "Delete functional outputs(FO)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_ADD_FIR_ID.getId(),
+            "Add functional information requirements (FIR)"),
         new AbstractMap.SimpleEntry<>(
-        PROJECT_PERMISSION_DELETE_FIR_ID, "Delete functional information requirements (FIR)"),
+        PROJECT_PERMISSION_DELETE_FIR_ID.getId(), "Delete functional information requirements (FIR)"),
         new AbstractMap.SimpleEntry<>(
-            PROJECT_PERMISSION_ADD_ASSET, "Add assets"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_ADD_AIR_ID, "Add asset information requirements(AIR)"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_AIR_ID, "Delete asset information requirements(AIR)"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_ASSET_ID, "Delete assets"),
-        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_IMPORT_DATA_ID, "Import Data")
+
+        PROJECT_PERMISSION_ADD_ASSET_ID.getId(), "Add assets"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_ADD_AIR_ID.getId(), "Add asset information requirements(AIR)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_AIR_ID.getId(),
+            "Delete asset information requirements(AIR)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_ASSET_ID.getId(), "Delete assets"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_IMPORT_DATA_ID.getId(), "Import Data")
         );
 
 
-    public static String getPermissionNameForId(Integer projectPermissionId) {
-        String name = projectPermissionTypes.get(projectPermissionId);
-        return name == null ? "Unknown permission " + projectPermissionId : name;
+    public static String getPermissionNameForId(ProjectPermissionId projectPermissionId) {
+        String name = projectPermissionTypes.get(projectPermissionId.getId());
+        return name == null ? "Unknown permission " + projectPermissionId.getId() : name;
     }
 
-    public static String getAuthorityNameForId(Integer projectPermissionId) {
-        return "PROJECT_PERMISSION-" + projectPermissionId;
+    public static String getAuthorityNameForId(ProjectPermissionId projectPermissionId) {
+        return "PROJECT_PERMISSION-" + projectPermissionId.getId();
     }
 }

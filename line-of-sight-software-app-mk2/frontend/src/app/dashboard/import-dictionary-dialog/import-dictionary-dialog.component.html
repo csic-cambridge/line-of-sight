@@ -1,0 +1,30 @@
+<div class="modal fade" role="dialog" style="opacity: 1; display: block">
+    <div  class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" ngDraggable>
+            <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0">
+                <h3 class="modal-title">Import {{this.importName | titlecase }} Dictionary</h3>
+                <button type="button" class="close" aria-label="Close" (click)="close()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="dictionaryForm" (ngSubmit)="import()">
+                    <div class="form-group">
+                        <h5><label for="dictionaryname" class="form-label text-right">Dictionary name</label></h5>
+                        <input id="dictionaryname"
+                               formControlName="name" required
+                               class="form-control element-text" placeholder="Dictionary Name ... " autocomplete="off">
+                        <div id="dictionarynameFeedback" class="invalid-feedback">
+                            Please enter a dictionary name.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" data-dismiss="modal" class="btn btn-outline-primary"
+                                [disabled]="this.dictionaryForm.pristine">Save</button>
+                        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="close()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

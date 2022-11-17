@@ -9,4 +9,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface FunctionalRequirementRepository extends CrudRepository<FunctionalRequirementDAO, UUID> {
     Set<FunctionalRequirementDAO> findByProjectIdOrderByNameAsc(UUID projectId);
+    FunctionalRequirementDAO findByProjectIdAndName(UUID projectId, String name);
 }

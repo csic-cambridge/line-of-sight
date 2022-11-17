@@ -20,12 +20,14 @@ package com.costain.cdbb.model.helpers;
 
 
 import com.costain.cdbb.core.permissions.PermissionsComparator;
+import com.costain.cdbb.core.permissions.ProjectPermissionId;
 import com.costain.cdbb.core.permissions.ProjectPermissionTypes;
+import com.costain.cdbb.core.permissions.UserPermissionId;
 import com.costain.cdbb.core.permissions.UserPermissionTypes;
 import com.costain.cdbb.model.PermissionType;
+import com.costain.cdbb.model.UserAndPermissionId;
 import com.costain.cdbb.model.UserDAO;
 import com.costain.cdbb.model.UserPermissionDAO;
-import com.costain.cdbb.model.UserPermissionId;
 import com.costain.cdbb.model.UserPermissions;
 import com.costain.cdbb.repositories.UserPermissionRepository;
 import com.costain.cdbb.repositories.UserProjectPermissionRepository;
@@ -89,13 +91,15 @@ public class UserPermissionsHelper {
             // set organisational permissions
             userPermissionRepository.findById_UserId(userDao.getUserId()).forEach(userPermissionDao -> {
                 mappedAuthorities.add(new SimpleGrantedAuthority(
-                    UserPermissionTypes.getAuthorityNameForId(userPermissionDao.getId().getPermissionId())));
+                    UserPermissionTypes.getAuthorityNameForId(
+                        new UserPermissionId(userPermissionDao.getId().getPermissionId()))));
             });
             if (projectId != null) {
                 userProjectPermissionRepository.findById_UserIdAndId_ProjectId(userDao.getUserId(), projectId)
                     .forEach(userPermissionDao -> {
                         mappedAuthorities.add(new SimpleGrantedAuthority(
-                            ProjectPermissionTypes.getAuthorityNameForId(userPermissionDao.getId().getPermissionId())));
+                            ProjectPermissionTypes.getAuthorityNameForId(
+                                new ProjectPermissionId(userPermissionDao.getId().getPermissionId()))));
                     });
             }
         }
@@ -115,7 +119,8 @@ public class UserPermissionsHelper {
             userPermissionDaos.forEach(dao -> {
                 PermissionType permission = new PermissionType();
                 permission.setId(dao.getId().getPermissionId());
-                permission.setName(UserPermissionTypes.getPermissionNameForId(dao.getId().getPermissionId()));
+                permission.setName(UserPermissionTypes.getPermissionNameForId(
+                    new UserPermissionId(dao.getId().getPermissionId())));
                 permission.setIsGranted(Boolean.TRUE);
                 permissionTypes.add(permission);
                 grantedPermissionIds.add(dao.getId().getPermissionId());
@@ -141,7 +146,7 @@ public class UserPermissionsHelper {
         dto.getPermissions().forEach(permission -> {
             if (permission.getIsGranted()) {
                 permissionDaos.add(UserPermissionDAO.builder()
-                    .id(new UserPermissionId(userId, permission.getId()))
+                    .id(new UserAndPermissionId(userId, permission.getId()))
                     .build()
                 );
             }

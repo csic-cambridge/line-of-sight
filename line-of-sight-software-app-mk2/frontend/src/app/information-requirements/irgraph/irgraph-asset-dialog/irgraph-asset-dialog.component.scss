@@ -1,0 +1,10 @@
+.flexContainer {
+    display: flex;
+    .btn-outline-primary{
+        border-radius: 0 5px 5px 0;
+    }
+}
+
+.inputField {
+    flex: 1;
+}

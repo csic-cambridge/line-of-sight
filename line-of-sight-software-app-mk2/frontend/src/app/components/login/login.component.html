@@ -1,0 +1,20 @@
+<div class="container">
+    <div class="row row-cols-3 justify-content-md-center mt-5">
+        <div class="col">
+            <div class="card">
+                <h5 class="card-header">Line of Sight</h5>
+                <div class="card-body">
+                    <div>
+                        <p *ngIf="this.providerData === undefined || this.providerData.length ===0">There are no providers to allow you to login - please contact your support dept.</p>
+                        <p *ngIf="this.providerData != undefined && this.providerData.length ===1">Please login with :</p>
+                        <p *ngIf="this.providerData != undefined && this.providerData.length > 1">Please login with one of the following:</p>
+                    </div>
+                    <div *ngFor= "let data of this.providerData">
+                        <a  style="font-size: 24px" href={{data.url}}>{{data.name}}</a>
+                        <br/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

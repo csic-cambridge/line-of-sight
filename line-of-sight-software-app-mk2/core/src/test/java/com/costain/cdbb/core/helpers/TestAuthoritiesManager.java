@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 
 // Creates the data used to test all the api permissions/authority tests
+// Actual tests in UserRestTest.java
 
 @Component
 public class TestAuthoritiesManager {
@@ -170,6 +171,13 @@ public class TestAuthoritiesManager {
             ProjectPermissionTypes.getAuthorityNameForId(
                     ProjectPermissionTypes.PROJECT_PERMISSION_DELETE_FO_ID)
             ));
+        // import FIRs
+        testData.add(new AuthorityTestData(this.testUser,
+            null,
+            HttpMethod.POST, "/api/firs/import/pid/{projectid}",
+            ProjectPermissionTypes.getAuthorityNameForId(
+                ProjectPermissionTypes.PROJECT_PERMISSION_IMPORT_DATA_ID)
+        ));
     }
 
     private void addAssetApiCallsData(List<AuthorityTestData> testData) {
@@ -183,13 +191,13 @@ public class TestAuthoritiesManager {
             this.projectId,
             HttpMethod.POST, "/api/assets/pid/{projectid}",
             ProjectPermissionTypes.getAuthorityNameForId(
-                    ProjectPermissionTypes.PROJECT_PERMISSION_ADD_ASSET)
+                    ProjectPermissionTypes.PROJECT_PERMISSION_ADD_ASSET_ID)
             ));
         testData.add(new AuthorityTestData(this.testUser,
             this.projectId,
             HttpMethod.PUT, "/api/assets/pid/{projectid}/{assetid}}",
             ProjectPermissionTypes.getAuthorityNameForId(
-                    ProjectPermissionTypes.PROJECT_PERMISSION_ADD_ASSET)
+                    ProjectPermissionTypes.PROJECT_PERMISSION_ADD_ASSET_ID)
             ));
         testData.add(new AuthorityTestData(this.testUser,
             this.projectId,
@@ -197,6 +205,13 @@ public class TestAuthoritiesManager {
             ProjectPermissionTypes.getAuthorityNameForId(
                     ProjectPermissionTypes.PROJECT_PERMISSION_DELETE_ASSET_ID)
             ));
+        // import airs
+        testData.add(new AuthorityTestData(this.testUser,
+            null,
+            HttpMethod.POST, "/api/airs/import/pid/{projectid}",
+            ProjectPermissionTypes.getAuthorityNameForId(
+                ProjectPermissionTypes.PROJECT_PERMISSION_IMPORT_DATA_ID)
+        ));
     }
 
     private void addDataDictionaryApiCallsData(List<AuthorityTestData> testData) {
@@ -225,6 +240,19 @@ public class TestAuthoritiesManager {
             HttpMethod.GET, "/api/functional-output-data-dictionary/{id}",
             UserPermissionTypes.getAuthorityNameForId(
                 UserPermissionTypes.USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID)));
+        // imports
+        testData.add(new AuthorityTestData(this.testUser,
+            null,
+            HttpMethod.POST, "/api/functional-output-data-dictionary",
+            UserPermissionTypes.getAuthorityNameForId(
+                UserPermissionTypes.USER_PERMISSION_IMPORT_ID)
+        ));
+        testData.add(new AuthorityTestData(this.testUser,
+            null,
+            HttpMethod.POST, "/api/asset-data-dictionary",
+            UserPermissionTypes.getAuthorityNameForId(
+                UserPermissionTypes.USER_PERMISSION_IMPORT_ID)
+        ));
     }
 
     private void addProjectApiCallsData(List<AuthorityTestData> testData) {
@@ -261,6 +289,21 @@ public class TestAuthoritiesManager {
             UserPermissionTypes.getAuthorityNameForId(
                     UserPermissionTypes.USER_PERMISSION_DELETE_PROJECTS_ID)
             ));
+        // project import
+        testData.add(new AuthorityTestData(this.testUser,
+            null,
+            HttpMethod.POST, "/api/project/import",
+            UserPermissionTypes.getAuthorityNameForId(
+                UserPermissionTypes.USER_PERMISSION_IMPORT_ID)
+        ));
+        // project export
+        testData.add(new AuthorityTestData(this.testUser,
+            this.projectId,
+            HttpMethod.GET, "/api/project/export/pid/{projectid}",
+            UserPermissionTypes.getAuthorityNameForId(
+                UserPermissionTypes.USER_PERMISSION_EXPORT_ID)
+        ));
+
     }
 
     private void addPermissionsApiCallsData(List<AuthorityTestData> testData) {

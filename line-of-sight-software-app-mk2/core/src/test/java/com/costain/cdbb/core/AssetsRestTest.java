@@ -31,7 +31,8 @@ import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,12 +84,13 @@ public class AssetsRestTest {
 
     @BeforeAll
     public void runBeforeTestsBegin() {
+        assetDdDao = assetManager.createAssetDdWithTwoEntries();
         try {
-            projectId = projectManager.create("AssetsTest", port);
+            projectId = projectManager.create("AssetsTest", null, assetDdDao.getId(), port);
         } catch (Exception e) {
             fail("Failed to create initial project" + e);
         }
-        assetDdDao = assetManager.createAssetDdWithTwoEntries();
+
     }
 
     @BeforeEach
@@ -98,12 +100,13 @@ public class AssetsRestTest {
 
     @AfterAll
     public void runAfterAllTestsComplete() {
-        assetManager.deleteAssetDictionary(assetDdDao.getId());
+
         try {
             projectManager.delete(projectId, port);
         } catch (Exception e) {
             fail("Failed to delete initial project" + e);
         }
+        assetManager.deleteAssetDictionary(assetDdDao.getId());
     }
 
     // test assets: post, get, assets/{id}: get,put,delete
@@ -137,7 +140,7 @@ public class AssetsRestTest {
         // now create an asset and fetch
         try {
             List<AssetDataDictionaryEntryDAO> ddEntryDaos =
-                new ArrayList<>(assetDdeRepository.findByAssetDictionaryId(assetDdDao.getId()));
+                new ArrayList<>(assetDdeRepository.findByAssetDictionaryIdOrderByEntryId(assetDdDao.getId()));
             final AssetDAO asset = assetManager.createAsset(projectId, port,
                 "Fir Test", ddEntryDaos.get(0));
             response = apiManager.doSuccessfulGetApiRequest(
@@ -163,7 +166,7 @@ public class AssetsRestTest {
         // can only update the AIRs
         try {
             List<AssetDataDictionaryEntryDAO> ddEntryDaos =
-                new ArrayList<>(assetDdeRepository.findByAssetDictionaryId(assetDdDao.getId()));
+                new ArrayList<>(assetDdeRepository.findByAssetDictionaryIdOrderByEntryId(assetDdDao.getId()));
             final AssetDAO asset = assetManager.createAsset(projectId, port, "Fir Update", ddEntryDaos.get(0));
 
             // now change the airs and do an update
@@ -172,12 +175,12 @@ public class AssetsRestTest {
             sourceAirs.add("New AirTest2");
 
             Map<String, Object> ddeMap = new HashMap<>();
-            ddeMap.put("id", ddEntryDaos.get(0).getId());
-            ddeMap.put("text", "");
+            ddeMap.put("entry_id", ddEntryDaos.get(0).getEntryId());
+            ddeMap.put("text", "abc");
             Map<String, Object> map = new HashMap<>();
             map.put("data_dictionary_entry", ddeMap);
             map.put("airs", sourceAirs.toArray());
-            String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+            String payload = new ObjectMapper().writeValueAsString(map);
 
             ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
                 payload,
@@ -188,7 +191,7 @@ public class AssetsRestTest {
             JSONObject assetJsonObject = new JSONObject(ddResultAsJsonStr);
             JSONObject ddeJsonObject = assetJsonObject.getJSONObject("data_dictionary_entry");
             AssetDataDictionaryEntryDAO assetDataDictionaryEntryDao = AssetDataDictionaryEntryDAO.builder()
-                .id(ddeJsonObject.getString("id"))
+                .entryId(ddeJsonObject.getString("entry_id"))
                 .assetDictionaryId(assetManager.getAssetDd().getId())
                 .text(ddeJsonObject.getString("text"))
                 .build();
@@ -203,17 +206,18 @@ public class AssetsRestTest {
                 .airs(airs)
                 .build();
             assertAll(
-                () -> assertEquals(assetDataDictionaryEntryDao.getId(), ddEntryDaos.get(0).getId()),
+                () -> assertEquals(assetDataDictionaryEntryDao.getEntryId(), ddEntryDaos.get(0).getEntryId(),
+                    "Comparing entry ids"),
                 () -> assertEquals(assetDataDictionaryEntryDao.getText(),
-                    ddEntryDaos.get(0).getId() + "-" + ddEntryDaos.get(0).getText()),
+                    ddEntryDaos.get(0).getEntryId() + "-" + ddEntryDaos.get(0).getText(), "comparing Text"),
                 () -> assertEquals(assetDataDictionaryEntryDao.getAssetDictionaryId(),
-                    assetManager.getAssetDd().getId()),
-                () -> assertEquals(result.getAirs().size(), sourceAirs.size()),
+                    assetManager.getAssetDd().getId(), "Comparing dd ids"),
+                () -> assertEquals(result.getAirs().size(), sourceAirs.size(), "Comparing AIRS size"),
                 () -> assertTrue(result.getAirs().containsAll(sourceAirs)
-                    && sourceAirs.containsAll(result.getAirs()))
+                    && sourceAirs.containsAll(result.getAirs()), "Comparing AIRS strings")
             );
             deleteAsset(asset);
-        } catch (JSONException e) {
+        } catch (JSONException | JsonProcessingException e) {
             fail(e);
         }
     }
@@ -222,7 +226,7 @@ public class AssetsRestTest {
     public void createAndDeleteAsset() {
         try {
             List<AssetDataDictionaryEntryDAO> ddEntryDaos =
-                new ArrayList<>(assetDdeRepository.findByAssetDictionaryId(assetDdDao.getId()));
+                new ArrayList<>(assetDdeRepository.findByAssetDictionaryIdOrderByEntryId(assetDdDao.getId()));
             AssetDAO asset = assetManager.createAsset(projectId, port, "Fir Create", ddEntryDaos.get(0));
             deleteAsset(asset);
         } catch (JSONException e) {

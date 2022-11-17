@@ -1,0 +1,54 @@
+<button class="btn btn-outline-primary"
+        [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.ADD_COPY_RENAME_PROJECTS)"
+        (click)="openAddProjectModal()"
+        type="button" aria-haspopup="true" aria-expanded="false">
+    Add New Project
+</button>
+<div class="dropdown ml-1">
+    <button class="btn btn-outline-primary dropdown-toggle dropbtn"
+            type="button" aria-haspopup="true" aria-expanded="false"
+            [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.IMPORT_PROJECTS) &&
+                        permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_DDS)">
+        Import
+    </button>
+    <div class="dropdown-content" *ngIf="!permissionService.userPermissionDisabled(this.permissionService.UPIds.IMPORT_PROJECTS) ||
+                                         !permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_DDS)">
+        <button class="dropdown-item"
+                (click)="projectFileInput.click()"
+                [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.IMPORT_PROJECTS)">
+            Import Project File
+        </button>
+        <button class="dropdown-item"
+                (click)="fodFileInput.click()"
+                [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_DDS)">
+            Import Functional Output Dictionary File
+        </button>
+        <button class="dropdown-item"
+                (click)="adFileInput.click()"
+                [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_DDS)">
+            Import Asset Dictionary File
+        </button>
+    </div>
+</div>
+<input #projectFileInput type="file" style="display:none;" (change)="importProject($event);projectFileInput.value=''" />
+<input #fodFileInput type="file" style="display:none;" (change)="importDictionary($event, dictionaryType.FUNCTIONAL_OUTPUT);fodFileInput.value=''" />
+<input #adFileInput type="file" style="display:none;" (change)="importDictionary($event, dictionaryType.ASSET);adFileInput.value=''" />
+<app-add-project-dialog
+    *ngIf="this.activeDialog === dialogTypes.NEW_PROJECT_DIALOG"
+    (hasError)="this.onDialogError($event)"
+    (closed)="onDialogClosed($event)">
+</app-add-project-dialog>
+<app-import-project-dialog
+    *ngIf="this.activeDialog === dialogTypes.IMPORT_PROJECT_DIALOG"
+    (hasError)="this.onDialogError($event)"
+    [projectData]="this.importData"
+    (closed)="onDialogClosed($event)">
+</app-import-project-dialog>
+<app-import-dictionary-dialog
+    *ngIf="this.activeDialog === dialogTypes.IMPORT_DICTIONARY_DIALOG && this.importFilename"
+    [importType]="this.importDictionaryType"
+    (hasError)="this.onDialogError($event)"
+    [importData]="this.importData"
+    [importFilename]="this.importFilename"
+    (closed)="onDialogClosed($event)">
+</app-import-dictionary-dialog>

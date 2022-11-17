@@ -27,10 +27,10 @@ public class ProjectRepositoryTest {
 
     private final Logger logger = LoggerFactory.getLogger(ProjectRepositoryTest.class);
 
-    private final static String TEST_PROJECT_NAME = "Test Project";
-    private final static String TEST_ASSET_DICTIONARY_NAME = "Test Asset Dictionary";
-    private final static String TEST_FO_DICTIONARY_NAME = "Test FO Dictionary";
-    private final static UUID SAMPLE_PROJECT_ID = UUID.fromString("387dac90-e188-11ec-8fea-0242ac120002");
+    private static final String TEST_PROJECT_NAME = "Test Project";
+    private static final String TEST_ASSET_DICTIONARY_NAME = "Test Asset Dictionary";
+    private static final String TEST_FO_DICTIONARY_NAME = "Test FO Dictionary";
+    private static final UUID SAMPLE_PROJECT_ID = UUID.fromString("387dac90-e188-11ec-8fea-0242ac120002");
 
     @Autowired
     private ProjectRepository repository;

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d [%t] %-5p %c %x - %m%n" />
+        </Console>
+        <RollingFile name="Rsize" append="true" fileName="log/cdbb-los.log"
+                     filePattern="log/cdbb-los.log.%i">
+
+            <PatternLayout>
+                <Pattern>%d %p [%t] %c %m %n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20" fileIndex="min"/>
+        </RollingFile>
+
+        <Async name="async" bufferSize="128" blocking="false">
+            <AppenderRef ref="Rsize"/>
+            <AppenderRef ref="Console"/>
+        </Async>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.hibernate" level="error"/>
+        <Logger name="org.hibernate.SQL" level="error"/>
+
+        <Root level="debug">
+            <AppenderRef ref="async"/>
+        </Root>
+    </Loggers>
+</Configuration>

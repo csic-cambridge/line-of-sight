@@ -20,13 +20,15 @@ package com.costain.cdbb.core.helpers;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetDataDictionaryRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -66,7 +68,7 @@ public class TestAssetManager {
     }
 
     public void deleteAssetDictionary(UUID assetDdId) {
-        Set<AssetDataDictionaryEntryDAO> entries = assetDdeRepository.findByAssetDictionaryId(assetDdId);
+        Set<AssetDataDictionaryEntryDAO> entries = assetDdeRepository.findByAssetDictionaryIdOrderByEntryId(assetDdId);
         for (AssetDataDictionaryEntryDAO entry : entries) {
             assetDdeRepository.delete(entry);
         }
@@ -80,7 +82,7 @@ public class TestAssetManager {
         createAssetDictionary(ddName);
         for (int i = 0; i < 2; i++) {
             assetDdeRepository.save(AssetDataDictionaryEntryDAO.builder()
-                .id("Entry #" + i + " id for " + ddName + curMs)
+                .entryId("Entry #" + i + " id for " + ddName + curMs)
                 .assetDictionaryId(this.assetDd.getId())
                 .text("Entry #" + i + " text for " + ddName + curMs)
                 .build());
@@ -98,12 +100,17 @@ public class TestAssetManager {
         sourceAirs.add(firsRoot + "-2");
 
         Map<String, Object> ddeMap = new HashMap<>();
-        ddeMap.put("id", assetDdEntry.getId());
+        ddeMap.put("entry_id", assetDdEntry.getEntryId());
         ddeMap.put("text", "any text will do");
         Map<String, Object> map = new HashMap<>();
         map.put("data_dictionary_entry", ddeMap);
         map.put("airs", sourceAirs.toArray());
-        String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+        String payload = null;
+        try {
+            payload = new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            fail(e);
+        }
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             payload,
             "http://localhost:" + port + "/api/assets/pid/" + projectId);
@@ -112,7 +119,7 @@ public class TestAssetManager {
         JSONObject assetJsonObject = new JSONObject(ddResultAsJsonStr);
         JSONObject ddeJsonObject = assetJsonObject.getJSONObject("data_dictionary_entry");
         AssetDataDictionaryEntryDAO assetDataDictionaryEntryDao = AssetDataDictionaryEntryDAO.builder()
-            .id(ddeJsonObject.getString("id"))
+            .entryId(ddeJsonObject.getString("entry_id"))
             .assetDictionaryId(this.assetDd.getId())
             .text(ddeJsonObject.getString("text"))
             .build();
@@ -127,8 +134,8 @@ public class TestAssetManager {
             .airs(airs)
             .build();
         assertAll(
-            () -> assertEquals(assetDataDictionaryEntryDao.getId(), assetDdEntry.getId()),
-            () -> assertEquals(assetDataDictionaryEntryDao.getText(), assetDdEntry.getId() + "-"
+            () -> assertEquals(assetDataDictionaryEntryDao.getEntryId(), assetDdEntry.getEntryId()),
+            () -> assertEquals(assetDataDictionaryEntryDao.getText(), assetDdEntry.getEntryId() + "-"
                 + assetDdEntry.getText()),
             () -> assertEquals(assetDataDictionaryEntryDao.getAssetDictionaryId(), this.assetDd.getId()),
             () -> assertEquals(result.getAirs().size(), sourceAirs.size()),

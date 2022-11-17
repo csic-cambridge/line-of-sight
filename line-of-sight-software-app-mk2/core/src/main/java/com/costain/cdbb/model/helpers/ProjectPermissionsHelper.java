@@ -19,6 +19,7 @@ package com.costain.cdbb.model.helpers;
 
 
 import com.costain.cdbb.core.permissions.PermissionsComparator;
+import com.costain.cdbb.core.permissions.ProjectPermissionId;
 import com.costain.cdbb.core.permissions.ProjectPermissionTypes;
 import com.costain.cdbb.model.PermissionType;
 import com.costain.cdbb.model.ProjectPermissions;
@@ -74,7 +75,8 @@ public class ProjectPermissionsHelper {
             userProjectPermissionDaos.forEach(dao -> {
                 PermissionType permission = new PermissionType();
                 permission.setId(dao.getId().getPermissionId());
-                permission.setName(ProjectPermissionTypes.getPermissionNameForId(dao.getId().getPermissionId()));
+                permission.setName(ProjectPermissionTypes.getPermissionNameForId(
+                    new ProjectPermissionId(dao.getId().getPermissionId())));
                 permission.setIsGranted(Boolean.TRUE);
                 permissionTypes.add(permission);
                 grantedPermissionIds.add(dao.getId().getPermissionId());

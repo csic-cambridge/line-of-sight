@@ -1,0 +1,22 @@
+
+
+<section class="masonry-container">
+
+    <ngx-masonry *ngIf="this.objectives"  [ordered]="true" [options]="{ gutter: 10,
+    resize: true, percentPosition:true}" [updateLayout]="updateMasonryLayout">
+
+        <div ngxMasonryItem class="masonry-item card text-center" *ngFor="let objective of this.objectives | async">
+            <a (click)="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_OOS) ? null : open(objective)">
+                <h5 [ngClass]="objective.is_deleted===true ? 'strikethrough' : ''"
+                    class="card-header" id="{{objective.id}}">{{objective.name}}</h5>
+
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li *ngFor="let oir of objective.oirs" class="list-group-item">{{oir.oir}}</li>
+                    </ul>
+                </div>
+            </a>
+        </div>
+    </ngx-masonry>
+</section>
+

@@ -1,8 +1,27 @@
 .action-btn-grp {
     margin-left: 10px;
 }
-.container-xxl{
+.dashboard {
+    h5{height: 40px;}
     padding: 15px;
+    overflow: hidden;
+    height: 100%;
+    min-height: 50vh;
 }
-
-
+.fixed_header {
+    height: calc(100% - 40px);
+    overflow: auto;
+    display: block;
+    position: relative;
+    border-collapse: collapse;
+    width: 100%;
+    thead tr{
+        width: 100%;
+        background-color: #fff;
+    }
+    tbody {
+        td{
+            line-height: 30px;
+        }
+    }
+}

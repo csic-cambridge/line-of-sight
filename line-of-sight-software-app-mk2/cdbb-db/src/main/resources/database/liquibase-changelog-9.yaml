@@ -1102,3 +1102,14 @@ databaseChangeLog:
           - dropColumn:
                 columnName: username
                 tableName: revinfo
+- changeSet:
+      id: 1662105668823-3
+      author: philliprushby
+      changes:
+          -   sql:
+                  dbms: 'mysql, mariadb'
+                  stripComments: true
+                  splitStatements: true
+                  sql: delete from fr_fo where fr_id = '1cfda9b4-1466-4695-8ab2-c19848fa4542'
+                       and fo_id = '91990373-dc68-4705-ace8-2a4d36d5bcce';
+

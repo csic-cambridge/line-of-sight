@@ -1,3 +1,32 @@
+
+.header { grid-area: header; }
+.main { grid-area: main;}
+.grid-container {
+    display: grid;
+    grid-template-areas:
+    'header'
+    'main';
+    gap: 10px;
+    grid-template-rows: 90px auto 20px;
+}
+
 .action-btn-grp {
     margin-left: 10px;
+}
+
+a[ng-reflect-router-link] {
+    color: red;
+    font-weight: 700;
+}
+
+.toastr-container {
+    position: absolute;
+    height: 100vh;
+    z-index: 99999999999;
+    justify-content: right;
+    justify-items: right;
+    right: 0;
+}
+.navbar {
+    justify-content: space-between;
 }

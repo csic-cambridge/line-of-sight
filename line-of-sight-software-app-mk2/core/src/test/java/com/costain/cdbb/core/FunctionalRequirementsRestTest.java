@@ -30,7 +30,8 @@ import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryDAO;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
 import com.costain.cdbb.repositories.FunctionalRequirementRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,8 +83,8 @@ public class FunctionalRequirementsRestTest {
     @BeforeAll
     public void runBeforeTestsBegin() {
         try {
-            projectId = projectManager.create("Functional Requirement Test", port);
             foDdDao = foManager.createFoDdWithEntry(projectId, port);
+            projectId = projectManager.create("Functional Requirement Test", foDdDao.getId(), null, port);
         } catch (Exception e) {
             fail("Failed to create initial project" + e);
         }
@@ -97,15 +98,12 @@ public class FunctionalRequirementsRestTest {
     @AfterAll
     public void runAfterAllTestsComplete() {
         try {
-            foManager.deleteFunctionalOutputDictionary(foDdDao.getId());
             projectManager.delete(projectId, port);
+            foManager.deleteFunctionalOutputDictionary(foDdDao.getId());
         } catch (Exception e) {
             fail("Failed to delete initial project" + e);
         }
     }
-
-    // test Functional Requirement: post, get,put,delete
-
 
     @Test
     public void getAllFunctionalRequirements() {
@@ -176,7 +174,7 @@ public class FunctionalRequirementsRestTest {
             map.put("project_id", projectId);
             map.put("name", frName);
             map.put("fos", frManager.getSourceFos().toArray());
-            String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+            String payload = new ObjectMapper().writeValueAsString(map);
             ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
                 payload,
                 "http://localhost:" + port + "/api/functional-requirements/pid/" + projectId + "/" + fr.getId());
@@ -200,7 +198,7 @@ public class FunctionalRequirementsRestTest {
                 () -> assertTrue(responseFos.containsAll(frManager.getSourceFos())
                     && frManager.getSourceFos().containsAll(responseFos))
             );
-        } catch (JSONException e) {
+        } catch (JSONException | JsonProcessingException e) {
             fail(e);
         } finally {
             if (fr != null) {

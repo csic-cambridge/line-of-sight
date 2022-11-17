@@ -1,0 +1,96 @@
+
+<!-- Assets Content -->
+
+<div class="modal-header" #assetHandle>
+    <h3 class="modal-title">Asset</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="assetForm" (ngSubmit)="save()" id="form">
+        <!-- ASSET -->
+        <div class="form-group">
+
+            <div class="flex-row">
+                <label for="asset-Id" class="form-label text-right h5">Title</label>
+                <label *ngIf="this.instance.isPopupOpen() && this.searchItems.length > 10"
+                       class="form-label float-right text-primary">
+                    10 of {{this.searchItems.length}} matches shown, please refine search
+                </label>
+            </div>
+            <input id="asset-Id"
+                   formControlName="assetTitle"
+                   type="search" ngbAutofocus
+                   (selectItem)="itemSelected($event)"
+                   [ngbTypeahead]="search"
+                   [readOnly]="this.assetForm.controls.id.value !== ''"
+                   [resultFormatter]="formatter"
+                   [inputFormatter]="inputformatter"
+                   (focus)="focus$.next($any($event).target.value)"
+                   (click)="click$.next($any($event).target.value)"
+                   class="form-control element-text"
+                   #instance="ngbTypeahead"
+                   placeholder="Asset Name / Title ... " autocomplete="off">
+
+            <div id="copyNameFeedback" class="invalid-feedback">
+                <div *ngIf="assetForm.controls.assetTitle.errors?.['required']">
+                    Title is required.
+                </div>
+                <div *ngIf="assetForm.controls.assetTitle.errors?.['forbiddenName']">
+                    Asset <b>{{assetForm.controls.assetTitle.value.text}}</b> not found.
+                </div>
+            </div>
+        </div>
+        <!-- AIR -->
+        <div class="form-group">
+            <h5><label for="new-air-text">Asset Information Requirement <i>(AIR)</i></label></h5>
+            <div class="input-group flexContainer" formName="newAir">
+                <input id="new-air-text" ngbAutofocus
+                       class="form-control element-text inputField"
+                       formControlName="newAir"
+                       (change)="newAirChange($event)"
+                       placeholder="New AIR ... "
+                       autocomplete="off">
+            </div>
+
+            <h6><label><b>Linked AIR</b>
+                <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked AIRs)</label>
+            </label></h6>
+            <div formArrayName="airs">
+                <div *ngFor="let air of this.airs().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               [formControlName]="i"
+                               type="checkbox"
+                               (change)="airChange($event)"
+                               [attr.index]="i"
+                               [checked]="air.value" />
+                        {{this.airNames().controls[i].value}}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!-- FO Linked to the Asset -->
+        <div class="form-group">
+            <h6><label><b>Functional Outputs Linked to Asset</b></label></h6>
+            <div id="foLinkedToAssetDiv" class="form=group" *ngFor="let fo of fos">
+                <div *ngIf="fo.assets.includes(this.selectedAsset ? this.selectedAsset.id : '')">
+                    {{ fo.data_dictionary_entry.text }}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-danger"
+            *ngIf="this.allowDelete()"
+            [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_ASSETS)"
+            (click)="delete()">Delete</button>
+    <ng-container>
+        <button type="submit" data-dismiss="modal" class="btn btn-outline-primary"
+                [disabled]="assetForm.pristine" form="form">Save</button>
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary"
+                (click)="closeModal()">Cancel</button>
+    </ng-container>
+</div>

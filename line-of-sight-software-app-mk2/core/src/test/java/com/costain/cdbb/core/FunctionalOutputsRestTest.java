@@ -36,7 +36,8 @@ import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -97,9 +98,10 @@ public class FunctionalOutputsRestTest {
     @BeforeAll
     public void runBeforeTestsBegin() {
         try {
-            projectId = projectManager.create("FunctionalOutputsTest", port);
             foDdDao = foManager.createFoDdWithEntry(projectId, port);
             assetDdDao = assetManager.createAssetDdWithTwoEntries();
+            projectId = projectManager
+                .create("FunctionalOutputsTest", foDdDao.getId(), assetDdDao.getId(), port);
         } catch (Exception e) {
             fail("Failed to create initial project" + e);
         }
@@ -121,7 +123,7 @@ public class FunctionalOutputsRestTest {
         }
     }
 
-    // test functionalOutputs: post, get, functionalOutputs/{id}: get,put,delete
+    // test functionalOutputs:  get, functionalOutputs/{id}: get,put,delete
     private void getAllFunctionalOutputs() {
         HttpEntity<String> response = apiManager.doSuccessfulGetApiRequest(
             "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId);
@@ -165,7 +167,7 @@ public class FunctionalOutputsRestTest {
 
         List<AssetDAO> assetDaos = new ArrayList<>();
         List<AssetDataDictionaryEntryDAO> ddEntryDaos =
-            new ArrayList<>(assetDdeRepository.findByAssetDictionaryId(assetDdDao.getId()));
+            new ArrayList<>(assetDdeRepository.findByAssetDictionaryIdOrderByEntryId(assetDdDao.getId()));
         try {
             assetDaos.add(assetManager.createAsset(projectId, port, "Asset1 Fir Update", ddEntryDaos.get(0)));
             assetDaos.add(assetManager.createAsset(projectId, port, "Asset2 Fir Update", ddEntryDaos.get(1)));
@@ -239,17 +241,17 @@ public class FunctionalOutputsRestTest {
         // update the fo with the given firs and assets and check update has occurred
         List<FunctionalOutputDataDictionaryEntryDAO> ddEntryDaos =
             new ArrayList<>(functionalOutputDdeRepository
-                .findByFoDictionaryId(foManager.getFunctionalOutputDd().getId()));
+                .findByFoDictionaryIdOrderByEntryId(foManager.getFunctionalOutputDd().getId()));
         try {
 
             Map<String, Object> ddeMap = new HashMap<>();
-            ddeMap.put("id", ddEntryDaos.get(0).getId());
+            ddeMap.put("entry_id", ddEntryDaos.get(0).getEntryId());
             ddeMap.put("text", "blah blah");
             Map<String, Object> map = new HashMap<>();
             map.put("data_dictionary_entry", ddeMap);
             map.put("firs", sourceFirs);
             map.put("assets", sourceAssetIds);
-            String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+            String payload = new ObjectMapper().writeValueAsString(map);
 
             ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
                 payload,
@@ -262,8 +264,7 @@ public class FunctionalOutputsRestTest {
             JSONObject ddeJsonObject = functionalOutputJsonObject.getJSONObject("data_dictionary_entry");
             FunctionalOutputDataDictionaryEntryDAO functionalOutputDataDictionaryEntryDao =
                 FunctionalOutputDataDictionaryEntryDAO.builder()
-                .id(ddeJsonObject.getString("id"))
-                .foDictionaryId(foManager.getFunctionalOutputDd().getId())
+                .entryId(ddeJsonObject.getString("entry_id")).foDictionaryId(foManager.getFunctionalOutputDd().getId())
                 .text(ddeJsonObject.getString("text"))
                 .build();
             JSONArray firsJsonArray = functionalOutputJsonObject.getJSONArray("firs");
@@ -279,19 +280,20 @@ public class FunctionalOutputsRestTest {
             }
 
             assertAll(
-                () -> assertEquals(functionalOutputDataDictionaryEntryDao.getId(), ddEntryDaos.get(0).getId()),
+                () -> assertEquals(functionalOutputDataDictionaryEntryDao.getEntryId(),
+                    ddEntryDaos.get(0).getEntryId(), "Comparing entry ids"),
                 () -> assertEquals(functionalOutputDataDictionaryEntryDao.getText(),
-                    ddEntryDaos.get(0).getId() + "-" + ddEntryDaos.get(0).getText()),
+                    ddEntryDaos.get(0).getEntryId() + "-" + ddEntryDaos.get(0).getText(), "Comparing text"),
                 () -> assertEquals(functionalOutputDataDictionaryEntryDao.getFoDictionaryId(),
-                    foManager.getFunctionalOutputDd().getId()),
-                () -> assertEquals(sourceFirs.size(), firs.size()),
+                    foManager.getFunctionalOutputDd().getId(), "Comparing fo dd"),
+                () -> assertEquals(sourceFirs.size(), firs.size(), "Comparing FIRs size"),
                 () -> assertTrue(firs.containsAll(sourceFirs)
-                    && sourceFirs.containsAll(firs)),
-                () -> assertEquals(sourceAssetIds.size(), assets.size()),
+                    && sourceFirs.containsAll(firs), "Comparing FIR strings"),
+                () -> assertEquals(sourceAssetIds.size(), assets.size(), "Comparing assets size"),
                 () -> assertTrue(assets.containsAll(sourceAssetIds)
-                    && sourceAssetIds.containsAll(assets))
+                    && sourceAssetIds.containsAll(assets), "Comparing assets content")
             );
-        } catch (JSONException e) {
+        } catch (JSONException | JsonProcessingException e) {
             fail(e);
         }
     }

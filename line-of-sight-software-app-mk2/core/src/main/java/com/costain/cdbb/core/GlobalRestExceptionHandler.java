@@ -18,6 +18,8 @@
 package com.costain.cdbb.core;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,9 @@ public class GlobalRestExceptionHandler {
 
     private final Logger logger = LoggerFactory.getLogger(GlobalRestExceptionHandler.class);
 
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+        value = "URF_UNREAD_FIELD",
+        justification = "Spotbugs not detecting use of 'this'")
     private class ErrorMessage {
         @JsonProperty
         private String item;
@@ -51,12 +56,17 @@ public class GlobalRestExceptionHandler {
         }
 
         public String toString() {
-            return "Error {"
+            /*return "Error {"
                 + "item="
                 + item
                 + ", error='" + error + '\''
                 + ", forUi=" + forUi
-                + '}';
+                + '}';*/
+            try {
+                return new ObjectMapper().writeValueAsString(this);
+            } catch (JsonProcessingException e) {
+                return "Unknown error " + e.getMessage();
+            }
         }
     }
 

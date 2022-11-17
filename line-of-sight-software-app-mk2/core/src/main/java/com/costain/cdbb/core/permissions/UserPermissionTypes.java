@@ -24,35 +24,36 @@ public class UserPermissionTypes {
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_USER = "ROLE_USER";
 
-    public static final int USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID = 1010;
-    public static final int USER_PERMISSION_EDIT_PROJECTS_ID = 1011;
-    public static final int USER_PERMISSION_DELETE_PROJECTS_ID = 1012;
-    public static final int USER_PERMISSION_IMPORT_ID = 1110;
-    public static final int USER_PERMISSION_EXPORT_ID = 1111;
-    public static final int USER_PERMISSION_VIEW_OO_ID = 1210;
-    public static final int USER_PERMISSION_EDIT_OO_OIR_ID = 1211;
-    public static final int USER_PERMISSION_EDIT_DATA_DICTIONARY_ID = 1311;
+    public static final UserPermissionId USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID = new UserPermissionId(1010);
+    public static final UserPermissionId USER_PERMISSION_EDIT_PROJECTS_ID = new UserPermissionId(1011);
+    public static final UserPermissionId USER_PERMISSION_DELETE_PROJECTS_ID = new UserPermissionId(1012);
+    public static final UserPermissionId USER_PERMISSION_IMPORT_ID = new UserPermissionId(1110);
+    public static final UserPermissionId USER_PERMISSION_EXPORT_ID = new UserPermissionId(1111);
+    public static final UserPermissionId USER_PERMISSION_VIEW_OO_ID = new UserPermissionId(1210);
+    public static final UserPermissionId USER_PERMISSION_EDIT_OO_OIR_ID = new UserPermissionId(1211);
+    public static final UserPermissionId USER_PERMISSION_EDIT_DATA_DICTIONARY_ID = new UserPermissionId(1311);
 
     public static final Map<Integer, String> userPermissionTypes = Map.ofEntries(
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID, "View projects dashboard"),
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EDIT_PROJECTS_ID,
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID.getId(), "View projects dashboard"),
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EDIT_PROJECTS_ID.getId(),
             "Add, copy and rename projects in projects dashboard"),
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_DELETE_PROJECTS_ID, "Delete projects in projects dashboard"),
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_IMPORT_ID, "Import projects in projects dashboard"),
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EXPORT_ID, "Export projects in projects dashboard"),
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_VIEW_OO_ID, "View organisational objectives(OO)"),
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EDIT_OO_OIR_ID, "Edit organisational objectives(OO)"),
-        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EDIT_DATA_DICTIONARY_ID, "Edit data dictionaries")
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_DELETE_PROJECTS_ID.getId(),
+            "Delete projects in projects dashboard"),
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_IMPORT_ID.getId(), "Import projects in projects dashboard"),
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EXPORT_ID.getId(), "Export projects in projects dashboard"),
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_VIEW_OO_ID.getId(), "View organisational objectives(OO)"),
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EDIT_OO_OIR_ID.getId(), "Edit organisational objectives(OO)"),
+        new AbstractMap.SimpleEntry<>(USER_PERMISSION_EDIT_DATA_DICTIONARY_ID.getId(), "Edit data dictionaries")
         );
 
 
-    public static String getPermissionNameForId(Integer userPermissionId) {
-        String name = userPermissionTypes.get(userPermissionId);
-        return name == null ? "Unknown permission " + userPermissionId : name;
+    public static String getPermissionNameForId(UserPermissionId userPermissionId) {
+        String name = userPermissionTypes.get(userPermissionId.getId());
+        return name == null ? "Unknown permission " + userPermissionId.getId() : name;
     }
 
-    public static String getAuthorityNameForId(Integer userPermissionId) {
-        return "USER_PERMISSION-" + userPermissionId;
+    public static String getAuthorityNameForId(UserPermissionId userPermissionId) {
+        return "USER_PERMISSION-" + userPermissionId.getId();
     }
 }
 

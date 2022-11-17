@@ -25,7 +25,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import com.costain.cdbb.model.OirDAO;
 import com.costain.cdbb.model.OrganisationalObjectiveDAO;
 import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -81,7 +82,12 @@ public class TestOoManager {
         map.put("name", testOoName);
         map.put("oirs", testOirs);
         map.put("is_deleted", false);
-        String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+        String payload = null;
+        try {
+            payload = new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            fail(e);
+        }
 
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             payload,
@@ -138,7 +144,12 @@ public class TestOoManager {
         map.put("name", modifiedName);
         map.put("oirs", testOirs);
         map.put("is_deleted", oo.isDeleted());
-        String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+        String payload = null;
+        try {
+            payload = new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            fail(e);
+        }
 
         // wait one second to allow new OoVersion to have a later dateCreated than any previous creation
         try {

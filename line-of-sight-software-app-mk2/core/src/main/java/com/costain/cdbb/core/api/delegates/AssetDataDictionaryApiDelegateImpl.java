@@ -46,10 +46,12 @@ public class AssetDataDictionaryApiDelegateImpl implements AssetDataDictionaryAp
     @Autowired
     private AssetDataDictionaryHelper assetDataDictionaryHelper;
 
+
     /**
      * Fetch all the asset data dictionaries.
      * @return Mono&lt;ResponseEntity&lt;Flux&lt;AssetDataDictionary&gt;&gt;&gt; asset data dictionaries
      */
+
     @Override
     public Mono<ResponseEntity<Flux<AssetDataDictionary>>> findAllAssetDataDictionaries(ServerWebExchange exchange) {
         return Mono.fromCallable(() -> Flux.fromIterable(ddRepository.findAll())
@@ -66,10 +68,20 @@ public class AssetDataDictionaryApiDelegateImpl implements AssetDataDictionaryAp
     @Override
     public Mono<ResponseEntity<Flux<DataDictionaryEntry>>> findAllAssetDataDictionaryEntries(
         UUID dataDictionaryId,ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(ddeRepository.findByAssetDictionaryId(dataDictionaryId))
+        return Mono.fromCallable(() ->
+                Flux.fromIterable(ddeRepository.findByAssetDictionaryIdOrderByEntryId(dataDictionaryId))
                 .map(dao -> new DataDictionaryEntry()
-                    .id(dao.getId())
-                    .text(dao.getId() + "-" + dao.getText())))
+                    .entryId(dao.getEntryId())
+                    .text(dao.getEntryId() + "-" + dao.getText())))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<AssetDataDictionary>> importAssetDataDictionary(Mono<String> body,
+                                                                               ServerWebExchange exchange) {
+        return body.map(dto -> assetDataDictionaryHelper.importDictionary(dto))
+            .map(savedDao -> assetDataDictionaryHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }

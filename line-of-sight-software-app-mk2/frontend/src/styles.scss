@@ -3,8 +3,28 @@
 /* Importing Bootstrap SCSS file. */
 
 @import '~bootstrap/scss/bootstrap';
-
-.app-container {
-    min-height: 320px;
-    overflow: hidden;
+body, html{
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+form.ng-submitted{
+    .form-control.ng-invalid{
+        @extend .is-invalid !optional;
+    }
+    .form-control.ng-valid{
+        @extend .is-valid !optional;
+    }
+}
+.form-group{
+    h5{
+        margin: 0;
+    }
+    .form-label {
+        margin: 30px 0 10px 0;
+    }
+    h6 {
+        margin: 30px 0 0 0;
+    }
 }

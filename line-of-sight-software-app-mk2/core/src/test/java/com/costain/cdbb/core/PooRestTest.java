@@ -38,7 +38,8 @@ import com.costain.cdbb.repositories.OirRepository;
 import com.costain.cdbb.repositories.OoVersionRepository;
 import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectOrganisationalObjectiveRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -112,8 +113,9 @@ public class PooRestTest {
     @BeforeAll
     public void runBeforeTestsBegin() {
         try {
-            projectId = projectManager.create("Project Organisational Objective Test", port);
             foDdDao = foManager.createFoDdWithEntry(projectId, port);
+            projectId = projectManager
+                .create("Project Organisational Objective Test", foDdDao.getId(), null, port);
         } catch (Exception e) {
             fail("Failed to create initial project" + e);
         }
@@ -282,7 +284,12 @@ public class PooRestTest {
         );
         map.put("oir_ids", oirIds);
 
-        String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+        String payload = null;
+        try {
+            payload = new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            fail(e);
+        }
         ResponseEntity<String> response = apiManager.doSuccessfulPutApiRequest(
             payload,
             "http://localhost:" + port + "/api/project-organisational-objectives/pid/" + projectId + "/" + poo.getId());

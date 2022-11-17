@@ -18,25 +18,34 @@
 package com.costain.cdbb.model.helpers;
 
 
+import com.costain.cdbb.core.CdbbValidationError;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.DataDictionaryEntry;
 import com.costain.cdbb.model.FunctionalOutput;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryEntryDAO;
 import com.costain.cdbb.model.FunctionalOutputWithId;
+import com.costain.cdbb.model.ProjectDAO;
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryRepository;
+import com.costain.cdbb.repositories.FunctionalOutputRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
+import com.opencsv.CSVParser;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
+import org.springframework.transaction.support.TransactionTemplate;
 
 
 @Component
@@ -49,13 +58,22 @@ public class FunctionalOutputHelper {
     @Autowired
     FunctionalOutputDataDictionaryEntryRepository ddeRepository;
 
+    @Autowired
+    FunctionalOutputRepository foRepository;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    @Autowired
+    private CompressionHelper compressionHelper;
+
     public FunctionalOutputWithId fromDao(FunctionalOutputDAO dao) {
         FunctionalOutputWithId dto = new FunctionalOutputWithId();
         dto.id(dao.getId());
         FunctionalOutputDataDictionaryEntryDAO dde = dao.getDataDictionaryEntry();
         dto.dataDictionaryEntry(new DataDictionaryEntry()
-            .id(dde.getId())
-            .text(dde.getId() + "-" + dde.getText()));
+            .entryId(dde.getEntryId())
+            .text(dde.getEntryId() + "-" + dde.getText()));
         dto.firs(dao.getFirs() != null ? dao.getFirs().stream().toList() : Collections.emptyList());
         dto.assets(dao.getAssets() != null ? dao.getAssets().stream().map(AssetDAO::getId).toList()
             : Collections.emptyList());
@@ -65,7 +83,7 @@ public class FunctionalOutputHelper {
     public FunctionalOutputDAO inputFromDto(UUID projectId, UUID foId, FunctionalOutput fo) {
         return fromDto(FunctionalOutputDAO.builder().id(foId),
             projectId,
-            fo.getDataDictionaryEntry().getId(),
+            fo.getDataDictionaryEntry().getEntryId(),
             fo.getFirs(),
             fo.getAssets());
     }
@@ -73,7 +91,7 @@ public class FunctionalOutputHelper {
     public FunctionalOutputDAO fromDto(FunctionalOutputWithId functionalOutput, UUID projectId) {
         return fromDto(FunctionalOutputDAO.builder(),
             projectId,
-            functionalOutput.getDataDictionaryEntry().getId(),
+            functionalOutput.getDataDictionaryEntry().getEntryId(),
             functionalOutput.getFirs(),
             functionalOutput.getAssets());
     }
@@ -81,19 +99,81 @@ public class FunctionalOutputHelper {
     public FunctionalOutputDAO fromDto(UUID id, FunctionalOutputWithId functionalOutput, UUID projectId) {
         return fromDto(FunctionalOutputDAO.builder().id(id),
             projectId,
-            functionalOutput.getDataDictionaryEntry().getId(),
+            functionalOutput.getDataDictionaryEntry().getEntryId(),
             functionalOutput.getFirs(), functionalOutput.getAssets());
     }
 
     private FunctionalOutputDAO fromDto(FunctionalOutputDAO.FunctionalOutputDAOBuilder builder,
                                         UUID projectId,
                                         String ddeId, Collection<String> firs, Collection<UUID> assets) {
-        Optional<FunctionalOutputDataDictionaryEntryDAO> optFoDdeDao = ddeRepository.findById(ddeId);
+        ProjectDAO projectDao = projectRepository.findById(projectId).get();
+        FunctionalOutputDataDictionaryEntryDAO optFoDdeDao =
+            ddeRepository.findByFoDictionaryIdAndEntryId(projectDao.getFoDataDictionary().getId(), ddeId);
         return builder
             .projectId(projectId)
-            .dataDictionaryEntry(optFoDdeDao.get())
+            .dataDictionaryEntry(optFoDdeDao)
             .firs(new HashSet<>(firs))
             .assets(assets.stream().map(id -> AssetDAO.builder().id(id).build()).collect(Collectors.toSet()))
             .build();
+    }
+
+
+    public List<FunctionalOutputDAO> importFirs(String base64CompressedFirsData, UUID projectId) {
+        List<String> importedRecords = null;
+        String errorMsg = null;
+        try {
+            importedRecords =
+                List.of(compressionHelper.decompress(Base64.getDecoder().decode(base64CompressedFirsData))
+                    .split("\\n"));
+        } catch (IOException e) {
+            errorMsg = "Invalid input format for FIRs data - Import aborted";
+        }
+        if (null == errorMsg) {
+            Map<String, FunctionalOutputDAO> foDaosMap = new HashMap<>(importedRecords.size());
+            final CSVParser parser = new CSVParser();
+            List<String> finalImportedRecords = importedRecords;
+            transactionTemplate.execute(transaction -> {
+                int lineNo = 0;
+                for (String record : finalImportedRecords) {
+                    lineNo++;
+                    String[] fields;
+                    try {
+                        fields = parser.parseLine(record);
+                    } catch (IOException e) {
+                        throw new CdbbValidationError(
+                            "Invalid line (#" + lineNo + ") in FIRs import '" + record
+                                + " - Import aborted");
+                    }
+                    FunctionalOutputDAO foDao =
+                        foRepository.findByProjectIdAndDataDictionaryEntry_EntryId(projectId, fields[0]);
+                    if (foDao == null) {
+                        // new fo required for this project
+                        ProjectDAO projectDao = projectRepository.findById(projectId).get();
+                        FunctionalOutputDataDictionaryEntryDAO foDdeDao =
+                            ddeRepository.findByFoDictionaryIdAndEntryId(
+                                projectDao.getFoDataDictionary().getId(), fields[0]);
+                        if (null == foDdeDao) {
+                            throw new CdbbValidationError(
+                                "Unknown key in file = '" + fields[0]
+                                    + "' on line #" + lineNo + " - Import of FIRs aborted");
+                        }
+                        foDao = FunctionalOutputDAO.builder()
+                            .projectId(projectId)
+                            .dataDictionaryEntry(foDdeDao)
+                            .firs(new HashSet<>())
+                            .build();
+                    }
+                    foDao.getFirs().add(fields[1]);
+                    foDaosMap.put(fields[0], foRepository.save(foDao));
+                }
+                return 0;
+            });
+            List<FunctionalOutputDAO> foDaos = new ArrayList<>(foDaosMap.size());
+            for (Map.Entry<String, FunctionalOutputDAO> entry : foDaosMap.entrySet()) {
+                foDaos.add(entry.getValue());
+            }
+            return foDaos;
+        }
+        throw new CdbbValidationError(errorMsg);
     }
 }

@@ -21,11 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
 import com.costain.cdbb.repositories.FunctionalRequirementRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -72,7 +74,12 @@ public class TestFunctionalRequirementManager {
         Map<String, Object> map = new HashMap<>();
         map.put("name", frName);
         map.put("fos", sourceFos.toArray());
-        String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+        String payload = null;
+        try {
+            payload = new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            fail(e);
+        }
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             payload,
             "http://localhost:" + port + "/api/functional-requirements/pid/" + projectId);

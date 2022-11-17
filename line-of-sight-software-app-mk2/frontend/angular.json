@@ -35,7 +35,8 @@
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/angular2-draggable/css/resizable.min.css"
             ],
-            "scripts": ["node_modules/leader-line/leader-line.min.js"]
+            "scripts": ["node_modules/leader-line/leader-line.min.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -63,12 +64,12 @@
                 {
                   "type": "initial",
                   "maximumWarning": "750kb",
-                  "maximumError": "1mb"
+                  "maximumError": "2mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "150kb",
+                  "maximumError": "150kb"
                 }
               ]
             }

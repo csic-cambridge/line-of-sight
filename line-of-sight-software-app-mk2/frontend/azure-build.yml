@@ -2,6 +2,7 @@ trigger:
   branches:
     include:
       - feature/cdbb-151-UsersAndPermissions
+      - feature/cdbb-152-ImportAndExport
   paths:
     include:
       - frontend/*

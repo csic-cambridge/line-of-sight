@@ -1,0 +1,100 @@
+
+<!-- Project Organisational Objectives Content -->
+
+<div class="modal-header" #orgObjHandle>
+    <h3 class="modal-title">Project Organisational Objective</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="pooForm" (ngSubmit)="save()" id="form">
+        <!-- POO -->
+        <div class="form-group">
+            <h3><b>{{this.selectedPoo?.name}}</b></h3>
+        </div>
+        <!--Versions-->
+        <div id="pooVersionDiv" class="form=group" *ngFor="let poo of poos">
+            <h5><label style="margin: 10pt" *ngIf="poo.id === this.selectedPoo.id && poo.oo_versions.length>1">Title updates available:</label></h5>
+            <select id="update-select" *ngIf="poo.id === this.selectedPoo.id && poo.oo_versions.length > 1"
+                    style="height: 50px"
+                    class="form-control"
+                    formControlName="versionId">
+                <option disabled>Select update option</option>
+                <option value = "">Do not update</option>
+                <option *ngFor="let version of poo.oo_versions.slice(1)" id="VersionContent" [value]="version.id">
+                    {{version.name}} <i>{{ "(Updated: " + (version.date_created  | date:'dd-MMM-yyyy HH:mm:ss') + ')'}}</i> </option>
+            </select>
+        </div>
+        <!-- OIRs -->
+        <div formArrayName="oirs">
+            <div *ngFor="let oir of this.oirs().controls; let i=index">
+                <label class="custom-label-css">
+                    <input class="custom-checkbox-css"
+                           [formControlName]="i"
+                           type="checkbox"
+                           (change)="oirChange($event)"
+                           [attr.index]="i"
+                           [disabled]="oir.disabled"
+                           [checked]="oir.value" />
+                    {{this.oirNames().controls[i].value}}
+                </label>
+            </div>
+        </div>
+        <div formArrayName="deletedOirs">
+            <div *ngFor="let oir of this.deletedOirs().controls; let i=index">
+                <label class="custom-label-css">
+                    <input class="custom-checkbox-css"
+                           [formControlName]="i"
+                           type="checkbox"
+                           [attr.index]="i"
+                           [disabled]="oir.disabled"
+                           [checked]="oir.value" />
+                    {{this.deletedOirNames().controls[i].value}}
+                </label>
+            </div>
+        </div>
+        <!-- FRs -->
+        <div class="form-group">
+            <h5><label>Functional Requirements <i>(FR)</i></label></h5>
+            <h6><label for="pooFRContent"><b>Linked FRs</b>
+                <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FRs)</label></label></h6>
+
+            <div formArrayName="linkedFrs">
+                <div *ngFor="let fr of this.linkedFrs().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               [formControlName]="i"
+                               type="checkbox"
+                               (change)="frChange($event)"
+                               [attr.index]="i"
+                               [checked]="fr.value" />
+                        {{this.linkedFrNames().controls[i].value}}
+                    </label>
+                </div>
+            </div>
+            <div class="input-group">
+                <ngx-bootstrap-multiselect
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
+                    [options]="pooFROptions"
+                    formControlName="selectedFrs"
+                    [texts]="pooFRTexts"
+                    (removed)="selectedFrsChange($event)"
+                    [settings]="mySettings">
+                </ngx-bootstrap-multiselect>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-danger" (click)="delete()"
+            *ngIf="this.allowDelete()"
+            [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_POOS)">Delete</button>
+
+    <ng-container>
+        <button type="submit" data-dismiss="modal" class="btn btn-outline-primary" form="form"
+                [disabled]="pooForm?.pristine">Save</button>
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+    </ng-container>
+
+</div>

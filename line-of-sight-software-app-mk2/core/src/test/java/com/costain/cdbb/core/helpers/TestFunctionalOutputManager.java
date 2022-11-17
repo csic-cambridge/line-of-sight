@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryDAO;
@@ -28,7 +29,8 @@ import com.costain.cdbb.model.FunctionalOutputDataDictionaryEntryDAO;
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,7 +72,8 @@ public class TestFunctionalOutputManager {
     }
 
     public void deleteFunctionalOutputDictionary(UUID id) {
-        Set<FunctionalOutputDataDictionaryEntryDAO> entries = functionalOutputDdeRepository.findByFoDictionaryId(id);
+        Set<FunctionalOutputDataDictionaryEntryDAO> entries =
+            functionalOutputDdeRepository.findByFoDictionaryIdOrderByEntryId(id);
         for (FunctionalOutputDataDictionaryEntryDAO entry : entries) {
             System.out.println("Deleting dd entry " + entry);
             functionalOutputDdeRepository.delete(entry);
@@ -81,7 +84,7 @@ public class TestFunctionalOutputManager {
     private FunctionalOutputDataDictionaryEntryDAO createFunctionalOutputDictionaryEntryForDd(
         String entryId, String entryName, UUID dataDictionaryId) {
         return functionalOutputDdeRepository.save(FunctionalOutputDataDictionaryEntryDAO.builder()
-            .id(entryId)
+            .entryId(entryId)
             .foDictionaryId(dataDictionaryId)
             .text(entryName)
             .build());
@@ -101,19 +104,25 @@ public class TestFunctionalOutputManager {
 
     public FunctionalOutputDAO createFunctionalOutput(UUID projectId, int port) throws JSONException {
         List<FunctionalOutputDataDictionaryEntryDAO> ddEntryDaos =
-            new ArrayList<>(functionalOutputDdeRepository.findByFoDictionaryId(this.functionalOutputDd.getId()));
+            new ArrayList<>(functionalOutputDdeRepository
+                .findByFoDictionaryIdOrderByEntryId(this.functionalOutputDd.getId()));
 
         Set<String> sourceFirs = new HashSet<>();
         sourceFirs.add("FirTest1");
         sourceFirs.add("FirTest2");
 
         Map<String, Object> ddeMap = new HashMap<>();
-        ddeMap.put("id", ddEntryDaos.get(0).getId());
+        ddeMap.put("entry_id", ddEntryDaos.get(0).getEntryId());
         ddeMap.put("text", "any text");
         Map<String, Object> map = new HashMap<>();
         map.put("data_dictionary_entry", ddeMap);
         map.put("firs", sourceFirs.toArray());
-        String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+        String payload = null;
+        try {
+            payload = new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            fail(e);
+        }
         ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
             payload,
             "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId);
@@ -123,7 +132,7 @@ public class TestFunctionalOutputManager {
         JSONObject ddeJsonObject = functionalOutputJsonObject.getJSONObject("data_dictionary_entry");
         FunctionalOutputDataDictionaryEntryDAO functionalOutputDataDictionaryEntryDao =
             FunctionalOutputDataDictionaryEntryDAO.builder()
-                .id(ddeJsonObject.getString("id"))
+                .entryId(ddeJsonObject.getString("entry_id"))
                 .foDictionaryId(this.functionalOutputDd.getId())
                 .text(ddeJsonObject.getString("text"))
                 .build();
@@ -138,9 +147,9 @@ public class TestFunctionalOutputManager {
             .firs(firs)
             .build();
         assertAll(
-            () -> assertEquals(functionalOutputDataDictionaryEntryDao.getId(), ddEntryDaos.get(0).getId()),
+            () -> assertEquals(functionalOutputDataDictionaryEntryDao.getEntryId(), ddEntryDaos.get(0).getEntryId()),
             () -> assertEquals(functionalOutputDataDictionaryEntryDao.getText(),
-                ddEntryDaos.get(0).getId() + "-" + ddEntryDaos.get(0).getText()),
+                ddEntryDaos.get(0).getEntryId() + "-" + ddEntryDaos.get(0).getText()),
             () -> assertEquals(functionalOutputDataDictionaryEntryDao.getFoDictionaryId(),
                 this.functionalOutputDd.getId()),
             () -> assertEquals(sourceFirs.size(), result.getFirs().size()),

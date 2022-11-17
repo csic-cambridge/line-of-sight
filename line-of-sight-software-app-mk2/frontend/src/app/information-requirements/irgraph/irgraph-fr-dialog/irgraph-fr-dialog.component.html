@@ -1,0 +1,87 @@
+
+<!-- Functional Requirements Content -->
+
+<div class="modal-header">
+    <h3 class="modal-title">Functional Requirements</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="frForm" (ngSubmit)="saveFunctionalRequirements()" id="form">
+        <!-- FR -->
+        <div class="form-group">
+            <h5><label for="fr-name" class="form-label text-right">Title</label></h5>
+            <input id="fr-name" ngbAutofocus
+                   formControlName="frName"
+                   class="form-control element-text"
+                   placeholder="Functional Requirement Title ... "
+                   autocomplete="off">
+
+
+            <div id="copyNameFeedback" class="invalid-feedback">
+                <div *ngIf="frForm.controls.frName.errors?.['required']">
+                    Title is required.
+                </div>
+                <div *ngIf="frForm.controls.frName.errors?.['forbiddenName']">
+                    Functional Requirement <b>{{frForm.controls.frName.value.text}}</b> already exists.
+                </div>
+            </div>
+        </div>
+        <!-- FOS -->
+        <div class="form-group">
+            <h5><label>Functional Output<i>(FO)</i></label></h5>
+            <h6><label><b>Linked Functional Outputs</b>
+                <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt">
+                    (Uncheck to <b>delete</b> linked FOs)
+                </label>
+            </label></h6>
+            <div formArrayName="linkedFos">
+                <div *ngFor="let fo of this.linkedFos().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               [formControlName]="i"
+                               type="checkbox"
+                               (change)="foChange($event)"
+                               [attr.index]="i"
+                               [checked]="fo.value" />
+                        {{this.linkedFoNames().controls[i].value}}
+                    </label>
+                </div>
+            </div>
+            <div class="input-group">
+                <ngx-bootstrap-multiselect
+                    name="fosArray"
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
+                    [options]="frFOOptions"
+                    [texts]="frFOTexts"
+                    formControlName="selectedFos"
+                    [settings]="mySettings">
+                </ngx-bootstrap-multiselect>
+            </div>
+        </div>
+        <!-- POO Linked to the FR -->
+        <div class="form-group">
+            <h6><label><b>Project Organisational Objectives Linked to Functional Requirements</b></label></h6>
+            <div formArrayName="linkedPoos">
+                <div *ngFor="let poo of this.linkedPoos().controls; let i=index">
+                    <label class="custom-label-css">
+                        {{poo.value}}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+
+    <button type="button" class="btn btn-outline-danger"
+            *ngIf="this.allowDelete()"
+            [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_FRS)"
+            (click)="deleteFuncRequirement()">Delete</button>
+    <ng-container>
+        <button type="submit" data-dismiss="modal" class="btn btn-outline-primary" form="form"
+                [disabled]="frForm.pristine">Save</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+    </ng-container>
+</div>

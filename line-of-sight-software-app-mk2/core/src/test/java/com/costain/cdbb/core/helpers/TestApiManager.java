@@ -19,6 +19,7 @@ package com.costain.cdbb.core.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Component;
 
 
 
+
 @Component
 public class TestApiManager {
     private static HttpHeaders headers = null;
@@ -39,17 +41,30 @@ public class TestApiManager {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    public static final UUID sampleProjectId = UUID.fromString("387dac90-e188-11ec-8fea-0242ac120002");
+    public static final UUID sampleFoDdId = UUID.fromString("97ee7a74-e8c7-11ec-8fea-0242ac120002");
+    public static final UUID sampleAssetDdId = UUID.fromString("e1970a24-e8c7-11ec-8fea-0242ac120002");
 
     public ResponseEntity<String> doApiRequest(String body,
                                                String url,
                                                HttpMethod method,
                                                HttpStatus expectedResultStatus) {
+        return this.doApiRequest(body, url, method, MediaType.APPLICATION_JSON, expectedResultStatus);
+    }
+
+
+    public ResponseEntity<String> doApiRequest(String body,
+                                                String url,
+                                                HttpMethod method,
+                                                MediaType mediaType,
+                                                HttpStatus expectedResultStatus) {
         if (headers == null) {
             headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
         }
+        headers.setContentType(mediaType);
+
         if (body != null) {
-            System.out.println("Body for " + url + " = " + body);
+            System.out.println("Request Body for " + url + " = " + body);
         }
         HttpEntity<String> request = new HttpEntity<>(body, headers);
         ResponseEntity<String> response = restTemplate.exchange(
@@ -69,8 +84,17 @@ public class TestApiManager {
         return doApiRequest(body, url, HttpMethod.POST, HttpStatus.OK);
     }
 
+
+    public ResponseEntity<String> doSuccessfulPostApiRequestWithOctetStream(String body, String url) {
+        return doApiRequest(body, url, HttpMethod.POST, MediaType.APPLICATION_OCTET_STREAM, HttpStatus.OK);
+    }
+
     public ResponseEntity<String> doSuccessfulPutApiRequest(String body, String url) {
         return doApiRequest(body, url, HttpMethod.PUT, HttpStatus.OK);
+    }
+
+    public ResponseEntity<String> doSuccessfulPutApiRequestWithOctetStream(String body, String url) {
+        return doApiRequest(body, url, HttpMethod.PUT, MediaType.APPLICATION_OCTET_STREAM, HttpStatus.OK);
     }
 
     public void doSuccessfulDeleteApiRequest(String url) {

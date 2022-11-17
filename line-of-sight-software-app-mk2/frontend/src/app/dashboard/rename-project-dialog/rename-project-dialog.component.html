@@ -1,0 +1,37 @@
+<div class="modal fade" role="dialog" style="opacity: 1; display: block">
+    <div  class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" ngDraggable [handle]="renameProjectHandle">
+            <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #renameProjectHandle>
+                <h3 class="modal-title">Rename Project</h3>
+                <button type="button" class="close" aria-label="Close" (click)="close()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="projectForm" (ngSubmit)="rename()" id="form">
+                    <div class="form-group">
+                        <h5><label for="renameName" class="form-label text-right">
+                            Rename project '{{this.project?.name}}' to:</label></h5>
+                        <input id="renameName"
+                               formControlName="name"
+                               class="form-control element-text"
+                               placeholder="Project Name / Title ... "
+                               autocomplete="off">
+                        <div id="copyNameFeedback" class="invalid-feedback">
+                            <div *ngIf="projectForm.controls.name.errors?.['required']">
+                                Project Name is required.
+                            </div>
+                            <div *ngIf="projectForm.controls.name.errors?.['forbiddenName']">
+                                Project Name <b>{{projectForm.controls.name.value}}</b> already exists.
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" data-dismiss="modal" class="btn btn-outline-primary" form="form">Save</button>
+                <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="close()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

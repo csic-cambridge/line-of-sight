@@ -23,17 +23,21 @@ import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryDAO;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
+import com.costain.cdbb.model.OrganisationalObjectiveDAO;
 import com.costain.cdbb.model.Project;
 import com.costain.cdbb.model.ProjectDAO;
 import com.costain.cdbb.model.ProjectOrganisationalObjectiveDAO;
 import com.costain.cdbb.model.ProjectWithId;
+import com.costain.cdbb.model.ProjectWithImportProjectIds;
+import com.costain.cdbb.repositories.AssetDataDictionaryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
+import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
 import com.costain.cdbb.repositories.FunctionalRequirementRepository;
+import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectOrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -68,6 +72,16 @@ public class ProjectHelper {
     @Autowired
     AssetRepository assetRepository;
 
+    @Autowired
+    OrganisationalObjectiveRepository organisationalObjectiveRepository;
+
+    @Autowired
+    AssetDataDictionaryRepository assetDataDictionaryRepository;
+
+    @Autowired
+    FunctionalOutputDataDictionaryRepository foDataDictionaryRepository;
+
+
     public ProjectWithId fromDao(ProjectDAO dao) {
         ProjectWithId dto = new ProjectWithId();
         dto.id(dao.getId());
@@ -97,6 +111,59 @@ public class ProjectHelper {
             .build();
     }
 
+    public ProjectDAO ddsFromDto(ProjectWithImportProjectIds project) {
+        Optional<AssetDataDictionaryDAO> assetDataDictionaryDao =
+            assetDataDictionaryRepository.findById(project.getAssetDdId());
+        Optional<FunctionalOutputDataDictionaryDAO> functionalOutputDataDictionaryDao =
+            foDataDictionaryRepository.findById(project.getFoDdId());
+
+        checkProjectNameIsUnique(null, project.getName());
+
+        ProjectDAO projectDao = ProjectDAO.builder()
+            .name(project.getName())
+            .assetDataDictionary(assetDataDictionaryDao.orElse(null))
+            .foDataDictionary(functionalOutputDataDictionaryDao.orElse(null))
+            .build();
+        projectDao = this.addPoos(projectDao);
+
+        // must add assets first so they exist when links are required for same import file
+        if (null != project.getImportAirsProjectId()) {
+            ProjectDAO airsProjectDao = repository.findById(project.getImportAirsProjectId()).get();
+            if (airsProjectDao.getAssetDataDictionary().equals(assetDataDictionaryDao.get())) {
+                // import assets and airs from other airsProject
+                Set<AssetDAO> assets = assetRepository.findByProjectId(airsProjectDao.getId());
+                saveAssets(projectDao, assets);
+            }
+        }
+        boolean importProjectsTheSame = false;
+        if (null != project.getImportFirsProjectId()) {
+            ProjectDAO firsProjectDao = repository.findById(project.getImportFirsProjectId()).get();
+            importProjectsTheSame = null != project.getImportAirsProjectId()
+                && project.getImportFirsProjectId().equals(project.getImportAirsProjectId());
+            if (firsProjectDao.getFoDataDictionary().equals(functionalOutputDataDictionaryDao.get())) {
+                // import fos and firs from other firsProject, exclude assets if AirsProjectId not same as FirsProjectId
+                Set<FunctionalOutputDAO> fos = foRepository.findByProjectId(firsProjectDao.getId());
+                saveFos(projectDao, fos, importProjectsTheSame);
+            }
+        }
+        return projectDao;
+    }
+
+    private ProjectDAO addPoos(ProjectDAO dao) {
+        ProjectDAO projectDao = repository.save(dao);
+        Set<OrganisationalObjectiveDAO> ooDaos =
+            organisationalObjectiveRepository.findByIsDeleted(false);
+        Set<ProjectOrganisationalObjectiveDAO> projectOrganisationalObjectives =
+            ooDaos.stream().map(oodao -> ProjectOrganisationalObjectiveDAO.builder()
+                    .projectId(projectDao.getId())
+                    .ooVersion(oodao.getOoVersions().get(0))
+                    .frs(new HashSet<>())
+                    .build())
+                .collect(Collectors.toSet());
+        projectDao.setProjectOrganisationalObjectiveDaos(projectOrganisationalObjectives);
+        return repository.save(dao);
+    }
+
     public ProjectDAO renameProject(String jsonName, UUID projectId) throws JSONException {
         final String keyName = "name";
         ProjectDAO project = repository.findById(projectId).orElse(null);
@@ -110,11 +177,11 @@ public class ProjectHelper {
         return project;
     }
 
-    private void checkProjectNameIsUnique(ProjectDAO project, String newName) {
+    public void checkProjectNameIsUnique(ProjectDAO projectWithThisName, String newName) {
         List<ProjectDAO> matchingProjects = repository.findByName(newName);
         if (matchingProjects == null
             || matchingProjects.isEmpty()
-            || project != null && project.getId().equals(matchingProjects.get(0).getId())) {
+            || projectWithThisName != null && projectWithThisName.getId().equals(matchingProjects.get(0).getId())) {
             return;
         }
         // this new name is already in use by another project so reject
@@ -144,12 +211,14 @@ public class ProjectHelper {
                 .id(existingFr.size() == 0 ? null : existingFr.get(0).getId())
                 .projectId(copiedProject.getId())
                 .name(daoFr.getName())
-                .fos(saveFos(copiedProject, daoFr.getFos()))
+                .fos(saveFos(copiedProject, daoFr.getFos(), true))
                 .build());
         }).collect(Collectors.toSet());
     }
 
-    private Set<FunctionalOutputDAO> saveFos(ProjectDAO copiedProject, Set<FunctionalOutputDAO> sourceFoDaos) {
+    private Set<FunctionalOutputDAO> saveFos(ProjectDAO copiedProject,
+                                             Set<FunctionalOutputDAO> sourceFoDaos,
+                                             boolean includeAssetsInsave) {
         // do not save new fos with same data dictionary entry as existing
         Set<FunctionalOutputDAO> existingFos = foRepository.findByProjectId(copiedProject.getId());
         return sourceFoDaos.stream().map(daoFos -> {
@@ -162,7 +231,7 @@ public class ProjectHelper {
                     .projectId(copiedProject.getId())
                     .dataDictionaryEntry(daoFos.getDataDictionaryEntry())
                     .firs(new HashSet<>(daoFos.getFirs()))
-                    .assets(saveAssets(copiedProject, daoFos.getAssets()))
+                    .assets(includeAssetsInsave ? this.saveAssets(copiedProject, daoFos.getAssets()) : null)
                     .build());
         }).collect(Collectors.toSet());
     }
@@ -182,13 +251,13 @@ public class ProjectHelper {
             return assetRepository.save(AssetDAO.builder()
                 .id(existingAssit.size() == 0 ? null : existingAssit.get(0).getId())
                 .projectId(copiedProject.getId())
-                .airs(Collections.unmodifiableSet(new HashSet<>(daoAssets.getAirs())))
+                .airs(new HashSet<>(daoAssets.getAirs()))
                 .dataDictionaryEntry(daoAssets.getDataDictionaryEntry())
                 .build());
         }).collect(Collectors.toSet());
     }
 
-    private Set<FunctionalRequirementDAO> findUnlinkedSourceFunctionalRequirements(
+    Set<FunctionalRequirementDAO> findUnlinkedSourceFunctionalRequirements(
         ProjectDAO sourceProject, Set<ProjectOrganisationalObjectiveDAO> savedPooDaos) {
         Set<FunctionalRequirementDAO> sourceFrs = frRepository.findByProjectIdOrderByNameAsc(sourceProject.getId());
         sourceFrs.removeIf(unlinkedFr ->
@@ -198,7 +267,7 @@ public class ProjectHelper {
         return sourceFrs;
     }
 
-    private Set<FunctionalOutputDAO> findUnlinkedSourceFunctionalOutputs(
+    Set<FunctionalOutputDAO> findUnlinkedSourceFunctionalOutputs(
         ProjectDAO sourceProject, Set<FunctionalRequirementDAO> savedFrDaos) {
         Set<FunctionalOutputDAO> unlinkedFos = foRepository.findByProjectId(sourceProject.getId());
         unlinkedFos.removeIf(unlinkedFo ->
@@ -208,7 +277,7 @@ public class ProjectHelper {
         return unlinkedFos;
     }
 
-    private Set<AssetDAO> findUnlinkedSourceAssets(
+    Set<AssetDAO> findUnlinkedSourceAssets(
         ProjectDAO sourceProject, Set<FunctionalOutputDAO> savedFoDaos) {
         Set<AssetDAO> unlinkedAssets = assetRepository.findByProjectId(sourceProject.getId());
         unlinkedAssets.removeIf(unlinkedAsset ->
@@ -244,7 +313,7 @@ public class ProjectHelper {
             Set<FunctionalRequirementDAO> frs = saveFrs(copiedProject, unlinkedFrs);
 
             Set<FunctionalOutputDAO> unlinkedFos = findUnlinkedSourceFunctionalOutputs(sourceProject, frs);
-            Set<FunctionalOutputDAO> fos = saveFos(copiedProject, unlinkedFos);
+            Set<FunctionalOutputDAO> fos = saveFos(copiedProject, unlinkedFos, true);
 
             Set<AssetDAO> unlinkedAssets = findUnlinkedSourceAssets(sourceProject, fos);
             saveAssets(copiedProject, unlinkedAssets);

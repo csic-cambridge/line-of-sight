@@ -27,7 +27,9 @@ import com.costain.cdbb.core.helpers.AuthorityTestData;
 import com.costain.cdbb.core.helpers.TestApiManager;
 import com.costain.cdbb.core.helpers.TestAuthoritiesManager;
 import com.costain.cdbb.core.helpers.TestProjectManager;
+import com.costain.cdbb.core.permissions.ProjectPermissionId;
 import com.costain.cdbb.core.permissions.ProjectPermissionTypes;
+import com.costain.cdbb.core.permissions.UserPermissionId;
 import com.costain.cdbb.core.permissions.UserPermissionTypes;
 import com.costain.cdbb.model.UserDAO;
 import com.costain.cdbb.model.UserPermissionDAO;
@@ -37,7 +39,8 @@ import com.costain.cdbb.model.helpers.LoginHelper;
 import com.costain.cdbb.repositories.UserPermissionRepository;
 import com.costain.cdbb.repositories.UserProjectPermissionRepository;
 import com.costain.cdbb.repositories.UserRepository;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -194,7 +197,7 @@ public class UserRestTest {
                 permissions.removeIf(permissionsDao ->
                     permissionsDao.getId().getPermissionId() == id
                         && ProjectPermissionTypes.getPermissionNameForId(
-                            permissionsDao.getId().getPermissionId()).equals(name)
+                            new ProjectPermissionId(permissionsDao.getId().getPermissionId())).equals(name)
                         && isGranted
                 );
                 assertEquals(origNumberOfPermissions - grantedMatchCount, permissions.size(),
@@ -224,7 +227,7 @@ public class UserRestTest {
                 permissions.removeIf(permissionsDao ->
                     permissionsDao.getId().getPermissionId() == id
                         && UserPermissionTypes.getPermissionNameForId(
-                            permissionsDao.getId().getPermissionId()).equals(name)
+                            new UserPermissionId(permissionsDao.getId().getPermissionId())).equals(name)
                         && isGranted
                 );
                 assertEquals(origNumberOfPermissions - grantedMatchCount, permissions.size(),
@@ -233,9 +236,17 @@ public class UserRestTest {
         }
     }
 
-    private Map<String, Object> createPermissionMap(Integer permissionId, boolean grant) {
+    private Map<String, Object> createUserPermissionMap(UserPermissionId permissionId, boolean grant) {
         Map<String, Object> permissionMap = new HashMap<>();
-        permissionMap.put("id", permissionId);
+        permissionMap.put("id", permissionId.getId());
+        // no need for 'name', id is sufficient
+        permissionMap.put("is_granted", grant);
+        return permissionMap;
+    }
+
+    private Map<String, Object> createProjectPermissionMap(ProjectPermissionId permissionId, boolean grant) {
+        Map<String, Object> permissionMap = new HashMap<>();
+        permissionMap.put("id", permissionId.getId());
         // no need for 'name', id is sufficient
         permissionMap.put("is_granted", grant);
         return permissionMap;
@@ -293,7 +304,7 @@ public class UserRestTest {
                     boolean granted = isGranted;
                     for (Integer id : ProjectPermissionTypes.projectPermissionTypes.keySet()) {
                         if (count < 4) {
-                            permissions.add(this.createPermissionMap(id, granted));
+                            permissions.add(this.createProjectPermissionMap(new ProjectPermissionId(id), granted));
                             granted = !granted;
                         }
                         count++;
@@ -303,7 +314,12 @@ public class UserRestTest {
                     map.put("user_id", user.getUserId().toString());
                     map.put("projectId", projectId.toString());
                     map.put("permissions", permissions);
-                    String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+                    String payload = null;
+                    try {
+                        payload = new ObjectMapper().writeValueAsString(map);
+                    } catch (JsonProcessingException e) {
+                        fail(e);
+                    }
                     ResponseEntity<String> permissionResponse = apiManager.doSuccessfulPutApiRequest(
                         payload,
                         "http://localhost:" + port + "/api/project-permissions/"
@@ -329,7 +345,12 @@ public class UserRestTest {
             Map<String, Object> map = new HashMap<>();
             map.put("user_id", "");
             map.put("is_super_user", user.isSuperUser());
-            String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+            String payload = null;
+            try {
+                payload = new ObjectMapper().writeValueAsString(map);
+            } catch (JsonProcessingException e) {
+                fail(e);
+            }
             ResponseEntity<String>  userResponse = apiManager.doSuccessfulPutApiRequest(
                 payload,
                 "http://localhost:" + port + "/api/user/"
@@ -362,7 +383,7 @@ public class UserRestTest {
                 boolean granted = isGranted;
                 for (Integer id : UserPermissionTypes.userPermissionTypes.keySet()) {
                     if (count < 4) {
-                        permissions.add(this.createPermissionMap(id, granted));
+                        permissions.add(this.createUserPermissionMap(new UserPermissionId(id), granted));
                         granted = !granted;
                     }
                     count++;
@@ -370,7 +391,12 @@ public class UserRestTest {
                 Map<String, Object> map = new HashMap<>();
                 map.put("user_id", user.getUserId().toString());
                 map.put("permissions", permissions);
-                String payload = new GsonBuilder().disableHtmlEscaping().create().toJson(map);
+                String payload = null;
+                try {
+                    payload = new ObjectMapper().writeValueAsString(map);
+                } catch (JsonProcessingException e) {
+                    fail(e);
+                }
                 ResponseEntity<String> permissionResponse = apiManager.doSuccessfulPutApiRequest(
                     payload,
                     "http://localhost:" + port + "/api/user-permissions/"
@@ -390,7 +416,7 @@ public class UserRestTest {
         // check authorities required for urls and methods
         List<AuthorityTestData> testData = authoritiesManager.setData(testUsers.get(0), project1Id);
         testData.forEach(data -> {
-            if (data.getUrl().startsWith("/api/assets")
+            if (data.getUrl().startsWith("/api/project/export")
             ) {
                 System.out.println("check"); // to help with debugging
             }

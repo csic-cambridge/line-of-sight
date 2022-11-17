@@ -1,0 +1,68 @@
+
+<!-- Organisational Objectives Content -->
+
+<div class="modal-header" #orgObjHandle>
+    <h3 class="modal-title">Organisational Objective</h3>
+    <button type="button" class="close" aria-label="Close" (click)="close()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="ooForm" (ngSubmit)="save()" id="form">
+        <!-- OO -->
+        <div class="form-group">
+            <h5><label for="ooId" class="form-label text-right">Title</label></h5>
+            <input id="ooId"
+                   formControlName="name" ngbAutofocus
+                   class="form-control element-text"
+                   placeholder="Organisational Objective Name / Title ... "
+                   autocomplete="off">
+
+            <div id="copyNameFeedback" class="invalid-feedback">
+                <div *ngIf="ooForm.controls.name.errors?.['required']">
+                    Title is required.
+                </div>
+                <div *ngIf="ooForm.controls.name.errors?.['forbiddenName']">
+                    Organisational Objective <b>{{ooForm.controls.name.value.text}}</b> already exists.
+                </div>
+            </div>
+        </div>
+        <!-- OIRs-->
+        <div class="form-group">
+            <h5><label for="oirText">Organisation Information Requirement <i>(OIR)</i></label></h5>
+            <div class="input-group">
+                <input id="oirText" name="oirs"
+                       formControlName="newOir"
+                       class="form-control element-text"
+                       placeholder="OIR Text ... ">
+            </div>
+
+            <h6><label for="OIRContent"><b>Linked OIR</b>
+                <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked OIRs)</label></label></h6>
+
+            <div formArrayName="linkedOOIRs" id="OIRContent">
+                <div *ngFor="let fr of this.linkedOOIRs().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               [formControlName]="i"
+                               type="checkbox"
+                               (change)="onOOOIRChange($event)"
+                               [attr.index]="i"
+                               [checked]="fr.value" />
+                        {{this.linkedOOIRNames().controls[i].value}}
+                    </label>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-outline-danger" *ngIf="this.activeItem.oirs.length === 0  && this.activeItem.id !== null"
+            (click)="delete()">Delete</button>
+    <ng-container>
+        <button type="submit" data-dismiss="modal" form="form"
+                class="btn btn-outline-primary" [disabled]="ooForm.pristine">Save</button>
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary"
+                (click)="close()">Cancel</button>
+    </ng-container>
+</div>

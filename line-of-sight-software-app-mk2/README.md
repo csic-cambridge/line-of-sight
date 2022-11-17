@@ -37,6 +37,7 @@ in a **Docker** container or standalone. The setup is explained below.
 
 * ### Docker Setup
     Docker can be used to host the back-end system and/or the database. 
+**NOTE:** If Docker is not required, remove the file core/Dockerfile before doing a build.
 
   * #### Windows / MacOS
     Docker Desktop is used to install Docker on the Windows and MacOS systems. Docker Desktop is an easy to install application to
@@ -102,16 +103,23 @@ git clone https://github.com/csic-cambridge/line-of-sight.git
 ```
 
 * ### Running from source
-    Open Terminal (MacOS / Linux) or Command Prompt (Windows). Navigate to the folder where project is cloned and run the following commands,
+    Open Terminal (MacOS / Linux) or Command Prompt (Windows). Navigate to the folder where project is cloned 
 
-    ```
+```
+ cd line-of-sight\line-of-sight-software-app-mk2
+   ```
+
+
+and run the following commands,
+
+```
     # Build the application 
      .\mvnw clean install -Ddev-build
-   ```
-   
+  ```
+
   The created jar file will be:
    ```
-    \line-of-sight\line-of-sight-software-app-mk2\core\target\cdbb-core-<version>-dev.jar
+    line-of-sight\line-of-sight-software-app-mk2\core\target\cdbb-core-<version>-dev.jar
   ```
   
 * ### Run the application after successful build process

@@ -4,6 +4,7 @@ import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryEntryDAO;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
 import com.costain.cdbb.model.ProjectDAO;
+import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
 import com.costain.cdbb.repositories.FunctionalRequirementRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
@@ -42,12 +43,24 @@ public class FunctionalRequirementRepositoryTest {
 
     @Autowired
     private FunctionalOutputRepository foRepository;
-
+    @Autowired
+    private FunctionalOutputDataDictionaryEntryRepository foDdeRepository;
     @Autowired
     private TestEntityManager em;
 
-    private FunctionalOutputDataDictionaryEntryDAO fodde = FunctionalOutputDataDictionaryEntryDAO.builder()
-        .id("EF_20_10_50").text("Membrane structures").build();
+
+    private FunctionalOutputDataDictionaryEntryDAO getFodde () {
+        FunctionalOutputDataDictionaryEntryDAO foDde =
+            foDdeRepository.findByFoDictionaryIdAndEntryId(
+                UUID.fromString("97ee7a74-e8c7-11ec-8fea-0242ac120002"), "EF_20_10_50");
+        if (null == foDde) {
+            foDde = foDdeRepository.save(FunctionalOutputDataDictionaryEntryDAO.builder()
+                .entryId("EF_20_10_50").text("Membrane structures")
+                .foDictionaryId(UUID.fromString("97ee7a74-e8c7-11ec-8fea-0242ac120002"))
+                .build());
+        }
+        return foDde;
+    }
 
     @BeforeEach
     void testRepoInjected() {
@@ -61,7 +74,7 @@ public class FunctionalRequirementRepositoryTest {
         Optional<ProjectDAO> projectDao = projectRepository.findById(UUID.fromString(PROJECT_ID));
         assertThat("Project not found", projectDao.isPresent());
         final FunctionalOutputDAO linkedFo = foRepository.save(FunctionalOutputDAO.builder()
-            .dataDictionaryEntry(fodde)
+            .dataDictionaryEntry(getFodde())
             .projectId(projectDao.get().getId())
             .build());
         logger.info("Saved FO: {}", linkedFo);

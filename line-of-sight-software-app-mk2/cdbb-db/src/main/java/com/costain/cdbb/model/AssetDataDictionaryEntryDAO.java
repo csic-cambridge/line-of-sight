@@ -28,11 +28,18 @@ import org.hibernate.envers.Audited;
 public class AssetDataDictionaryEntryDAO {
 
     @Id
-    private String id; // arbitrary string key
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "CHAR(36)")
+    @Type(type = "uuid-char")
+    private UUID id;
 
     @Column(nullable = false, columnDefinition = "CHAR(36)")
     @Type(type = "uuid-char")
     private UUID assetDictionaryId;
+
+    @Column(nullable = false)
+    private String entryId;
 
     @Column(nullable = false)
     private String text;

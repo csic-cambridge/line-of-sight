@@ -6,8 +6,8 @@ import {
     HttpInterceptor, HttpErrorResponse, HttpStatusCode
 } from '@angular/common/http';
 import {Observable, throwError} from 'rxjs';
-import {catchError, map} from "rxjs/operators";
-import {Router} from "@angular/router";
+import {catchError, map} from 'rxjs/operators';
+import {Router} from '@angular/router';
 
 @Injectable()
 export class HttpAuthInterceptor implements HttpInterceptor {
@@ -20,10 +20,10 @@ export class HttpAuthInterceptor implements HttpInterceptor {
             return event;
         }),
         catchError((httpErrorResponse: HttpErrorResponse, event) => {
-            if(httpErrorResponse.status===HttpStatusCode.Unauthorized) {
+            if (httpErrorResponse.status === HttpStatusCode.Unauthorized) {
                 this.router.navigate(['/login']);
             }
-            else if(httpErrorResponse.status===HttpStatusCode.Forbidden) {
+            else if (httpErrorResponse.status === HttpStatusCode.Forbidden) {
                 window.alert('You do not have permission to perform this function');
             }
             return throwError(httpErrorResponse);

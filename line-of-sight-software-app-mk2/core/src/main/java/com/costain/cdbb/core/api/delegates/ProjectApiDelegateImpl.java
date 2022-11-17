@@ -19,24 +19,18 @@ package com.costain.cdbb.core.api.delegates;
 
 
 import com.costain.cdbb.api.ProjectApiDelegate;
-import com.costain.cdbb.model.OrganisationalObjectiveDAO;
 import com.costain.cdbb.model.Project;
-import com.costain.cdbb.model.ProjectDAO;
-import com.costain.cdbb.model.ProjectOrganisationalObjectiveDAO;
 import com.costain.cdbb.model.ProjectWithId;
+import com.costain.cdbb.model.ProjectWithImportProjectIds;
 import com.costain.cdbb.model.helpers.ProjectHelper;
-import com.costain.cdbb.repositories.AssetDataDictionaryRepository;
-import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryRepository;
-import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
+import com.costain.cdbb.model.helpers.ProjectImportExportHelper;
 import com.costain.cdbb.repositories.ProjectRepository;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -50,27 +44,17 @@ import reactor.core.publisher.Mono;
 @Service
 public class ProjectApiDelegateImpl implements ProjectApiDelegate {
 
-    private ProjectRepository repository;
-    private ProjectHelper projectHelper;
+    @Autowired
+    ProjectRepository repository;
 
     @Autowired
-    AssetDataDictionaryRepository assetDataDictionaryRepository;
+    ProjectHelper projectHelper;
 
     @Autowired
-    FunctionalOutputDataDictionaryRepository foDataDictionaryRepository;
+    ProjectImportExportHelper projectImportExportHelper;
 
     @Autowired
-    OrganisationalObjectiveRepository organisationalObjectiveRepository;
-
-    @Autowired
-    public void setRepository(ProjectRepository repository) {
-        this.repository = repository;
-    }
-
-    @Autowired
-    public void setProjectHelper(ProjectHelper projectHelper) {
-        this.projectHelper = projectHelper;
-    }
+    private TransactionTemplate transactionTemplate;
 
     /**
      * Fetch all projects.
@@ -85,32 +69,18 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+
     /**
      * Add a project.
-     * @param project the project to be created
+     * @param projectWithImportProjectIds the project to be created
      * @return Mono&lt;ResponseEntity&lt;ProjectWithId&gt;&gt; the project added
      */
+
     @Override
-    public Mono<ResponseEntity<ProjectWithId>> addProject(
-        Mono<Project> project, ServerWebExchange exchange) {
-        return project.map(dto ->
-                                projectHelper.ddsFromDto(dto,
-                                    assetDataDictionaryRepository.findById(dto.getAssetDdId()),
-                                    foDataDictionaryRepository.findById(dto.getFoDdId())))
-                            .flatMap(dao -> {
-                                ProjectDAO projectDao = repository.save(dao);
-                                Set<OrganisationalObjectiveDAO> ooDaos =
-                                    organisationalObjectiveRepository.findByIsDeleted(false);
-                                Set<ProjectOrganisationalObjectiveDAO> projectOrganisationalObjectives =
-                                    ooDaos.stream().map(oodao -> ProjectOrganisationalObjectiveDAO.builder()
-                                                .projectId(projectDao.getId())
-                                                .ooVersion(oodao.getOoVersions().get(0))
-                                                .frs(new HashSet<>())
-                                                .build())
-                                                .collect(Collectors.toSet());
-                                projectDao.setProjectOrganisationalObjectiveDaos(projectOrganisationalObjectives);
-                                return Mono.fromCallable(() -> repository.save(dao));
-                            })
+    public Mono<ResponseEntity<ProjectWithId>> addProject(Mono<ProjectWithImportProjectIds> projectWithImportProjectIds,
+                                                         ServerWebExchange exchange) {
+        return projectWithImportProjectIds.map(dto ->
+                                 transactionTemplate.execute(transactionStatus -> projectHelper.ddsFromDto(dto)))
                             .map(savedDao -> projectHelper.fromDao(savedDao))
                             .map(ResponseEntity::ok)
                             .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -161,14 +131,51 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
     @Override
     public Mono<ResponseEntity<ProjectWithId>> copyProject(
         UUID originalProjectId, Mono<String> newProjectName, ServerWebExchange exchange) {
-        return newProjectName.map(dto -> {
+        return newProjectName.map(dto -> transactionTemplate.execute(transactionStatus -> {
             try {
                 return projectHelper.copyFromProject(dto, originalProjectId);
             } catch (JSONException e) {
                 return null;
             }
-        })
+        }))
         .map(ResponseEntity::ok)
         .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<ProjectWithId>> importProject(Mono<String> body,
+                                                             ServerWebExchange exchange) {
+        return body.map(dto -> transactionTemplate.execute(transactionStatus -> {
+            return projectImportExportHelper.importProjectFile(dto);
+        }))
+            .map(savedDao -> projectHelper.fromDao(savedDao))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<String>> exportProject(UUID projectid,
+                                                      ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> projectImportExportHelper.exportProject(projectid))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<ProjectWithId>>> findProjectsUsingFoDataDictionary(UUID foddid,
+                                                                                          ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(repository.findByFoDataDictionaryIdOrderByNameAsc(foddid))
+                .map(dao -> projectHelper.fromDao(dao)))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<Flux<ProjectWithId>>> findProjectsUsingAssetDataDictionary(UUID assetdid,
+                                                                                          ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(repository.findByAssetDataDictionaryIdOrderByNameAsc(assetdid))
+                .map(dao -> projectHelper.fromDao(dao)))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }

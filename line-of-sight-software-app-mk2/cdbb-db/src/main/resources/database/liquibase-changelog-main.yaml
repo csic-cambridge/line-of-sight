@@ -19,3 +19,5 @@ databaseChangeLog:
             file: database/liquibase-changelog-8.yaml
     -   include:
             file: database/liquibase-changelog-9.yaml
+    -   include:
+            file: database/liquibase-changelog-10.yaml

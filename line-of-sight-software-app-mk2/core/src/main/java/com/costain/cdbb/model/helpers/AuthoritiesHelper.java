@@ -19,7 +19,9 @@ package com.costain.cdbb.model.helpers;
 
 
 import com.costain.cdbb.core.permissions.ApiPermissions;
+import com.costain.cdbb.core.permissions.ProjectPermissionId;
 import com.costain.cdbb.core.permissions.ProjectPermissionTypes;
+import com.costain.cdbb.core.permissions.UserPermissionId;
 import com.costain.cdbb.core.permissions.UserPermissionTypes;
 import com.costain.cdbb.model.UserDAO;
 import com.costain.cdbb.repositories.UserPermissionRepository;
@@ -66,14 +68,14 @@ public class AuthoritiesHelper {
             userPermissionRepository.findById_UserId(userDao.getUserId()).forEach(
                 userPermissionDao -> {
                     authorities.add(UserPermissionTypes.getAuthorityNameForId(
-                        userPermissionDao.getId().getPermissionId()));
+                        new UserPermissionId(userPermissionDao.getId().getPermissionId())));
                 }
             );
             userProjectPermissionRepository
                 .findById_UserIdAndId_ProjectId(userDao.getUserId(), projectId).forEach(
                     userProjectPermissionDao -> {
                         authorities.add(ProjectPermissionTypes.getAuthorityNameForId(
-                            userProjectPermissionDao.getId().getPermissionId()));
+                            new ProjectPermissionId(userProjectPermissionDao.getId().getPermissionId())));
                     });
         }
         return authorities;

@@ -39,5 +39,8 @@
     <Match>
         <Bug pattern="FII_USE_METHOD_REFERENCE"/>
     </Match>
+    <Match>
+        <Bug pattern="CLI_CONSTANT_LIST_INDEX"/>
+    </Match>
 </FindBugsFilter>
 

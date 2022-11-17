@@ -10,7 +10,13 @@ logging:
                 SQL: debug
             springframework:
                 security: DEBUG
+        com:
+            zaxxer:
+                hikari: info
+
 spring:
+    codec:
+        max-in-memory-size: 5MB
     datasource:
         url: jdbc:mariadb://127.0.0.1:3306/cdbb?allowMultiQueries=true
         username: cdbb

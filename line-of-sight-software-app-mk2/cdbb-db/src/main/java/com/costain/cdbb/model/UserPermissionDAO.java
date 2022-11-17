@@ -10,9 +10,6 @@ import org.hibernate.envers.Audited;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
 import javax.persistence.Table;
 import java.util.Objects;
 
@@ -31,7 +28,7 @@ public class UserPermissionDAO {
 
     @EmbeddedId
     @Builder.Default
-    private UserPermissionId id = new UserPermissionId();
+    private UserAndPermissionId id = new UserAndPermissionId();
 
     /*
     User string representation

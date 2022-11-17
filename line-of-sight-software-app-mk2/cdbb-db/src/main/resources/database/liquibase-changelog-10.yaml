@@ -1,0 +1,394 @@
+databaseChangeLog:
+    - changeSet:
+          id:   1663229042000-1
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: asset
+                    constraintName: FKi7ik130nmyefi8g6105ptqude
+    - changeSet:
+          id:   1663229042000-2
+          author: philliprushby (generated)
+          changes:
+              - dropForeignKeyConstraint:
+                    baseTableName: functional_output
+                    constraintName: FKnwiels7oyfpwcxn32qh2n1g8f
+    - changeSet:
+          id:   1663229042000-3
+          author: philliprushby (generated)
+          changes:
+              -   renameColumn:
+                      columnDataType:  varchar(255)
+                      newColumnName: entry_id
+                      oldColumnName: id
+                      tableName: asset_dictionary_entry
+    -   changeSet:
+            id: 1663229042000-4
+            author: philliprushby (generated)
+            changes:
+                -   renameColumn:
+                        columnDataType:  varchar(255)
+                        newColumnName: entry_id
+                        oldColumnName: id
+                        tableName: functional_output_dictionary_entry
+    -   changeSet:
+            id: 1663229042000-5
+            author: philliprushby (generated)
+            changes:
+                -   dropPrimaryKey:
+                        tableName: asset_dictionary_entry
+    -   changeSet:
+            id: 1663229042000-6
+            author: philliprushby (generated)
+            changes:
+                -   dropPrimaryKey:
+                        tableName: functional_output_dictionary_entry
+
+    -   changeSet:
+            id: 1663229042000-7
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: false
+                                    name: id
+                                    type: char(36)
+                        tableName: asset_dictionary_entry
+    -   changeSet:
+            id: 1663229042000-8
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: false
+                                    name: id
+                                    type: char(36)
+                        tableName: functional_output_dictionary_entry
+    -   changeSet:
+            id: 1663229042000-9
+            author: philliprushby (generated)
+            changes:
+                -   sql:
+                        dbms: 'mysql, mariadb'
+                        stripComments: true
+                        splitStatements: true
+                        sql:
+                            update asset_dictionary_entry set id = uuid();
+                            update functional_output_dictionary_entry set id = uuid();
+    -   changeSet:
+            id: 1663229042000-10
+            author: philliprushby (generated)
+            changes:
+                -   addPrimaryKey:
+                        columnNames: id
+                        constraintName: PRIMARY
+                        tableName: asset_dictionary_entry
+    -   changeSet:
+            id: 1663229042000-11
+            author: philliprushby (generated)
+            changes:
+                -   addPrimaryKey:
+                        columnNames: id
+                        constraintName: PRIMARY
+                        tableName: functional_output_dictionary_entry
+    -   changeSet:
+            id: 1663229042000-12
+            author: philliprushby (generated)
+            changes:
+                -   renameColumn:
+                        columnDataType:  varchar(255)
+                        newColumnName: orig_data_dictionary_entry_id
+                        oldColumnName: data_dictionary_entry_id
+                        tableName: asset
+    -   changeSet:
+            id: 1663229042000-13
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: false
+                                    name: data_dictionary_entry_id
+                                    type: char(36)
+                        tableName: asset
+
+    -   changeSet:
+            id: 1663229042000-14
+            author: philliprushby (generated)
+            changes:
+                -   renameColumn:
+                        columnDataType:  varchar(255)
+                        newColumnName: orig_data_dictionary_entry_id
+                        oldColumnName: data_dictionary_entry_id
+                        tableName: functional_output
+    -   changeSet:
+            id: 1663229042000-15
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: false
+                                    name: data_dictionary_entry_id
+                                    type: char(36)
+                        tableName: functional_output
+
+    -   changeSet:
+            id: 1663229042000-16
+            author: philliprushby (generated)
+            changes:
+                -   sql:
+                        dbms: 'mysql, mariadb'
+                        stripComments: true
+                        splitStatements: true
+                        sql:
+                            update asset, asset_dictionary_entry
+                            set asset.data_dictionary_entry_id = asset_dictionary_entry.id
+                            where orig_data_dictionary_entry_id = entry_id;
+                            update functional_output, functional_output_dictionary_entry
+                            set functional_output.data_dictionary_entry_id = functional_output_dictionary_entry.id
+                            where orig_data_dictionary_entry_id = entry_id;
+
+    -   changeSet:
+            id: 1663229042000-17
+            author: philliprushby (generated)
+            changes:
+                - addForeignKeyConstraint:
+                      baseColumnNames: data_dictionary_entry_id
+                      baseTableName: asset
+                      constraintName: FK_ASSET_ON_ASSETDICTIONARYENTRY
+                      deferrable: false
+                      initiallyDeferred: false
+                      onDelete: NO ACTION
+                      onUpdate: NO ACTION
+                      referencedColumnNames: id
+                      referencedTableName: asset_dictionary_entry
+                      validate: true
+
+    -   changeSet:
+            id: 1663229042000-18
+            author: philliprushby (generated)
+            changes:
+                - addForeignKeyConstraint:
+                      baseColumnNames: data_dictionary_entry_id
+                      baseTableName: functional_output
+                      constraintName: FK_FUNCTIONAL_OUTPUT_ON_ASSETDICTIONARYENTRY
+                      deferrable: false
+                      initiallyDeferred: false
+                      onDelete: NO ACTION
+                      onUpdate: NO ACTION
+                      referencedColumnNames: id
+                      referencedTableName: functional_output_dictionary_entry
+                      validate: true
+
+    -   changeSet:
+            id: 1663229042000-19
+            author: philliprushby (generated)
+            changes:
+                -   dropColumn:
+                      columnName: orig_data_dictionary_entry_id
+                      tableName: asset
+
+    -   changeSet:
+            id: 1663229042000-20
+            author: philliprushby (generated)
+            changes:
+                -   dropColumn:
+                        columnName: orig_data_dictionary_entry_id
+                        tableName: functional_output
+
+    - changeSet:
+          id:   1663229042000-21
+          author: philliprushby (generated)
+          changes:
+              -   renameColumn:
+                      columnDataType:  varchar(255)
+                      newColumnName: entry_id
+                      oldColumnName: id
+                      tableName: asset_dictionary_entry_aud
+
+    -   changeSet:
+            id: 1663229042000-22
+            author: philliprushby (generated)
+            changes:
+                -   renameColumn:
+                        columnDataType:  varchar(255)
+                        newColumnName: entry_id
+                        oldColumnName: id
+                        tableName: functional_output_dictionary_entry_aud
+    -   changeSet:
+            id: 1663229042000-23
+            author: philliprushby (generated)
+            changes:
+                -   dropPrimaryKey:
+                        tableName: asset_dictionary_entry_aud
+    -   changeSet:
+            id: 1663229042000-24
+            author: philliprushby (generated)
+            changes:
+                -   dropPrimaryKey:
+                        tableName: functional_output_dictionary_entry_aud
+
+    -   changeSet:
+            id: 1663229042000-25
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: true
+                                    name: id
+                                    type: char(36)
+                        tableName: asset_dictionary_entry_aud
+    -   changeSet:
+            id: 1663229042000-26
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: true
+                                    name: id
+                                    type: char(36)
+                        tableName: functional_output_dictionary_entry_aud
+    -   changeSet:
+            id: 1663229042000-27
+            author: philliprushby (generated)
+            changes:
+                -   sql:
+                        dbms: 'mysql, mariadb'
+                        stripComments: true
+                        splitStatements: true
+                        sql:
+                            update asset_dictionary_entry_aud, asset_dictionary_entry
+                            set asset_dictionary_entry_aud.id = asset_dictionary_entry.id
+                            where asset_dictionary_entry_aud.entry_id = asset_dictionary_entry.id;
+                            update functional_output_dictionary_entry_aud, functional_output_dictionary_entry
+                            set functional_output_dictionary_entry_aud.id = functional_output_dictionary_entry.id
+                            where functional_output_dictionary_entry_aud.entry_id = functional_output_dictionary_entry.id;
+    -   changeSet:
+            id: 1663229042000-28
+            author: philliprushby (generated)
+            changes:
+                -   addPrimaryKey:
+                        columnNames: id,rev
+                        constraintName: PRIMARY
+                        tableName: asset_dictionary_entry_aud
+    -   changeSet:
+            id: 1663229042000-29
+            author: philliprushby (generated)
+            changes:
+                -   addPrimaryKey:
+                        columnNames: id,rev
+                        constraintName: PRIMARY
+                        tableName: functional_output_dictionary_entry_aud
+
+    -   changeSet:
+            id: 1663229042000-30
+            author: philliprushby (generated)
+            changes:
+                -   renameColumn:
+                        columnDataType:  varchar(255)
+                        newColumnName: orig_data_dictionary_entry_id
+                        oldColumnName: data_dictionary_entry_id
+                        tableName: asset_aud
+    -   changeSet:
+            id: 1663229042000-31
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: true
+                                    name: data_dictionary_entry_id
+                                    type: char(36)
+                        tableName: asset_aud
+
+    -   changeSet:
+            id: 1663229042000-32
+            author: philliprushby (generated)
+            changes:
+                -   renameColumn:
+                        columnDataType:  varchar(255)
+                        newColumnName: orig_data_dictionary_entry_id
+                        oldColumnName: data_dictionary_entry_id
+                        tableName: functional_output_aud
+    -   changeSet:
+            id: 1663229042000-33
+            author: philliprushby (generated)
+            changes:
+                -   addColumn:
+                        columns:
+                            -   column:
+                                    constraints:
+                                        nullable: true
+                                    name: data_dictionary_entry_id
+                                    type: char(36)
+                        tableName: functional_output_aud
+
+    -   changeSet:
+            id: 1663229042000-34
+            author: philliprushby (generated)
+            changes:
+                -   sql:
+                        dbms: 'mysql, mariadb'
+                        stripComments: true
+                        splitStatements: true
+                        sql:
+                            update asset_aud, asset_dictionary_entry
+                            set asset_aud.data_dictionary_entry_id = asset_dictionary_entry.id
+                            where orig_data_dictionary_entry_id = entry_id;
+                            update functional_output_aud, functional_output_dictionary_entry
+                            set functional_output_aud.data_dictionary_entry_id = functional_output_dictionary_entry.id
+                            where orig_data_dictionary_entry_id = entry_id;
+                            ALTER TABLE functional_output_dictionary_entry_aud
+                            CHANGE COLUMN `entry_id` `entry_id` VARCHAR(255) NULL ;
+                            ALTER TABLE asset_dictionary_entry_aud
+                            CHANGE COLUMN `entry_id` `entry_id` VARCHAR(255) NULL ;
+    -   changeSet:
+            id: 1663229042000-35
+            author: philliprushby (generated)
+            changes:
+                -   dropColumn:
+                        columnName: orig_data_dictionary_entry_id
+                        tableName: asset_aud
+
+    -   changeSet:
+            id: 1663229042000-36
+            author: philliprushby (generated)
+            changes:
+                -   dropColumn:
+                        columnName: orig_data_dictionary_entry_id
+                        tableName: functional_output_aud
+
+    - changeSet:
+          id: 1666887013-1
+          author: philliprushby (generated)
+          changes:
+              - createIndex:
+                    columns:
+                        - column:
+                              name: name
+                    indexName: INDEX_ASSET_DICTIONARY_NAME
+                    tableName: asset_dictionary
+                    unique: true
+    -   changeSet:
+            id: 1666887013-2
+            author: philliprushby (generated)
+            changes:
+                -   createIndex:
+                        columns:
+                            -   column:
+                                    name: name
+                        indexName: INDEX_FO_DICTIONARY_NAME
+                        tableName: functional_output_dictionary
+                        unique: true

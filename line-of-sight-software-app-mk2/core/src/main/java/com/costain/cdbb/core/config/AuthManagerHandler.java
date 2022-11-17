@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import org.jboss.logging.NDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.ReactiveAuthorizationManager;
@@ -56,14 +57,19 @@ public class AuthManagerHandler implements ReactiveAuthorizationManager<Authoriz
         ServerHttpRequest request = authContext.getExchange().getRequest();
         String requestUrl = request.getPath().pathWithinApplication().value();
         System.out.println("Request=" + requestUrl);
-        List<String> authoritiesRequiredForAccess =
-            authoritiesHelper.getAuthoritiesRequiredForUrlAndMethod(requestUrl, request.getMethod());
         return authentication
-            .filter(Authentication::isAuthenticated)
+            .filter(auth -> requestAcceptingJson(request) && auth.isAuthenticated())
             .flatMapIterable(a -> this.getAuthoritiesForPrincipal(a.getPrincipal(), requestUrl))
-            .any(c -> authoritiesRequiredForAccess.contains(String.valueOf(c)))
+            .any(c ->
+                authoritiesHelper.getAuthoritiesRequiredForUrlAndMethod(requestUrl, request.getMethod())
+                    .contains(String.valueOf(c)))
             .map(AuthorizationDecision::new)
             .defaultIfEmpty(new AuthorizationDecision(false));
+    }
+
+    private boolean requestAcceptingJson(ServerHttpRequest request) {
+        // simple filter to prevent casual browser access to api
+        return request.getHeaders().getAccept().contains(MediaType.APPLICATION_JSON);
     }
 
     private List<String> getAuthoritiesForPrincipal(Object principal, String url) {

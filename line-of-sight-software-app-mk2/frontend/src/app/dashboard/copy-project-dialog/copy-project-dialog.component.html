@@ -1,0 +1,40 @@
+
+<div class="modal fade" role="dialog" style="opacity: 1; display: block">
+    <div  class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" ngDraggable [handle]="copyProjectHandle">
+            <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #copyProjectHandle>
+                <h3 class="modal-title">Copy Project</h3>
+                <button type="button" class="close" aria-label="Cancel" (click)="close()">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="projectForm" (ngSubmit)="copy()" id="form">
+                    <div class="form-group">
+                        <h5><label for="copyName" class="form-label text-right">
+                            Copy project '{{this.project.name}}' to:</label></h5>
+                        <input id="copyName" formControlName="name"
+                               class="form-control element-text"
+                               placeholder="Project Name / Title ... "
+                               autocomplete="off">
+                        <div id="copyNameFeedback" class="invalid-feedback">
+                            <div *ngIf="projectForm.controls.name.errors?.['required']">
+                                Project Name is required.
+                            </div>
+                            <div *ngIf="projectForm.controls.name.errors?.['forbiddenName']">
+                                Project Name <b>{{projectForm.controls.name.value}}</b> already exists.
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="copyProjSubmitBtn" type="submit" data-dismiss="modal"
+                        class="btn btn-outline-primary" form="form"
+                        [disabled]="projectForm.pristine">Save</button>
+                <button type="button" data-dismiss="modal"
+                        class="btn btn-outline-secondary" (click)="close()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

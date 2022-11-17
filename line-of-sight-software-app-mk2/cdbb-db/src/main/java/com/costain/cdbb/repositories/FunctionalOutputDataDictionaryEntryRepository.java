@@ -6,6 +6,9 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.Set;
 import java.util.UUID;
 
-public interface FunctionalOutputDataDictionaryEntryRepository extends CrudRepository<FunctionalOutputDataDictionaryEntryDAO, String> {
-    Set<FunctionalOutputDataDictionaryEntryDAO> findByFoDictionaryId(UUID foDictionaryId);
+public interface FunctionalOutputDataDictionaryEntryRepository extends CrudRepository<FunctionalOutputDataDictionaryEntryDAO, UUID> {
+    Set<FunctionalOutputDataDictionaryEntryDAO> findByFoDictionaryIdOrderByEntryId(UUID foDictionaryId);
+    Set<FunctionalOutputDataDictionaryEntryDAO> findByEntryId(String entryId);
+    int deleteByFoDictionaryId(UUID foDictionaryId);
+    FunctionalOutputDataDictionaryEntryDAO findByFoDictionaryIdAndEntryId(UUID dataDictionaryId, String entryId);
 }

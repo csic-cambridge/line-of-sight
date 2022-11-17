@@ -1,166 +1,52 @@
-<div class="container-xxl" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
-    <div id="projectDiv" class="row"
-         *ngIf="!permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_PROJECTS_DASHBOARD)">
-        <div class="col">
-            <div class="row">
-                <div class="col">
-                    <h5><label for="projectList" class="form-label text-right" style="margin: 10pt">Projects</label></h5>
-                </div>
-                <div class="col">
-                    <button type="button"
-                            class="btn btn-outline-primary"
-                            [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.ADD_COPY_RENAME_PROJECTS)"
-                            (click)="openModal('addProjectContent', true)">Add New Project</button>
-                </div>
-            </div>
-            <table id="projectList" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th scope="col">Title</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                </thead>
-                <tbody *ngFor="let project of this.projects | async">
-                    <tr>
-                        <td style="width: 50%">{{project.name}}</td>
-                        <td style="width: 50%">
-                            <button class="btn btn-outline-primary btn-sm action-btn-grp"
-                                    [disabled]="permissionService.permissionDisabled(project.id, this.permissionService.PPIds.VIEW_PROJECT_GRAPH)"
-                                    (click)="goToGraph(project)">Graph</button>
-                            <button class="btn btn-outline-primary btn-sm action-btn-grp"
-                                    [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.ADD_COPY_RENAME_PROJECTS)"
-                                    (click)="getProjectIdForRename(project)">Rename</button>
-                            <button class="btn btn-outline-primary btn-sm action-btn-grp"
-                                    [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.ADD_COPY_RENAME_PROJECTS)"
-                                    (click)="getProjectIdForCopy(project)">Copy</button>
-                            <button class="btn btn-outline-danger btn-sm action-btn-grp"
-                                    [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.DELETE_PROJECTS)"
-                                    (click)="openDeleteConfirmationModal(project, true)">Delete</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <div id="addProjectContent" class="modal fade" role="dialog"
-         [ngStyle]="{'display': addProjectIsOpen ? 'block' : 'none', 'opacity': 1}">
-        <div  class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" ngDraggable [handle]="addProjectHandle">
-                <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #addProjectHandle>
-                    <h3 class="modal-title">Add New Project</h3>
-                    <button type="button" class="close" aria-label="Close" (click)="openModal('addProjectContent',false)">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form #prj = 'ngForm' (ngSubmit)="createProject(prj.value)">
-                        <div class="form-group">
-                            <h5><label for="projectName" class="form-label text-right" style="margin: 10pt">Project Name</label></h5>
-                            <input id="projectName" name="projectName" #projectName="ngModel" required [class.is-invalid]="projectName.invalid" class="form-control element-text is-invalid"
-                                   placeholder="Project Name / Title ... " autocomplete="off" ngModel>
-
-                            <div id="FOSelect">
-                                <h5><label for="foDDId" class="form-label text-right" style="margin: 10pt">Functional Output Dictionary</label></h5>
-                                <select #elSelectedFODD id="foDDId" name="foDDId" class="form-control" [(ngModel)]="selectedFODD" (change)="getFODDValue()">
-                                    <option *ngFor="let fo of foDataDictionary | async" value="{{fo.id}}">{{fo.name}}</option>
-                                </select>
-                            </div>
-
-                            <div id="AssetSelect">
-                                <h5><label for="assetDDId" class="form-label text-right" style="margin: 10pt">Asset Dictionary</label></h5>
-                                <select #elSelectedAssetDD id="assetDDId" name="assetDDId" class="form-control"
-                                        [(ngModel)]="selectedAssetDD" (change)="getAssetDDValue()">
-                                    <option *ngFor="let asset of assetDataDictionary | async" value="{{asset.id}}">{{asset.name}}</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button id="projectSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary" [disabled]="!prj.valid || !selectedFODD || !selectedAssetDD">Save</button>
-                            <button type="button" data-dismiss="modal" class="btn btn-outline-secondary"
-                                    (click)="openModal('addProjectContent',false)">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="renameProjectContent" class="modal fade" role="dialog" [ngStyle]="{'display': renameProjectIsOpen ? 'block' : 'none', 'opacity': 1}">
-        <div  class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" ngDraggable [handle]="renameProjectHandle">
-                <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #renameProjectHandle>
-                    <h3 class="modal-title">Rename Project</h3>
-                    <button type="button" class="close" aria-label="Close" (click)="openModal('renameProjectContent',false)">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form #renamePrj = 'ngForm' (ngSubmit)="renameProject(renamePrj.value)">
-                        <div class="form-group">
-                            <h5><label for="renameName" class="form-label text-right" style="margin: 10pt">Rename project '{{this.projectToRename == undefined ? '' : this.projectToRename.name}}' to:</label></h5>
-                            <input id="renameName" name="renameName" #renameName="ngModel" required [class.is-invalid]="renameName.invalid || ( projectToRename && renameName.value == projectToRename.name )"
-                                   class="form-control element-text is-invalid" placeholder="Project Name / Title ... " autocomplete="off" ngModel>
-                        </div>
-                        <div class="modal-footer">
-                            <button id="renameProjSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary"
-                                    [disabled]="!renamePrj.valid || ( projectToRename && renameName.value == projectToRename.name )">Save</button>
-                            <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="openModal('renameProjectContent',false)">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="copyProjectContent" class="modal fade" role="dialog" [ngStyle]="{'display': copyProjectIsOpen ? 'block' : 'none', 'opacity': 1}">
-        <div  class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" ngDraggable [handle]="copyProjectHandle">
-                <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #copyProjectHandle>
-                    <h3 class="modal-title">Copy Project</h3>
-                    <button type="button" class="close" aria-label="Cancel" (click)="openModal('copyProjectContent',false)">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form #copyPrj = 'ngForm' (ngSubmit)="copyProject(copyPrj.value)">
-                        <div class="form-group">
-                            <h5><label for="copyName" class="form-label text-right" style="margin: 10pt">Copy project '{{this.projectToCopy == undefined ? '' : this.projectToCopy.name}}' to:</label></h5>
-                            <input id="copyName" name="copyName" #copyName="ngModel" required [class.is-invalid]="copyName.invalid || ( projectToCopy && copyName.value == projectToCopy.name )"
-                                   class="form-control element-text is-invalid" placeholder="Project Name / Title ... " autocomplete="off" ngModel>
-                        </div>
-                        <div class="modal-footer">
-                            <button id="copyProjSubmitBtn" type="submit" data-dismiss="modal" class="btn btn-outline-primary"
-                                    [disabled]="!copyPrj.valid || ( projectToCopy && copyName.value == projectToCopy.name )">Save</button>
-                            <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="openModal('copyProjectContent',false)">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div id="deleteConfirmationModal" class="modal fade" role="dialog" [ngStyle]="{'display': deleteConfirmationModalIsOpen ? 'block' : 'none', 'opacity': 1}">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" ngDraggable [handle]="deleteProjectHandle">
-                <div class="modal-header" #deleteProjectHandle>
-                    <h5 class="modal-title" id="exampleModalLabel">Delete Project</h5>
-                    <button type="button" class="close" aria-label="Cancel" (click)="openDeleteConfirmationModal(undefined, false)">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete the Project '{{this.projectToDelete == undefined ? '' : this.projectToDelete.name}}'?</p>
-                    <p style="color:red">WARNING: this action is irreversible</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-danger" (click)="deleteProject()">Delete</button>
-                    <button type="button" class="btn btn-outline-secondary" (click)="openDeleteConfirmationModal(undefined, false)">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+<div class="dashboard" *ngIf="!permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_PROJECTS_DASHBOARD)">
+    <h5><label for="projectList" class="form-label text-right">Projects</label></h5>
+    <table id="projectList" class="table-striped table-bordered table fixed_header">
+        <thead>
+        <tr>
+            <th scope="col" style="width: 100%">Title</th>
+            <th scope="col" style="display: flex; justify-content: flex-end; padding: 5px; white-space: nowrap;">
+                <app-dashboard-project-button
+                    (hasError)="this.onDialogError($event)"></app-dashboard-project-button>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let project of this.permissionService.projects | async">
+            <td style="width: 100%" [innerHTML]="this.getHtml(project.name)"></td>
+            <td style="display: flex; justify-content: flex-end;">
+                <button class="btn btn-outline-primary btn-sm action-btn-grp"
+                        [disabled]="permissionService.permissionDisabled(project.id, this.permissionService.PPIds.VIEW_PROJECT_GRAPH)"
+                        (click)="goToGraph(project)">Graph</button>
+                <button class="btn btn-outline-primary btn-sm action-btn-grp"
+                        [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.ADD_COPY_RENAME_PROJECTS)"
+                        (click)="openDialog(project, dialogTypes.RENAME_PROJECT_DIALOG)">Rename</button>
+                <button class="btn btn-outline-primary btn-sm action-btn-grp"
+                        [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.ADD_COPY_RENAME_PROJECTS)"
+                        (click)="openDialog(project, dialogTypes.COPY_PROJECT_DIALOG)">Copy</button>
+                <app-project-export-button class="action-btn-grp" [project]="project"></app-project-export-button>
+                <button class="btn btn-outline-danger btn-sm action-btn-grp"
+                        [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.DELETE_PROJECTS)"
+                        (click)="openDialog(project, dialogTypes.DELETE_PROJECT_DIALOG)">Delete</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
 </div>
+<app-rename-project-dialog
+    *ngIf="this.activeDialog === dialogTypes.RENAME_PROJECT_DIALOG && this.activeProject"
+    [project]="this.activeProject"
+    (hasError)="this.onDialogError($event)"
+    (closed)="this.onDialogClosed($event)"></app-rename-project-dialog>
+
+<app-delete-project-dialog
+    *ngIf="this.activeDialog === dialogTypes.DELETE_PROJECT_DIALOG && this.activeProject"
+    [project]="this.activeProject"
+    (hasError)="this.onDialogError($event)"
+    (closed)="this.onDialogClosed($event)"></app-delete-project-dialog>
+
+<app-copy-project-dialog
+    *ngIf="this.activeDialog === dialogTypes.COPY_PROJECT_DIALOG && this.activeProject"
+    [project]="this.activeProject"
+    (hasError)="this.onDialogError($event)"
+    (closed)="this.onDialogClosed($event)"></app-copy-project-dialog>

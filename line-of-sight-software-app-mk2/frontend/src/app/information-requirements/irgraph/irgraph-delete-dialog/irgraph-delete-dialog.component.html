@@ -1,0 +1,21 @@
+
+<!-- Delete Content -->
+
+<div class="modal-header" #deleteHandle>
+    <h5 class="modal-title">{{this.title}}</h5>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <p>{{this.message}}</p>
+    <p style="color:red">WARNING: this action is irreversible</p>
+</div>
+<div class="modal-footer">
+    <ng-container>
+        <button type="submit" data-dismiss="modal" class="btn btn-outline-danger"
+                (click)="ok()">Yes</button>
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary"
+                (click)="closeModal()">No</button>
+    </ng-container>
+</div>

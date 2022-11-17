@@ -38,25 +38,14 @@ import reactor.core.publisher.Mono;
 @Service
 public class FunctionalOutputDataDictionaryApiDelegateImpl implements FunctionalOutputDataDictionaryApiDelegate {
 
+    @Autowired
     private FunctionalOutputDataDictionaryRepository ddRepository;
-    private FunctionalOutputDataDictionaryEntryRepository ddeRepository;
 
+    @Autowired
     private FunctionalOutputDataDictionaryHelper dataDictionaryHelper;
 
     @Autowired
-    public void setProjectHelper(FunctionalOutputDataDictionaryHelper dataDictionaryHelper) {
-        this.dataDictionaryHelper = dataDictionaryHelper;
-    }
-
-    @Autowired
-    public void setDdRepository(FunctionalOutputDataDictionaryRepository ddRepository) {
-        this.ddRepository = ddRepository;
-    }
-
-    @Autowired
-    public void setDdeRepository(FunctionalOutputDataDictionaryEntryRepository ddeRepository) {
-        this.ddeRepository = ddeRepository;
-    }
+    private FunctionalOutputDataDictionaryEntryRepository ddeRepository;
 
     /**
      * Fetch all the functional output data dictionaries.
@@ -80,11 +69,22 @@ public class FunctionalOutputDataDictionaryApiDelegateImpl implements Functional
      */
     @Override
     public Mono<ResponseEntity<Flux<DataDictionaryEntry>>> findAllFunctionalOutputDataDictionaryEntries(
+
         UUID dataDictionaryId, ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(ddeRepository.findByFoDictionaryId(dataDictionaryId))
+        return Mono.fromCallable(() ->
+                Flux.fromIterable(ddeRepository.findByFoDictionaryIdOrderByEntryId(dataDictionaryId))
                 .map(dao -> new DataDictionaryEntry()
-                    .id(dao.getId())
-                    .text(dao.getId() + "-" + dao.getText())))
+                    .entryId(dao.getEntryId())
+                    .text(dao.getEntryId() + "-" + dao.getText())))
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public Mono<ResponseEntity<FunctionalOutputDataDictionary>> importFunctionalOutputDataDictionary(Mono<String> body,
+                                                                               ServerWebExchange exchange) {
+        return body.map(dto -> dataDictionaryHelper.importDictionary(dto))
+            .map(savedDao -> dataDictionaryHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }

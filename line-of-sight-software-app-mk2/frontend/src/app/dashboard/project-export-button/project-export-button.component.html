@@ -1,0 +1,3 @@
+<button (click)="exportProject($event)"
+        [disabled]="permissionService.userPermissionDisabled(this.permissionService.UPIds.EXPORT_PROJECTS)"
+        class="btn btn-outline-primary btn-sm action-btn-grp">Export</button>

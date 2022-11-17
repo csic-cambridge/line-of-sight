@@ -8,4 +8,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface FunctionalOutputRepository extends CrudRepository<FunctionalOutputDAO, UUID> {
     Set<FunctionalOutputDAO> findByProjectId(UUID projectId);
+    FunctionalOutputDAO findByProjectIdAndDataDictionaryEntry_EntryId(UUID projectId, String entryId);
 }
