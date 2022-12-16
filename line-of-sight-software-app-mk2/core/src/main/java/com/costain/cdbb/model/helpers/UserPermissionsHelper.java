@@ -19,6 +19,9 @@ package com.costain.cdbb.model.helpers;
 
 
 
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.core.permissions.PermissionsComparator;
 import com.costain.cdbb.core.permissions.ProjectPermissionId;
 import com.costain.cdbb.core.permissions.ProjectPermissionTypes;
@@ -40,12 +43,15 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * Provides helper functions for managing and manipulating user permissions.
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -63,6 +69,10 @@ public class UserPermissionsHelper {
     @Autowired
     UserHelper userHelper;
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+
     /* need to update authorities whenever a user...
     1) Logs in
     2) Has their permissions/super user status changed
@@ -70,10 +80,20 @@ public class UserPermissionsHelper {
     NOTE: the user whose authorities are being changed may not be the principal for the request!
     */
 
+    /**
+     * Get all user Granted Authorities for user.
+     * @param emailAddress User's email address.
+     * @return Set&lt;GrantedAuthority&gt; User authorities
+     */
     public Set<GrantedAuthority> getAuthoritiesForUserWithEmailAddress(String emailAddress) {
         return getAuthoritiesForUserAndProjectWithEmailAddress(emailAddress, null);
     }
 
+    /**
+     * Get all user and, if project id set, project Granted Authorities for user.
+     * @param emailAddress user's email address
+     * @param projectId - Project id for project authorities, null if project author.
+     */
     public Set<GrantedAuthority> getAuthoritiesForUserAndProjectWithEmailAddress(String emailAddress, UUID projectId) {
 
         Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
@@ -106,6 +126,12 @@ public class UserPermissionsHelper {
         return mappedAuthorities;
     }
 
+    /**
+     * Gets the user permissions dto for a user.
+     * @param principal Required only if userId is "me"
+     * @param userId userId or "me" for logged in user
+     * @return UserPermissions user permissions for user
+     */
     public UserPermissions fromDao(Principal principal, String userId) {
         final List<PermissionType> permissionTypes = new ArrayList<>();
         final List<Integer> grantedPermissionIds = new ArrayList<>();
@@ -140,6 +166,12 @@ public class UserPermissionsHelper {
         return dto;
     }
 
+    /**
+     * Get UserPermissionDAOs from dto.
+     * @param dto the project permissionsdto
+     * @param userId The user id for required permissions
+     * @return List&lt;UserPermissionDAO&gt;
+     */
     public List<UserPermissionDAO> fromDto(UserPermissions dto, UUID userId) {
         List<UserPermissionDAO> permissionDaos = new ArrayList<>();
 
@@ -154,12 +186,25 @@ public class UserPermissionsHelper {
         return permissionDaos;
     }
 
+    /**
+     * Save user permissions for a user.
+     * @param upDaos User permissions daos
+     * @param userId permissions owner user id
+     * @return n/a
+     */
     public Integer savePermissions(List<UserPermissionDAO> upDaos, UUID userId) {
         userPermissionRepository.deleteById_UserId(userId);
         upDaos.forEach(dao -> userPermissionRepository.save(dao));
+        applicationEventPublisher.publishEvent(new NotifyClientEvent(
+            new ClientNotification(EventType.USER_PERMISSION_CHANGED, userId)));
         return 1;
     }
 
+    /**
+     * Get dto for identified user (i.e. not "me").
+     * @param userId User id (not "me"
+     * @return UserPermissions permissions for user
+     */
     public UserPermissions toDto(UUID userId) {
         return fromDao(null, userId.toString());
     }

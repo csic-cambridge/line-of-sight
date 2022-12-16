@@ -22,6 +22,9 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Manages cors.
+ */
 @Configuration
 @ConfigurationProperties(prefix = "spring.web.cors")
 public class CorsConfigurationProperties {

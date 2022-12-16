@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import {Observable} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {Asset} from '../types/asset';
 import {HttpClient} from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {BaseProjectService} from './base/base-project-service';
+import {FunctionalOutput} from '../types/functional-output';
 @Injectable({
     providedIn: 'root'
 })
@@ -11,6 +12,8 @@ export class AssetService {
 
     private serviceUrl;
     private projectService: BaseProjectService;
+    public assets: BehaviorSubject<Asset[]> =
+        new BehaviorSubject<Asset[]>([]);
 
     constructor(
         private http: HttpClient,
@@ -22,6 +25,11 @@ export class AssetService {
 
     getAssets(projectId: string): Observable<Array<Asset>> {
         return this.http.get<Array<Asset>>(this.serviceUrl + '/' + this.projectService.getProjectIdUrlPath(projectId));
+    }
+    loadAssets(projectId: string): void {
+        this.getAssets(projectId).subscribe(x => {
+            this.assets.next(x);
+        });
     }
 
     save(asset: Asset, projectId: string): Observable<Asset> {

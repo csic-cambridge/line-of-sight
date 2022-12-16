@@ -17,7 +17,9 @@
 
 package com.costain.cdbb.model.helpers;
 
-
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.core.permissions.PermissionsComparator;
 import com.costain.cdbb.core.permissions.ProjectPermissionId;
 import com.costain.cdbb.core.permissions.ProjectPermissionTypes;
@@ -34,13 +36,13 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-
-
-
-
+/**
+ * Provides helper functions for managing and manipulating project permissions.
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -58,6 +60,18 @@ public class ProjectPermissionsHelper {
     @Autowired
     UserHelper userHelper;
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+
+
+    /**
+     * Gets the project permissions dto for a user and project combination.
+     * @param principal Required only if userId is "me"
+     * @param userId userId or "me" for logged in user
+     * @param projectId id of project
+     * @return ProjectPermissions dto
+     */
     public ProjectPermissions fromDao(
         Principal principal,
         String userId,
@@ -96,6 +110,13 @@ public class ProjectPermissionsHelper {
         return dto;
     }
 
+    /**
+     * Get UserProjectPermissionDAOs from dto.
+     * @param dto the project permissionsdto
+     * @param userId The user id for required permissions
+     * @param projectId The project id for required permissions
+     * @return List&lt;UserProjectPermissionDAO&gt;
+     */
     public List<UserProjectPermissionDAO> fromDto(ProjectPermissions dto, UUID userId, UUID projectId) {
         List<UserProjectPermissionDAO> permissionDaos = new ArrayList<>();
 
@@ -110,13 +131,30 @@ public class ProjectPermissionsHelper {
         return permissionDaos;
     }
 
-
+    /**
+     * Save project permissions for a user.
+     * @param uppDaos User project permissions daos
+     * @param userId permissions owner user id
+     * @param projectId The project id for the permissions
+     * @return n/a
+     */
     public Integer savePermissions(List<UserProjectPermissionDAO> uppDaos, UUID userId, UUID projectId) {
         userProjectPermissionRepository.deleteById_UserIdAndId_ProjectId(userId, projectId);
-        uppDaos.forEach(dao -> userProjectPermissionRepository.save(dao));
+        uppDaos.forEach(dao -> {
+                userProjectPermissionRepository.save(dao);
+            }
+        );
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_PERMISSION_CHANGED, userId, projectId)));
         return 1;
     }
 
+    /**
+     * Get dto for identified user (i.e. not "me") and project.
+     * @param userId User id (not "me"
+     * @param projectId Project id
+     * @return ProjectPermissions permissions for user/project
+     */
     public ProjectPermissions toDto(UUID userId, UUID projectId) {
         return fromDao(null, userId.toString(), projectId);
     }

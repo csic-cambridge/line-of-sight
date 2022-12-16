@@ -49,6 +49,7 @@ public class OrganisationalObjectiveDAO {
     private UUID id;
 
     @OneToMany(mappedBy="ooDao", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    @org.hibernate.annotations.OrderBy(clause = "oirs ASC")
     private Collection<OirDAO> oirDaos;
 
 

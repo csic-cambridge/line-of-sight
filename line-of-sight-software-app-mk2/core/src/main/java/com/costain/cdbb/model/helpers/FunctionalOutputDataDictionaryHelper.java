@@ -35,7 +35,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
-
+/**
+ * Provides helper functions for managing and manipulating functional output data dictionaries.
+ */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class FunctionalOutputDataDictionaryHelper {
@@ -52,6 +54,11 @@ public class FunctionalOutputDataDictionaryHelper {
     @Autowired
     private CompressionHelper compressionHelper;
 
+    /**
+     * Create a dto from a functional output dao.
+     * @param dao the functional output dictionary dao
+     * @return FunctionalOutputDataDictionary the dto
+     */
     public FunctionalOutputDataDictionary fromDao(FunctionalOutputDataDictionaryDAO dao) {
         FunctionalOutputDataDictionary dto = new FunctionalOutputDataDictionary();
         dto.id(dao.getId());
@@ -59,12 +66,23 @@ public class FunctionalOutputDataDictionaryHelper {
         return dto;
     }
 
+    /**
+     * Create a new functional output data dictionary from a dto.
+     * @param foDataDictionary the dto
+     * @return FunctionalOutputDataDictionaryDAO for newly created functional output dictionary
+     */
     public FunctionalOutputDataDictionaryDAO fromDto(FunctionalOutputDataDictionary foDataDictionary) {
         return fromDto(FunctionalOutputDataDictionaryDAO.builder(), foDataDictionary.getName());
     }
 
-    public FunctionalOutputDataDictionaryDAO fromDto(UUID id, FunctionalOutputDataDictionary foDataDictionary) {
-        return fromDto(FunctionalOutputDataDictionaryDAO.builder().id(id), foDataDictionary.getName());
+    /**
+     * Update a functional output data dictionary from a dto.
+     * @param foDdId the functional output dictionaryt id
+     * @param foDataDictionary the dto
+     * @return FunctionalOutputDataDictionaryDAO for newly created functional output dictionary
+     */
+    public FunctionalOutputDataDictionaryDAO fromDto(UUID foDdId, FunctionalOutputDataDictionary foDataDictionary) {
+        return fromDto(FunctionalOutputDataDictionaryDAO.builder().id(foDdId), foDataDictionary.getName());
     }
 
     private FunctionalOutputDataDictionaryDAO fromDto(
@@ -72,8 +90,13 @@ public class FunctionalOutputDataDictionaryHelper {
         return builder.name(name).build();
     }
 
+    /**
+     * Import  FunctionalOutputDataDictionaryDAO for set of dictionary entries uploaded from client.
+     * @param base64CompressedFoData <p>base64 compressed string.
+     *                        First line is name of dictionary (must be unique) the rest are CSV key value pairs</p>
+     * @return FunctionalOutputDataDictionaryDAO the created dao
+     */
     public FunctionalOutputDataDictionaryDAO importDictionary(String base64CompressedFoData) {
-        // first line is name of dictionary
         List<String> importedRecords = null;
         String errorMsg = null;
         try {

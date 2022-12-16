@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.OrderBy;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
@@ -55,6 +56,7 @@ public class FunctionalOutputDAO {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "firs", joinColumns = @JoinColumn(name = "foId", referencedColumnName = "id"))
+    @OrderBy(clause = "firs ASC")
     private Set<String> firs;
 
     @ManyToMany(fetch = FetchType.LAZY)

@@ -43,4 +43,8 @@ node/
 dependency-check-*/
 
 *.orig
-/log/
+
+log/
+/core/log/
+
+

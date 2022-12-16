@@ -44,14 +44,30 @@
         </div>
         <!-- AIR -->
         <div class="form-group">
-            <h5><label for="new-air-text">Asset Information Requirement <i>(AIR)</i></label></h5>
+            <div class="flex-row">
+                <label for="new-air-text" class="h5 form-label">Asset Information Requirement <i>(AIR)</i></label>
+                <label *ngIf="this.instanceAir.isPopupOpen() && this.airSearchItems.length > 10"
+                       class="form-label float-right text-primary">
+                    10 of {{this.airSearchItems.length}} matches shown, please refine search
+                </label>
+            </div>
             <div class="input-group flexContainer" formName="newAir">
                 <input id="new-air-text" ngbAutofocus
                        class="form-control element-text inputField"
                        formControlName="newAir"
+                       formControlName="newAir"
                        (change)="newAirChange($event)"
                        placeholder="New AIR ... "
+                       [ngbTypeahead]="searchAir"
+                       #instanceAir="ngbTypeahead"
+                       (focus)="focusAir$.next($any($event).target.value)"
+                       (click)="clickAir$.next($any($event).target.value)"
                        autocomplete="off">
+                <div class="invalid-feedback">
+                    <div *ngIf="assetForm.controls.newAir.errors?.['forbiddenName']">
+                        Asset Information Requirement <b>{{assetForm.controls.newAir.value}}</b> already exists.
+                    </div>
+                </div>
             </div>
 
             <h6><label><b>Linked AIR</b>

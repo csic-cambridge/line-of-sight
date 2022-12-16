@@ -16,6 +16,8 @@ import {debounceTime, distinctUntilChanged, filter, map} from 'rxjs/operators';
 import {requiredNameValidator} from '../../../helpers/validation/required-name-validator';
 import {IrgraphDeleteDialogComponent} from '../irgraph-delete-dialog/irgraph-delete-dialog.component';
 import {NgbModal, NgbTypeahead} from '@ng-bootstrap/ng-bootstrap';
+import {forbiddenNameValidator} from '../../../dashboard/copy-project-dialog/copy-project-dialog.component';
+import {FirsService} from '../../../services/firs.service';
 
 @Component({
   selector: 'app-irgraph-fo-dialog',
@@ -26,6 +28,7 @@ export class IrgraphFoDialogComponent implements OnInit {
     constructor(private fb: FormBuilder,
                 private foService: FunctionalOutputService,
                 public permissionService: BasePermissionService,
+                public firsService: FirsService,
                 public toastr: AppToastService,
                 private modalService: NgbModal,
                 public assetDdeService: AssetDataDictionaryEntryService) {
@@ -40,13 +43,18 @@ export class IrgraphFoDialogComponent implements OnInit {
     @Output() hasError = new EventEmitter<any>();
 
     @ViewChild('instance', { static: true }) instance: NgbTypeahead | undefined;
+    @ViewChild('instanceFir', { static: true }) instanceFir: NgbTypeahead | undefined;
     focus$ = new Subject<string>();
     click$ = new Subject<string>();
+    focusFir$ = new Subject<string>();
+    clickFir$ = new Subject<string>();
     searchItems = [] as DataDictionaryEntry[];
+    firSearchItems = [] as string[];
     foAssetOptions: IMultiSelectOption[] = [];
     foForm = new FormGroup({});
     foAssetTexts: IMultiSelectTexts = {defaultTitle: 'Select Assets to link', searchEmptyResult: 'No Assets found ...'};
     mySettings: IMultiSelectSettings = {buttonClasses: 'form-control element-text', enableSearch: true, dynamicTitleMaxItems: 0};
+    newFirs = [] as string[];
     formatter = (result: DataDictionaryEntry) => result.text;
     inputformatter = (x: { text: string }) => x.text;
     search: OperatorFunction<string, readonly DataDictionaryEntry[]> = (text$: Observable<string>) => {
@@ -61,6 +69,24 @@ export class IrgraphFoDialogComponent implements OnInit {
                     const items = this.getNewFunctionalObjectives().filter((v) =>
                         v.text.toLowerCase().indexOf(term.toLowerCase()) > -1);
                     this.searchItems = items;
+                    return items.slice(0, 10);
+                }
+            ),
+        );
+    }
+
+    searchFir: OperatorFunction<string, readonly string[]> = (text$: Observable<string>) => {
+        const debouncedText$ = text$.pipe(
+            debounceTime(200),
+            distinctUntilChanged());
+
+        const clicksWithClosedPopup$ = this.clickFir$.pipe(filter(() => !this.instanceFir?.isPopupOpen()));
+        const inputFocus$ = this.focusFir$;
+        return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe(
+            map((term) => {
+                    const items = this.newFirs.filter((v) =>
+                        v.toLowerCase().indexOf(term.toLowerCase()) > -1);
+                    this.firSearchItems = items;
                     return items.slice(0, 10);
                 }
             ),
@@ -93,6 +119,9 @@ export class IrgraphFoDialogComponent implements OnInit {
     }
 
     buildForm(): void {
+        if (!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_FIRS)) {
+            this.getFirs();
+        }
         this.foForm = new FormGroup({
             firs: this.fb.array([]),
             firNames: this.fb.array([]),
@@ -104,21 +133,21 @@ export class IrgraphFoDialogComponent implements OnInit {
             foName: this.fb.control('', [Validators.required,
                 requiredNameValidator(this.getNewFunctionalObjectives().map(x => x.text))]),
             newFir: this.fb.control({value: '', disabled:
-                    this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_FIRS)}),
+                    this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_FIRS)},
+            [forbiddenNameValidator(this.selectedFO?.firs, false)]),
             id: this.fb.control(''),
             entry_id: this.fb.control(''),
         });
-
         if (this.selectedFO.id !== '') {
             this.foForm.patchValue({
                 foName: {text: this.selectedFO?.data_dictionary_entry?.text},
                 id: this.selectedFO.id
             });
             this.foForm.controls.foName.setValidators([]);
-            this.selectedFO.firs.map(x => this.firs().push(this.fb.control({value: true,
+            this.selectedFO.firs?.map(x => this.firs().push(this.fb.control({value: true,
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_FIRS)})));
-            this.selectedFO.firs.map(x => this.firNames().push(this.fb.control(x)));
-            this.selectedFO.assets.map(x => this.linkedAssets().push(this.fb.control({value: true,
+            this.selectedFO.firs?.map(x => this.firNames().push(this.fb.control(x)));
+            this.selectedFO.assets?.map(x => this.linkedAssets().push(this.fb.control({value: true,
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)})));
         }
         this.assets.filter(x => this.selectedFO?.assets?.includes(x.id))
@@ -140,12 +169,12 @@ export class IrgraphFoDialogComponent implements OnInit {
         modalRef.componentInstance.title = 'Delete Functional Objective';
         modalRef.componentInstance.message = `Are you sure you want to delete ${this.selectedFO?.data_dictionary_entry.text}`;
 
-        modalRef.closed.toPromise().then(x => {
+        modalRef.closed.toPromise().then((x: any) => {
             if (x && this.selectedFO) {
                 this.foService.delete(this.selectedFO.id, this.project.id)
                     .subscribe(
                         () => this.closed.emit({updated: true, dialog: IrGraphDialogs.FO_DIALOG}),
-                        error => this.hasError.emit(error));
+                        (error: any) => this.hasError.emit(error));
             }
         });
     }
@@ -188,7 +217,7 @@ export class IrgraphFoDialogComponent implements OnInit {
                 () => {
                     this.closed.emit({updated: true, dialog: IrGraphDialogs.FO_DIALOG});
                 },
-                error => {
+                (error: any) => {
                     this.hasError.emit(error);
                 }
             );
@@ -249,9 +278,7 @@ export class IrgraphFoDialogComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        if (this.selectedFO) {
-            this.buildForm();
-        }
+        this.buildForm();
     }
 
     allowDelete(): boolean {
@@ -272,6 +299,12 @@ export class IrgraphFoDialogComponent implements OnInit {
     getNewFunctionalObjectives(): DataDictionaryEntry[] {
         return this.foDataDictionary.filter(x =>
             this.fos.filter(a => a.data_dictionary_entry.entry_id === x.entry_id).length === 0);
+    }
+
+    getFirs(): void {
+        this.firsService.get().subscribe(data => {
+            this.newFirs = data.filter(x => this.selectedFO.id === '' ? true : !this.selectedFO.firs.includes(x));
+        });
     }
 
     itemSelected($event: any): void {

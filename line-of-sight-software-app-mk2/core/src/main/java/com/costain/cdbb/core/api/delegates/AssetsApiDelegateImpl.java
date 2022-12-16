@@ -37,18 +37,12 @@ import reactor.core.publisher.Mono;
 @Service
 public class AssetsApiDelegateImpl implements AssetsApiDelegate {
 
+    @Autowired
     private AssetRepository repository;
+
+    @Autowired
     private AssetHelper assetHelper;
 
-    @Autowired
-    public void setRepository(AssetRepository repository) {
-        this.repository = repository;
-    }
-
-    @Autowired
-    public void setAssetHelper(AssetHelper assetHelper) {
-        this.assetHelper = assetHelper;
-    }
 
 
     /**
@@ -105,7 +99,7 @@ public class AssetsApiDelegateImpl implements AssetsApiDelegate {
     @Override
     public Mono<ResponseEntity<Void>> deleteAsset(UUID projectId, UUID assetId, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> repository.deleteById(assetId))
+        return Mono.fromRunnable(() -> assetHelper.deleteAsset(projectId, assetId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }

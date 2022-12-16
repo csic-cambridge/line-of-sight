@@ -19,6 +19,9 @@ package com.costain.cdbb.model.helpers;
 
 
 import com.costain.cdbb.core.CdbbValidationError;
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.DataDictionaryEntry;
 import com.costain.cdbb.model.FunctionalOutput;
@@ -29,6 +32,8 @@ import com.costain.cdbb.model.ProjectDAO;
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVParser;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -39,15 +44,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
-
+/**
+ * Provides helper functions for managing and manipulating functional outputs.
+ */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class FunctionalOutputHelper {
@@ -56,10 +66,13 @@ public class FunctionalOutputHelper {
     ProjectRepository projectRepository;
 
     @Autowired
+    FunctionalOutputRepository foRepository;
+
+    @Autowired
     FunctionalOutputDataDictionaryEntryRepository ddeRepository;
 
     @Autowired
-    FunctionalOutputRepository foRepository;
+    private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -67,6 +80,11 @@ public class FunctionalOutputHelper {
     @Autowired
     private CompressionHelper compressionHelper;
 
+    /**
+     * Create a dto from an asset dao.
+     * @param dao the source data
+     * @return FunctionalOutputWithId the created dto
+     */
     public FunctionalOutputWithId fromDao(FunctionalOutputDAO dao) {
         FunctionalOutputWithId dto = new FunctionalOutputWithId();
         dto.id(dao.getId());
@@ -74,12 +92,25 @@ public class FunctionalOutputHelper {
         dto.dataDictionaryEntry(new DataDictionaryEntry()
             .entryId(dde.getEntryId())
             .text(dde.getEntryId() + "-" + dde.getText()));
-        dto.firs(dao.getFirs() != null ? dao.getFirs().stream().toList() : Collections.emptyList());
+        if (dao.getFirs() != null) {
+            ArrayList<String> sortedFirs = new ArrayList<String>(dao.getFirs());
+            Collections.sort(sortedFirs, String.CASE_INSENSITIVE_ORDER);
+            dto.firs(sortedFirs);
+        } else {
+            dto.firs(Collections.emptyList());
+        }
         dto.assets(dao.getAssets() != null ? dao.getAssets().stream().map(AssetDAO::getId).toList()
             : Collections.emptyList());
         return dto;
     }
 
+    /**
+     * Create an asset dao for an existing asset from an asset dto.
+     * @param projectId the project the asset belongs to
+     * @param foId the id of the functional ouput
+     * @param fo the source functional output data
+     * @return FunctionalOutputDAO the created functional output dao
+     */
     public FunctionalOutputDAO inputFromDto(UUID projectId, UUID foId, FunctionalOutput fo) {
         return fromDto(FunctionalOutputDAO.builder().id(foId),
             projectId,
@@ -88,19 +119,19 @@ public class FunctionalOutputHelper {
             fo.getAssets());
     }
 
+    /**
+     * Create a functional output dao for a new functional output from a functional output dto.
+     * @param functionalOutput the functional output asset data
+     * @param projectId the project the functional output belongs to
+     * @return FunctionalOutputDAO the created functional output dao
+     */
     public FunctionalOutputDAO fromDto(FunctionalOutputWithId functionalOutput, UUID projectId) {
+        notifyClientOfProjectChange(projectId);
         return fromDto(FunctionalOutputDAO.builder(),
             projectId,
             functionalOutput.getDataDictionaryEntry().getEntryId(),
             functionalOutput.getFirs(),
             functionalOutput.getAssets());
-    }
-
-    public FunctionalOutputDAO fromDto(UUID id, FunctionalOutputWithId functionalOutput, UUID projectId) {
-        return fromDto(FunctionalOutputDAO.builder().id(id),
-            projectId,
-            functionalOutput.getDataDictionaryEntry().getEntryId(),
-            functionalOutput.getFirs(), functionalOutput.getAssets());
     }
 
     private FunctionalOutputDAO fromDto(FunctionalOutputDAO.FunctionalOutputDAOBuilder builder,
@@ -109,15 +140,24 @@ public class FunctionalOutputHelper {
         ProjectDAO projectDao = projectRepository.findById(projectId).get();
         FunctionalOutputDataDictionaryEntryDAO optFoDdeDao =
             ddeRepository.findByFoDictionaryIdAndEntryId(projectDao.getFoDataDictionary().getId(), ddeId);
-        return builder
+        FunctionalOutputDAO dao = builder
             .projectId(projectId)
             .dataDictionaryEntry(optFoDdeDao)
             .firs(new HashSet<>(firs))
             .assets(assets.stream().map(id -> AssetDAO.builder().id(id).build()).collect(Collectors.toSet()))
             .build();
+        notifyClientOfProjectChange(projectId);
+        return dao;
     }
 
 
+    /**
+     * Import FIRs uploaded from client.
+     * @param base64CompressedFirsData <p>base64 compressed string.
+     *                        CSV key value pairs of FO Id and FIR text</p>
+     * @param projectId project Functional Outputs/FIRs to be imported into
+     * @return List&lt;FunctionalOutputDAO&gt; the assets imported
+     */
     public List<FunctionalOutputDAO> importFirs(String base64CompressedFirsData, UUID projectId) {
         List<String> importedRecords = null;
         String errorMsg = null;
@@ -166,6 +206,7 @@ public class FunctionalOutputHelper {
                     foDao.getFirs().add(fields[1]);
                     foDaosMap.put(fields[0], foRepository.save(foDao));
                 }
+                notifyClientOfProjectChange(projectId);
                 return 0;
             });
             List<FunctionalOutputDAO> foDaos = new ArrayList<>(foDaosMap.size());
@@ -175,5 +216,41 @@ public class FunctionalOutputHelper {
             return foDaos;
         }
         throw new CdbbValidationError(errorMsg);
+    }
+
+    /**
+     *  Get all FIRs in alphabetical order,  de-duplicated.
+     *  NOTE: see https://docs.spring.io/spring-framework/docs/current/reference/html
+     *  /web-reactive.html#webflux-codecs-jackson why this is necessary to encode here
+     * @return Firs All FIRs sorted alphabetically
+     */
+    public String findAllFirs() throws JsonProcessingException {
+        var ref = new Object() {
+            List<String> firs = new ArrayList<>();
+        };
+        foRepository.findAll().forEach(
+            foDao -> {
+                foDao.getFirs().forEach(fir -> ref.firs.add(fir));
+            });
+        Set<String> set = new TreeSet<String>();
+        set.addAll(ref.firs);
+        ref.firs = new ArrayList<String>(set);
+        Collections.sort(ref.firs, String.CASE_INSENSITIVE_ORDER);
+        return new ObjectMapper().writeValueAsString(ref.firs);
+    }
+
+    /**
+     * Deletes a functional output.
+     * @param functionalOutputId id of functional output to delete
+     */
+    public void deleteFo(UUID projectId, UUID functionalOutputId) {
+        foRepository.deleteById(functionalOutputId);
+        notifyClientOfProjectChange(projectId);
+    }
+
+    private void notifyClientOfProjectChange(UUID projectId) {
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ENTITIES_CHANGED,
+                null, projectId)));
     }
 }

@@ -17,6 +17,9 @@
 
 package com.costain.cdbb.model.helpers;
 
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.DeletedOirDAO;
 import com.costain.cdbb.model.DeletedOirPk;
 import com.costain.cdbb.model.Oir;
@@ -39,9 +42,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+/**
+ * Provides helper functions for managing and manipulating project organisational objectives (POOs).
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -62,32 +69,27 @@ public class ProjectOrganisationalObjectiveHelper {
     @Autowired
     FunctionalRequirementRepository frRepository;
 
-    private void updateOirs(List<UUID> submittedOirIds, ProjectOrganisationalObjectiveDAO pooDao) {
-        // submittedOirIds may include previously deleted ones
-        List<String> ooOirIds = new ArrayList<>();
-        ooOirIds.addAll(pooDao.getOoVersion().getOo().getOirDaos()
-            .stream().map(oirDao -> oirDao.getId().toString()).toList());
-        // remove all existing deletions from database
-        List<OirDAO> doirs = oirRepository.findDeletedOirsForProjectAndOo(pooDao.getProjectId().toString(),
-                    pooDao.getOoVersion().getOo().getId().toString());
-        doirs.forEach(oirDao -> deletedOirRepository.deleteByDeletedOirPk_OirId(oirDao.getId().toString()));
-        // remove submitted oirs from list to get remaining deleted ones
-        submittedOirIds.forEach(
-            oirId -> ooOirIds.remove(oirId.toString())
-        );
-        // remaining oirs have been deleted
-        if (ooOirIds.size() > 0) {
-            ooOirIds.forEach(id -> System.out.print(id + " "));
-            ooOirIds.forEach(oirId -> {
-                DeletedOirDAO delOirDao = DeletedOirDAO.builder()
-                    .deletedOirPk(new DeletedOirPk(oirId, pooDao.getProjectId().toString()))
-                    .build();
-                deletedOirRepository.save(delOirDao);
-            }
-            );
-        }
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+
+    /**
+     * Delete a project organisational objective by its id.
+     * @param projectId The project id the POO belongs to
+     * @param pooId The id of the POO
+     */
+    public void deleteById(UUID projectId, UUID pooId) {
+        pooRepository.deleteById(pooId);
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ENTITIES_CHANGED,
+                null, projectId)));
     }
 
+    /**
+     * Get ProjectOrganisationalObjectiveDAO from POO dto.
+     * @param poo dto
+     * @return ProjectOrganisationalObjectiveDAO poo dao
+     */
     public ProjectOrganisationalObjectiveDAO fromDto(ProjectOrganisationalObjectiveUpdate poo) {
         // if values are null then use existing else update
         Optional<ProjectOrganisationalObjectiveDAO> optDao = pooRepository.findById(poo.getId());
@@ -99,9 +101,17 @@ public class ProjectOrganisationalObjectiveHelper {
             optDao.get().setOoVersion(oovRepository.findById(poo.getOoVersionId()).get());
         }
         updateOirs(poo.getOirIds(), optDao.get());
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ENTITIES_CHANGED,
+                null, optDao.get().getProjectId())));
         return optDao.get();
     }
 
+    /**
+     * Create a dto from an POO dao.
+     * @param dao the source data
+     * @return ProjectOrganisationalObjectiveWithId the created dto
+     */
     public ProjectOrganisationalObjectiveWithId fromDao(ProjectOrganisationalObjectiveDAO dao) {
         // need to get list of ooVersions (current project to latest oo) from db
         List<OoVersionDAO> ooVersionDaos = oovRepository.findNonDiscardedByPoo(dao.getId().toString());
@@ -145,10 +155,41 @@ public class ProjectOrganisationalObjectiveHelper {
             .frs(dao.getFrs() != null ? dao.getFrs().stream().map(fr -> fr.getId()).toList() : Collections.emptyList());
     }
 
+    /**
+     * Find all active POOs fro a project.
+     * @param projectId id of project
+     * @return List&lt;ProjectOrganisationalObjectiveDAO&gt; list of ProjectOrganisationalObjectiveDAOs
+     */
     public List<ProjectOrganisationalObjectiveDAO> findByProjectActive(UUID projectId) {
         // active poo is one with either !isDeleted OR firs count > 0
         return pooRepository.findByProjectIdOrderByOoVersionNameAsc(projectId).stream()
             .filter(dao -> !dao.getOoVersion().getOo().isDeleted()
                     || dao.getFrs() != null && dao.getFrs().size() > 0).toList();
+    }
+
+    private void updateOirs(List<UUID> submittedOirIds, ProjectOrganisationalObjectiveDAO pooDao) {
+        // submittedOirIds may include previously deleted ones
+        List<String> ooOirIds = new ArrayList<>();
+        ooOirIds.addAll(pooDao.getOoVersion().getOo().getOirDaos()
+            .stream().map(oirDao -> oirDao.getId().toString()).toList());
+        // remove all existing deletions from database
+        List<OirDAO> doirs = oirRepository.findDeletedOirsForProjectAndOo(pooDao.getProjectId().toString(),
+            pooDao.getOoVersion().getOo().getId().toString());
+        doirs.forEach(oirDao -> deletedOirRepository.deleteByDeletedOirPk_OirId(oirDao.getId().toString()));
+        // remove submitted oirs from list to get remaining deleted ones
+        submittedOirIds.forEach(
+            oirId -> ooOirIds.remove(oirId.toString())
+        );
+        // remaining oirs have been deleted
+        if (ooOirIds.size() > 0) {
+            ooOirIds.forEach(id -> System.out.print(id + " "));
+            ooOirIds.forEach(oirId -> {
+                    DeletedOirDAO delOirDao = DeletedOirDAO.builder()
+                        .deletedOirPk(new DeletedOirPk(oirId, pooDao.getProjectId().toString()))
+                        .build();
+                    deletedOirRepository.save(delOirDao);
+                }
+            );
+        }
     }
 }

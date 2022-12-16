@@ -15,6 +15,10 @@ logging:
                 hikari: info
 
 spring:
+    mvc:
+        throw-exception-if-no-handler-found=true
+    resources:
+        add-mappings=false
     codec:
         max-in-memory-size: 5MB
     datasource:
@@ -48,7 +52,7 @@ spring:
                         client-secret: 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
                     azure:
                         client-id: 12238474-6457-44c0-8485-ab57ae490c98
-                        client-secret: y4O8Q~UfemE0FnRA2stYoJaYij4l79OTuNTv_bnE
+                        client-secret: Dn08Q~ziVb3D3H3MZ3KNtr7IdPw8jFu.-wpnfdut
                         scope: email, openid, profile
                         redirect-uri: http://localhost:8080/login/oauth2/code/azure
                         authentication-scheme: header
@@ -74,3 +78,7 @@ management:
         - liquibase
         - mappings
 
+server:
+    error:
+        whitelabel:
+            enabled=false:

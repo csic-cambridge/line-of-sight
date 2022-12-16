@@ -20,6 +20,9 @@ package com.costain.cdbb.core.permissions;
 import java.util.AbstractMap;
 import java.util.Map;
 
+/**
+ * Defines project permissions.
+ */
 public class ProjectPermissionTypes {
     public static final ProjectPermissionId PROJECT_PERMISSION_VIEW_PROJECT_ID = new ProjectPermissionId(2010);
     public static final ProjectPermissionId PROJECT_PERMISSION_EDIT_POO_ID = new ProjectPermissionId(2110);

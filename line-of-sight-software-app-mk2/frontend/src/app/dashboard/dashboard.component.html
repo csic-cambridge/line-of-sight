@@ -12,7 +12,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let project of this.permissionService.projects | async">
+        <tr *ngFor="let project of this.projectService.projects | async">
             <td style="width: 100%" [innerHTML]="this.getHtml(project.name)"></td>
             <td style="display: flex; justify-content: flex-end;">
                 <button class="btn btn-outline-primary btn-sm action-btn-grp"
@@ -33,6 +33,7 @@
         </tbody>
     </table>
 </div>
+
 <app-rename-project-dialog
     *ngIf="this.activeDialog === dialogTypes.RENAME_PROJECT_DIALOG && this.activeProject"
     [project]="this.activeProject"

@@ -29,12 +29,19 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 
-
+/**
+ * Data Compression helper functions.
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class CompressionHelper {
-
+    /**
+     * Compress a string.
+     * @param str string to be compressed
+     * @return byte[] the compressed string
+     * @throws IOException io exception in stream
+     */
     public byte[] compress(String str) throws IOException {
         if (str == null || str.length() == 0) {
             return new byte[0];
@@ -46,6 +53,12 @@ public class CompressionHelper {
         return obj.toByteArray();
     }
 
+    /**
+     * Decompresses a compressed string.
+     * @param bytes the compressed data to be decompressed
+     * @return String the decompressed string
+     * @throws IOException io exception in stream
+     */
     @Nullable
     public String decompress(byte[] bytes) throws IOException {
         if (bytes == null || bytes.length == 0) {

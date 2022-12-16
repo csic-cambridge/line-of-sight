@@ -26,6 +26,9 @@ import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * OAuth2 helper functions.
+ */
 @Configuration
 @ConfigurationProperties("spring.security.oauth2.client")
 public class Oauth2Provider {

@@ -21,6 +21,7 @@ export class OOGraphComponent {
                 private modalService: NgbModal,
                 public toastr: AppToastService,
                 public permissionService: BasePermissionService, private cookieService: CookieService) {
+        this.ooService.reload();
     }
 
     openModal(): void {

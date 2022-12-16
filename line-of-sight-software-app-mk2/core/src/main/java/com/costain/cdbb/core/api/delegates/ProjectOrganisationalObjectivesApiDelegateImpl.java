@@ -38,18 +38,11 @@ import reactor.core.publisher.Mono;
 @Service
 public class ProjectOrganisationalObjectivesApiDelegateImpl implements ProjectOrganisationalObjectivesApiDelegate {
 
+    @Autowired
     private ProjectOrganisationalObjectiveRepository repository;
+
+    @Autowired
     private ProjectOrganisationalObjectiveHelper pooHelper;
-
-    @Autowired
-    public void setRepository(ProjectOrganisationalObjectiveRepository repository) {
-        this.repository = repository;
-    }
-
-    @Autowired
-    public void setPooHelper(ProjectOrganisationalObjectiveHelper pooHelper) {
-        this.pooHelper = pooHelper;
-    }
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -104,6 +97,7 @@ public class ProjectOrganisationalObjectivesApiDelegateImpl implements ProjectOr
                                                                            ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
         return Mono.fromRunnable(() -> repository.deleteById(pooId))
+
             .map(x -> re)
             .defaultIfEmpty(re);
     }

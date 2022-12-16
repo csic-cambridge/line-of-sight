@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
@@ -37,6 +38,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @EntityScan("com.costain.cdbb.model")
 @EnableJpaRepositories("com.costain.cdbb.repositories")
 @EnableWebFluxSecurity
+@EnableAsync
 public class CdbbApplication {
 
     public static void main(String[] args) {

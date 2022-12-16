@@ -69,7 +69,6 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
-
     /**
      * Add a project.
      * @param projectWithImportProjectIds the project to be created
@@ -117,7 +116,8 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
     @Override
     public Mono<ResponseEntity<Void>> deleteProject(UUID projectId, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> repository.deleteById(projectId))
+
+        return Mono.fromRunnable(() -> projectHelper.deleteProjectById(projectId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }
@@ -142,6 +142,11 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
         .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Import a project.
+     * @param body json created from a previous export of the project
+     * @return Mono&lt;ResponseEntity&lt;ProjectWithId&gt;&gt; the imported project
+     */
     @Override
     public Mono<ResponseEntity<ProjectWithId>> importProject(Mono<String> body,
                                                              ServerWebExchange exchange) {
@@ -153,27 +158,45 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Export a project.
+     * @param projectId the project id of the project to be exported
+     * @return Mono&lt;ResponseEntity&lt;String&gt;&gt; the exported project in JSON format
+     */
     @Override
-    public Mono<ResponseEntity<String>> exportProject(UUID projectid,
+    public Mono<ResponseEntity<String>> exportProject(UUID projectId,
                                                       ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> projectImportExportHelper.exportProject(projectid))
+        return Mono.fromCallable(() -> projectImportExportHelper.exportProject(projectId))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Fetch all projects which use the given functional output data dictionary.
+     * @param foddid the id of the functional output data dictionary
+     * @return <p>Mono&lt;ResponseEntity&lt;Flux&lt;ProjectWithId&gt;&gt;&gt;
+     * projects</p>
+     */
     @Override
     public Mono<ResponseEntity<Flux<ProjectWithId>>> findProjectsUsingFoDataDictionary(UUID foddid,
-                                                                                          ServerWebExchange exchange) {
+                                                                                       ServerWebExchange exchange) {
         return Mono.fromCallable(() -> Flux.fromIterable(repository.findByFoDataDictionaryIdOrderByNameAsc(foddid))
                 .map(dao -> projectHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Fetch all projects which use the given asset data dictionary.
+     * @param assetddid the id of the aset data dictionary
+     * @return <p>Mono&lt;ResponseEntity&lt;Flux&lt;ProjectWithId&gt;&gt;&gt;
+     * projects</p>
+     */
     @Override
-    public Mono<ResponseEntity<Flux<ProjectWithId>>> findProjectsUsingAssetDataDictionary(UUID assetdid,
+    public Mono<ResponseEntity<Flux<ProjectWithId>>> findProjectsUsingAssetDataDictionary(UUID assetddid,
                                                                                           ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(repository.findByAssetDataDictionaryIdOrderByNameAsc(assetdid))
+        return Mono.fromCallable(() ->
+                Flux.fromIterable(repository.findByAssetDataDictionaryIdOrderByNameAsc(assetddid))
                 .map(dao -> projectHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());

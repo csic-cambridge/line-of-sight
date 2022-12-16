@@ -36,18 +36,11 @@ import reactor.core.publisher.Mono;
 @Service
 public class FunctionalRequirementsApiDelegateImpl implements FunctionalRequirementsApiDelegate {
 
+    @Autowired
     private FunctionalRequirementRepository repository;
+
+    @Autowired
     private FunctionalRequirementHelper frHelper;
-
-    @Autowired
-    public void setRepository(FunctionalRequirementRepository repository) {
-        this.repository = repository;
-    }
-
-    @Autowired
-    public void setFrHelper(FunctionalRequirementHelper frHelper) {
-        this.frHelper = frHelper;
-    }
 
     /**
      * Fetch all the functional requirements for a project.
@@ -73,8 +66,6 @@ public class FunctionalRequirementsApiDelegateImpl implements FunctionalRequirem
     @Override
     public Mono<ResponseEntity<FunctionalRequirementWithId>> addFunctionalRequirement(
         UUID projectId, Mono<FunctionalRequirement> functionalRequirement, ServerWebExchange exchange) {
-        System.out.println("addFunctionalRequirement: projectId=" + projectId + ", functionalRequirement "
-            + functionalRequirement.toString());
         return functionalRequirement.map(dto -> frHelper.fromDto(projectId, dto))
             .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
             .map(savedDao -> frHelper.fromDao(savedDao))
@@ -110,7 +101,7 @@ public class FunctionalRequirementsApiDelegateImpl implements FunctionalRequirem
     public Mono<ResponseEntity<Void>> deleteFunctionalRequirement(
         UUID projectId, UUID functionalRequirementId, ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> repository.deleteById(functionalRequirementId))
+        return Mono.fromRunnable(() -> frHelper.deleteFunctionalRequirement(projectId, functionalRequirementId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }

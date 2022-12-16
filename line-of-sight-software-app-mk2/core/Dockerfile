@@ -5,3 +5,4 @@ ARG JAR_FILE
 COPY ${JAR_FILE} /cdbb.jar
 EXPOSE 8080
 CMD java -jar /cdbb.jar --spring.config.location=file:/application.yaml
+

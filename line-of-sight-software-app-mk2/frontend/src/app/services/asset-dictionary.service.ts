@@ -12,7 +12,6 @@ export class AssetDictionaryService extends BaseDictionaryService<AssetDictionar
         super(http, 'asset-data-dictionary');
     }
     getDictionaries(): Observable<AssetDictionary[]> {
-        console.log('getDictionaries');
         this.http.get<AssetDictionary[]>(this.serviceUrl)
             .subscribe(x => this.dictionaries.next(x));
         return this.dictionaries;

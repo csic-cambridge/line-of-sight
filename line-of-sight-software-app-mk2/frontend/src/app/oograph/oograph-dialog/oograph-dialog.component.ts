@@ -32,7 +32,7 @@ export class OographDialogComponent implements OnInit {
     bindForm(): void {
         this.ooForm = new FormGroup({
             name: this.fb.control(this.activeItem.name, [Validators.required,
-                forbiddenNameValidator(this.ooService.getOrganisationalObjectives().value.filter(x => x.id !== this.activeItem.id).map(x => x.name))]),
+                forbiddenNameValidator(this.ooService.getOrganisationalObjectives().value.filter(x => x.id !== this.activeItem.id).map(x => x.name), true)]),
             newOir: this.fb.control(''),
             linkedOOIRNames: this.fb.array([]),
             linkedOOIRs: this.fb.array([]),
@@ -67,8 +67,10 @@ export class OographDialogComponent implements OnInit {
         }
         const updatedOirs: Oir[] = [];
 
-        this.linkedOOIRs().getRawValue().filter(x => x).map((v, i) => {
-            updatedOirs.push({id: this.linkedOOIRIds().controls[i].value, oir: this.linkedOOIRNames().controls[i].value});
+        this.linkedOOIRs().getRawValue().map((v, i) => {
+            if (v) {
+                updatedOirs.push({id: this.linkedOOIRIds().controls[i].value, oir: this.linkedOOIRNames().controls[i].value});
+            }
         });
         if (this.ooForm.value.newOir){
             const newOir = {

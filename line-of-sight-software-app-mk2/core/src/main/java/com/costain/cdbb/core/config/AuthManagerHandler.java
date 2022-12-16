@@ -35,7 +35,9 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 
-
+/**
+ * Manages access permissions to api calls.
+ */
 
 @Component
 public class AuthManagerHandler implements ReactiveAuthorizationManager<AuthorizationContext> {

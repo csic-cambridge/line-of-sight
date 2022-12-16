@@ -18,6 +18,9 @@
 package com.costain.cdbb.model.helpers;
 
 
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.User;
 import com.costain.cdbb.model.UserDAO;
 import com.costain.cdbb.repositories.UserRepository;
@@ -25,10 +28,15 @@ import java.security.Principal;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
+
+/**
+ * Provides helper functions for managing and manipulating users.
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -38,6 +46,15 @@ public class UserHelper {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    /**
+     * Get the user id (as UUID) from passed String userId.
+     * @param principal Required only if userId = "me"
+     * @param userId "me" or actual userId
+     * @return UUID userId
+     */
     @Nullable
     public UUID getUserId(Principal principal, String userId) {
         if (ME.equalsIgnoreCase(userId)) {
@@ -46,6 +63,11 @@ public class UserHelper {
         return UUID.fromString(userId);
     }
 
+    /**
+     * Get user dto from dao.
+     * @param dao The user dao
+     * @return User the user dto
+     */
     public User fromDao(UserDAO dao) {
         User dto = new User();
         dto.userId(dao.getUserId());
@@ -54,6 +76,24 @@ public class UserHelper {
         return dto;
     }
 
+    /**
+     * Save an update to the user.
+     * @param userDao userDAO of the user
+     * @return UserDAO the saved user
+     */
+    public UserDAO save(UserDAO userDao) {
+        UserDAO savedUser = userRepository.save(userDao);
+        applicationEventPublisher.publishEvent(new NotifyClientEvent(
+            new ClientNotification(EventType.USER_PERMISSION_CHANGED, userDao.getUserId())));
+        return savedUser;
+    }
+
+    /**
+     * Get user dao from user id and user dto.
+     * @param id user id
+     * @param user user dto
+     * @return UserDAO the user
+     */
     public UserDAO fromDto(UUID id, User user) {
         return fromDto(UserDAO.builder().userId(id), user.getEmailAddress(), user.getIsSuperUser());
     }
@@ -64,11 +104,22 @@ public class UserHelper {
             .isSuperUser(isSuperUser).build();
     }
 
+    /**
+     * Get updated user dao from user id and user dto.
+     * @param id user id
+     * @param user dto
+     * @return UserDAO user dao
+     */
     public UserDAO updateFromDto(UUID id, User user) {
         UserDAO userDao = userRepository.findById(id).get();
         return fromDto(UserDAO.builder().userId(id), userDao.getEmailAddress(), user.getIsSuperUser());
     }
 
+    /**
+     * Get user id for a given email address.
+     * @param emailAddress of required user
+     * @return UUID id of user with email address
+     */
     @Nullable
     public UUID getUserIdForEmailAddress(String emailAddress) {
         if (emailAddress == null) {
@@ -81,6 +132,11 @@ public class UserHelper {
         return userDao.getUserId();
     }
 
+    /**
+     * Get the email address of the user from the Principal object.
+     * @param principal object
+     * @return String Email address
+     */
     public String getEmailAddress(Object principal) {
         if (principal instanceof OAuth2AuthenticationToken) {
             return ((OAuth2AuthenticationToken) principal).getPrincipal().getAttribute("email");

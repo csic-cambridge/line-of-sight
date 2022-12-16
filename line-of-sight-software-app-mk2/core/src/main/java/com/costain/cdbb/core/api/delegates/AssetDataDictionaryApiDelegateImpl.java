@@ -77,6 +77,12 @@ public class AssetDataDictionaryApiDelegateImpl implements AssetDataDictionaryAp
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Import a new asset data dictionary.
+     * @param body first line is name of dictionary followed by comma separated key value entries
+     * @return <p>Mono&lt;ResponseEntity&lt;AssetDataDictionary&gt;&gt;
+     * asset data dictionary</p>
+     */
     @Override
     public Mono<ResponseEntity<AssetDataDictionary>> importAssetDataDictionary(Mono<String> body,
                                                                                ServerWebExchange exchange) {

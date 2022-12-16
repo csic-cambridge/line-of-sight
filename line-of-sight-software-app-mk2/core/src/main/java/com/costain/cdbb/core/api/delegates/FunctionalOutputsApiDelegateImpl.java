@@ -36,18 +36,11 @@ import reactor.core.publisher.Mono;
 @Service
 public class FunctionalOutputsApiDelegateImpl implements FunctionalOutputsApiDelegate {
 
+    @Autowired
     private FunctionalOutputRepository repository;
+
+    @Autowired
     private FunctionalOutputHelper foHelper;
-
-    @Autowired
-    public void setRepository(FunctionalOutputRepository repository) {
-        this.repository = repository;
-    }
-
-    @Autowired
-    public void setFoHelper(FunctionalOutputHelper foHelper) {
-        this.foHelper = foHelper;
-    }
 
     /**
      * Fetch all the functional outputs for a project.
@@ -108,7 +101,7 @@ public class FunctionalOutputsApiDelegateImpl implements FunctionalOutputsApiDel
     public Mono<ResponseEntity<Void>> deleteFunctionalOutput(UUID projectId, UUID functionalOutputId,
                                                              ServerWebExchange exchange) {
         ResponseEntity<Void> re = ResponseEntity.noContent().build();
-        return Mono.fromRunnable(() -> repository.deleteById(functionalOutputId))
+        return Mono.fromRunnable(() -> foHelper.deleteFo(projectId, functionalOutputId))
             .map(x -> re)
             .defaultIfEmpty(re);
     }

@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.OrderBy;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
@@ -50,6 +51,7 @@ public class AssetDAO {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "airs", joinColumns = @JoinColumn(name = "assetId", referencedColumnName = "id"))
+    @OrderBy(clause = "airs ASC")
     private Set<String> airs;
 
     @Override

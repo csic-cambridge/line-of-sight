@@ -33,6 +33,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
 
+/**
+ * Handles all Runtime exceptions.
+ */
 @RestControllerAdvice
 public class GlobalRestExceptionHandler {
 
@@ -56,12 +59,6 @@ public class GlobalRestExceptionHandler {
         }
 
         public String toString() {
-            /*return "Error {"
-                + "item="
-                + item
-                + ", error='" + error + '\''
-                + ", forUi=" + forUi
-                + '}';*/
             try {
                 return new ObjectMapper().writeValueAsString(this);
             } catch (JsonProcessingException e) {

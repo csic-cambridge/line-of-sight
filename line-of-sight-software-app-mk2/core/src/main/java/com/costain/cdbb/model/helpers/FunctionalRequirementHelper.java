@@ -17,22 +17,47 @@
 
 package com.costain.cdbb.model.helpers;
 
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalRequirement;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
 import com.costain.cdbb.model.FunctionalRequirementWithId;
+import com.costain.cdbb.repositories.FunctionalRequirementRepository;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+/**
+ * Provides helper functions for managing and manipulating Functional Requirements.
+ */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class FunctionalRequirementHelper {
 
+    @Autowired
+    private FunctionalRequirementRepository repository;
+
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    public void deleteById(UUID projectId, UUID id) {
+        repository.deleteById(id);
+        notifyClientOfProjectChange(projectId);
+    }
+
+    /**
+     * Create dto from FunctionalRequirementDAO.
+     * @param dao the functional requirements  dao
+     * @return FunctionalRequirementWithId the dto
+     */
     public FunctionalRequirementWithId fromDao(FunctionalRequirementDAO dao) {
         FunctionalRequirementWithId dto = new FunctionalRequirementWithId();
         dto.id(dao.getId());
@@ -44,6 +69,12 @@ public class FunctionalRequirementHelper {
         return dto;
     }
 
+    /**
+     * Create functionalRequirement from dto.
+     * @param projectId the project id of the functional requirement
+     * @param functionalRequirement the dto
+     * @return FunctionalRequirementDAO the functional requirement dto
+     */
     public FunctionalRequirementDAO fromDto(UUID projectId, FunctionalRequirement functionalRequirement) {
         return fromDto(FunctionalRequirementDAO.builder(),
             projectId,
@@ -51,8 +82,15 @@ public class FunctionalRequirementHelper {
             functionalRequirement.getFos());
     }
 
-    public FunctionalRequirementDAO fromDto(UUID projectId, UUID id, FunctionalRequirement functionalRequirement) {
-        return fromDto(FunctionalRequirementDAO.builder().id(id),
+    /**
+     * Update Functional Requirement from dto.
+     * @param projectId the project id of the functional requirement
+     * @param frId the functional requirement id
+     * @param functionalRequirement the dto
+     * @return FunctionalRequirementDAO the functional requirement dto
+     */
+    public FunctionalRequirementDAO fromDto(UUID projectId, UUID frId, FunctionalRequirement functionalRequirement) {
+        return fromDto(FunctionalRequirementDAO.builder().id(frId),
             projectId,
             functionalRequirement.getName(),
             functionalRequirement.getFos());
@@ -60,10 +98,28 @@ public class FunctionalRequirementHelper {
 
     private FunctionalRequirementDAO fromDto(FunctionalRequirementDAO.FunctionalRequirementDAOBuilder builder,
             UUID projectId, String name, Collection<UUID> fos) {
-        return builder
+        FunctionalRequirementDAO dao = builder
             .projectId(projectId)
             .name(name)
             .fos(fos.stream().map(id -> FunctionalOutputDAO.builder().id(id).build()).collect(Collectors.toSet()))
             .build();
+        notifyClientOfProjectChange(projectId);
+        return dao;
+    }
+
+    /**
+     * Deletes a functional requirement from a project.
+     * @param projectId project of the functional requirement
+     * @param frId id of functional requirement to delete
+     */
+    public void deleteFunctionalRequirement(UUID projectId, UUID frId) {
+        repository.deleteById(frId);
+        notifyClientOfProjectChange(projectId);
+    }
+
+    private void notifyClientOfProjectChange(UUID projectId) {
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ENTITIES_CHANGED,
+                null, projectId)));
     }
 }

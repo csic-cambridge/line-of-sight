@@ -18,6 +18,9 @@
 package com.costain.cdbb.model.helpers;
 
 import com.costain.cdbb.core.CdbbValidationError;
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.Asset;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
@@ -27,6 +30,8 @@ import com.costain.cdbb.model.ProjectDAO;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVParser;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,9 +42,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -66,6 +74,9 @@ public class AssetHelper {
     private TransactionTemplate transactionTemplate;
 
     @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
     private CompressionHelper compressionHelper;
 
     /**
@@ -73,7 +84,6 @@ public class AssetHelper {
      * @param dao the source data
      * @return AssetWithId the created dto
      */
-
     public AssetWithId fromDao(AssetDAO dao) {
         AssetWithId dto = new AssetWithId();
         dto.id(dao.getId());
@@ -82,21 +92,29 @@ public class AssetHelper {
             .entryId(dde.getEntryId())
             .text(dde.getEntryId() + "-" + dde.getText())
         );
-        dto.airs(dao.getAirs() != null ? dao.getAirs().stream().toList() : Collections.emptyList());
+        if (dao.getAirs() != null) {
+            ArrayList<String> sortedAirs = new ArrayList<String>(dao.getAirs());
+            Collections.sort(sortedAirs, String.CASE_INSENSITIVE_ORDER);
+            dto.airs(sortedAirs);
+        } else {
+            dto.airs(Collections.emptyList());
+        }
         return dto;
     }
 
     /**
-     * Create an asset dao for an existing asset from an asset dto.
-     * @param id the id of the asset
+     * Update an asset dao for an existing asset from an asset dto.
+     * @param assetId the id of the asset
      * @param asset the source asset data
      * @param projectId the project the asset belongs to
      * @return AssetDAO the created asset dao
      */
-    public AssetDAO fromDto(UUID id, Asset asset, UUID projectId) {
-        return fromDto(AssetDAO.builder().id(id), projectId,
+    public AssetDAO fromDto(UUID assetId, Asset asset, UUID projectId) {
+        notifyClientOfProjectChange(projectId);
+        return fromDto(AssetDAO.builder().id(assetId), projectId,
             asset.getDataDictionaryEntry().getEntryId(), asset.getAirs());
     }
+
 
     /**
      * Create an asset dao for a new asset from an asset dto.
@@ -115,13 +133,23 @@ public class AssetHelper {
         ProjectDAO projectDao = projectRepository.findById(projectId).get();
         AssetDataDictionaryEntryDAO assetDdeDao =
             ddeRepository.findByAssetDictionaryIdAndEntryId(projectDao.getAssetDataDictionary().getId(), ddeEntryId);
-        return builder
+
+        AssetDAO dao =  builder
             .projectId(projectId)
             .dataDictionaryEntry(assetDdeDao)
             .airs(airs != null ? new HashSet<>(airs) : Collections.emptySet())
             .build();
+        notifyClientOfProjectChange(projectId);
+        return dao;
     }
 
+    /**
+     * Import AIRs uploaded from client.
+     * @param base64CompressedAirsData <p>base64 compressed string.
+     *                        CSV key value pairs of Asset Id and AIR text</p>
+     * @param projectId project Assets/AIRs to be imported into
+     * @return List&lt;AssetDAO&gt; the assets imported
+     */
     public List<AssetDAO> importAirs(String base64CompressedAirsData, UUID projectId) {
         List<String> importedRecords = null;
         String errorMsg = null;
@@ -170,6 +198,7 @@ public class AssetHelper {
                     assetDao.getAirs().add(fields[1]);
                     assetDaosMap.put(fields[0], assetRepository.save(assetDao));
                 }
+                notifyClientOfProjectChange(projectId);
                 return 0;
             });
             List<AssetDAO> assetDaos = new ArrayList<>(assetDaosMap.size());
@@ -179,5 +208,42 @@ public class AssetHelper {
             return assetDaos;
         }
         throw new CdbbValidationError(errorMsg);
+    }
+
+    /**
+     *  Get all AIRs in alphabetical order, de-duplicated.
+     *  NOTE: see https://docs.spring.io/spring-framework/docs/current/reference/html
+     *  /web-reactive.html#webflux-codecs-jackson why this is necessary to encode here
+     *  @return Airs All AIRs sorted alphabetically
+     */
+    public String findAllAirs() throws JsonProcessingException {
+        var ref = new Object() {
+            List<String> airs = new ArrayList<>();
+        };
+        assetRepository.findAll().forEach(
+            foDao -> {
+                foDao.getAirs().forEach(air -> ref.airs.add(air));
+            });
+        Set<String> set = new TreeSet<String>();
+        set.addAll(ref.airs);
+        ref.airs = new ArrayList<String>(set);
+        Collections.sort(ref.airs, String.CASE_INSENSITIVE_ORDER);
+        return new ObjectMapper().writeValueAsString(ref.airs);
+    }
+
+    /**
+     * Deletes an asset from a project.
+     * @param projectId project id of project asset belongs to
+     * @param assetId id of asset to delete
+     */
+    public void deleteAsset(UUID projectId, UUID assetId) {
+        assetRepository.deleteById(assetId);
+        notifyClientOfProjectChange(projectId);
+    }
+
+    private void notifyClientOfProjectChange(UUID projectId) {
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ENTITIES_CHANGED,
+                null, projectId)));
     }
 }

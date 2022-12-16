@@ -1,17 +1,7 @@
 import { Injectable } from '@angular/core';
-import {Observable, of} from 'rxjs';
-import {HttpHeaders, HttpResponse} from '@angular/common/http';
-import {environment} from '../../../environments/environment';
-import * as pako from 'pako';
 import {BaseIoService} from '../base/base-io-service';
 import {BaseProjectService} from '../base/base-project-service';
 import {Project} from '../../types/project';
-import {AssetDictionaryService} from '../asset-dictionary.service';
-import {BaseDictionaryService} from '../base/base-dictionary-service';
-import {AssetDictionary} from '../../types/asset-dictionary';
-import {FunctionalOutputDictionary} from '../../types/functional-output-dictionary';
-import {GuidHelper} from '../../helpers/guid-helper';
-import {DataDictionaryEntry} from '../../types/data-dictionary-entry';
 import {OfflineAssetDictionaryService} from './offline-asset-dictionary.service';
 import {OfflineFoDictionaryService} from './offline-fo-dictionary.service';
 

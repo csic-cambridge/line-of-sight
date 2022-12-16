@@ -12,7 +12,7 @@ const routes: Routes = [
 {path: 'oograph', component: OOGraphComponent, canActivate: [AuthGuardService]},
 {path: 'superuser', component: SuperuserComponent, canActivate: [AuthGuardService]},
 {path: 'project', loadChildren: () => import('./information-requirements/information-requirements.module')
-.then(m => m.InformationRequirementsModule)},
+.then(m => m.InformationRequirementsModule), canActivate: [AuthGuardService]},
 {path: '', redirectTo: '/dashboard', pathMatch: 'full'},
 { path: '**', component: NotFoundComponent },
 ];

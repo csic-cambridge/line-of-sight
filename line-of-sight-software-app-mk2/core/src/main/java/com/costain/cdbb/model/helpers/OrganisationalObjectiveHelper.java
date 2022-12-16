@@ -17,6 +17,9 @@
 
 package com.costain.cdbb.model.helpers;
 
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.Oir;
 import com.costain.cdbb.model.OirDAO;
 import com.costain.cdbb.model.OoVersionDAO;
@@ -41,12 +44,14 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 
-
+/**
+ * Provides helper functions for managing and manipulating Organisational Objectives.
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -66,11 +71,19 @@ public class OrganisationalObjectiveHelper {
     @Autowired
     ProjectOrganisationalObjectiveRepository pooRepository;
 
-    Mono<String> findMessageByUsername(String username) {
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    /*Mono<String> findMessageByUsername(String username) {
         System.out.println("username = " + username);
         return Mono.just("Hi " + username);
-    }
+    }*/
 
+    /**
+     * Create a dto from an organisational objective dao.
+     * @param dao the source data
+     * @return OrganisationalObjectiveWithId the created dto
+     */
     public OrganisationalObjectiveWithId fromDao(OrganisationalObjectiveDAO dao) {
         OrganisationalObjectiveWithId dto = new OrganisationalObjectiveWithId()
                                                     .id(dao.getId())
@@ -83,22 +96,39 @@ public class OrganisationalObjectiveHelper {
         return dto;
     }
 
-    public void markAsDeleted(UUID id) {
-        Optional<OrganisationalObjectiveDAO> optDao = repository.findById(id);
+    /**
+     * Mark an Organisational Objective as deleted.
+     * @param ooId the id of the organisational objective
+     */
+    public void markAsDeleted(UUID ooId) {
+        Optional<OrganisationalObjectiveDAO> optDao = repository.findById(ooId);
         if (optDao.isPresent()) {
             optDao.get().setIsDeleted(true);
             repository.save(optDao.get());
+            applicationEventPublisher.publishEvent(
+                new NotifyClientEvent(new ClientNotification(EventType.OOS_CHANGED)));
         }
     }
 
+    /**
+     * Create an Organisational Objective DAO from a dto.
+     * @param dto the dto
+     * @return OrganisationalObjectiveDAO the created organisational objective dao
+     */
     public OrganisationalObjectiveDAO fromDto(OrganisationalObjective dto) {
         return fromDto(OrganisationalObjectiveDAO.builder(),
             dto.getName(), null, dto.getOirs(), dto.getIsDeleted());
     }
 
-    public OrganisationalObjectiveDAO fromDto(UUID id, OrganisationalObjective dto) {
-        List<OoVersionDAO> ooVersions = ooVersionRepository.findByOo_Id(id);
-        OrganisationalObjectiveDAO ooDao = fromDto(OrganisationalObjectiveDAO.builder().id(id),
+    /**
+     * Update an organisational objective dao for an existing organisational objective from a dto.
+     * @param ooId The id of the organisational objectived
+     * @param dto the dto
+     * @return OrganisationalObjectiveDAO the updated organisation objective dao
+     */
+    public OrganisationalObjectiveDAO fromDto(UUID ooId, OrganisationalObjective dto) {
+        List<OoVersionDAO> ooVersions = ooVersionRepository.findByOo_Id(ooId);
+        OrganisationalObjectiveDAO ooDao = fromDto(OrganisationalObjectiveDAO.builder().id(ooId),
             null, ooVersions, dto.getOirs(), dto.getIsDeleted());
         if (!dto.getName().equals(ooVersions.get(0).getOo().getName())) {
             // new version required
@@ -108,6 +138,8 @@ public class OrganisationalObjectiveHelper {
                     .oo(ooDao)
                     .dateCreated(new Timestamp(System.currentTimeMillis()))
                     .build()));
+            applicationEventPublisher.publishEvent(
+                new NotifyClientEvent(new ClientNotification(EventType.OOS_CHANGED)));
         }
         return ooDao;
     }
@@ -135,17 +167,27 @@ public class OrganisationalObjectiveHelper {
         return ooDao;
     }
 
+    /**
+     * Create an organisational objective from a dao.
+     * @param dao the organisational objective dao
+     * @return OrganisationalObjectiveDAO the saved dao
+     */
     public OrganisationalObjectiveDAO createOo(OrganisationalObjectiveDAO dao) {
         OrganisationalObjectiveDAO result = repository.save(dao);
         result.setOoVersion(ooVersionRepository.save(
             OoVersionDAO.builder().name(dao.getName()).oo(result).build()));
-        result.getOirDaos().forEach(oirDao -> {
-            oirDao.setOoId(result.getId().toString());
-        });
+        result.getOirDaos().forEach(oirDao -> oirDao.setOoId(result.getId().toString()));
         createPooForAllProjects(result.getOoVersions().get(0));
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.OOS_CHANGED)));
         return result;
     }
 
+    /**
+     * Update an organisational objective from a dao.
+     * @param dao the organisational objective dao
+     * @return OrganisationalObjectiveDAO the saved dao
+     */
     public OrganisationalObjectiveDAO updateOo(@NotNull OrganisationalObjectiveDAO dao) {
         List<String> existingOirIds = new ArrayList<>();
         oirRepository.findByOoId(dao.getId().toString())
@@ -156,6 +198,8 @@ public class OrganisationalObjectiveHelper {
             }
         });
         existingOirIds.forEach(oirId -> oirRepository.deleteById(UUID.fromString(oirId)));
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.OOS_CHANGED)));
         return repository.save(dao);
     }
 
@@ -167,6 +211,10 @@ public class OrganisationalObjectiveHelper {
                 .ooVersion(ooVersion)
                 .frs(new HashSet<>())
                 .build());
+        }
+        if (allProjects.size() > 0) {
+            applicationEventPublisher.publishEvent(
+                new NotifyClientEvent(new ClientNotification(EventType.OOS_CHANGED)));
         }
     }
 }

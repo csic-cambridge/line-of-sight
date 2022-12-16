@@ -18,6 +18,9 @@
 package com.costain.cdbb.model.helpers;
 
 import com.costain.cdbb.core.CdbbValidationError;
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
@@ -60,12 +63,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 
 
-
+/**
+ * Provides helper functions for managing project imports and exports.
+ */
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -147,6 +153,74 @@ public class ProjectImportExportHelper {
     @Autowired
     CompressionHelper compressionHelper;
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
+
+    /**
+     * <p>Import a project from a previously exported project file.  The project name must not exists.
+     * The client may modify the project name before upload to meet user naming requirement.</p>
+     * @param base64CompressedProjectData base64 compressed project import file in json format
+     * @return ProjectDAO the project dao
+     */
+    public ProjectDAO importProjectFile(String base64CompressedProjectData) {
+        String importedData = null;
+        try {
+            importedData = compressionHelper.decompress(Base64.getDecoder().decode(base64CompressedProjectData));
+            try {
+                JSONObject importJsonObject = new JSONObject(importedData);
+                String version = importJsonObject.getString(EXPORT_VERSION_KEY);
+                if (EXPORT_VERSION_1_0_1.equals(version)) { // add any version supported by importVersion1
+                    ProjectDAO importDao = this.importVersion1(importJsonObject);
+                    applicationEventPublisher.publishEvent(
+                        new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ADDED,
+                            null, importDao.getId())));
+                    return importDao;
+                }
+                this.errorMsg = "Unsupported version:" + version;
+            } catch (JSONException e) {
+                this.errorMsg = "file is not valid JSON format: " + e;
+            } catch (Exception e1) {
+                this.errorMsg = "- error found: " + e1;
+            }
+        } catch (IOException e) {
+            this.errorMsg = "failed to decompress";
+        }
+        logger.error("Import project: " + this.errorMsg);
+        throw new CdbbValidationError("Project import file: " + this.errorMsg);
+    }
+
+    /**
+     * Export a project to a json format string suitable for importing to this or another system.
+     * The export will contain the original project name and an 'export version id' to allow for future changes
+     * in project structure or method of export
+     * The export will be in base64 encoded compressed json form
+     * This method will always be for the CURRENT_EXPORT_VERSION only     *
+     * @param sourceProjectId  the project id of the project to be exported
+     * @return String compressed and base-64 encoded JSON formatted, self-contained exported project.
+     */
+    public String exportProject(UUID sourceProjectId)  {
+        // The methodology of hierarchical data extraction is similar to that of copying a project
+        this.sourceProjectDao = projectRepository.findById(sourceProjectId).orElse(null);
+        if (this.sourceProjectDao != null) {
+            try {
+                Map<String, Object> exportMap = new LinkedHashMap<>();
+                exportMap.put(EXPORT_VERSION_KEY, CURRENT_EXPORT_VERSION);
+                exportMap.put(PROJECT_KEY, getProjectMap());
+                exportMap.put(FO_DD_KEY, getFoDdMap());
+                exportMap.put(ASSET_DD_KEY, getAssetDdMap());
+                String payload = new ObjectMapper().writeValueAsString(exportMap);
+                return Base64.getEncoder().encodeToString(
+                    compressionHelper.compress(payload));
+            } catch (IOException e) {
+                errorMsg = "failed to compress data";
+            }
+        } else {
+            errorMsg = "source not found - " + sourceProjectId;
+        }
+        throw new CdbbValidationError("Export project:"  + errorMsg);
+    }
+
+    // Import methods
     private ProjectDAO importVersion1(JSONObject importJsonObject) throws JSONException {
         // this may support multiple versions depending on how different they are to the original V1.0.0
         this.errorMsg = null;
@@ -171,7 +245,8 @@ public class ProjectImportExportHelper {
             this.sourceProjectDao.setProjectOrganisationalObjectiveDaos(
                 this.importPoos(projectJsonObject.getJSONArray(POOS_KEY)));
         } else {
-            // bypass the POOs and import the linked FRs
+            // replace the original POOs with the ones from this organisation and import the linked FRs
+            projectHelper.addAllOrganisationObjctivesToproject(this.sourceProjectDao);
             this.sourceProjectDao.setFunctionRequirementDaos(
                 this.importFrsFromPoos(projectJsonObject.getJSONArray(POOS_KEY)));
         }
@@ -493,56 +568,7 @@ public class ProjectImportExportHelper {
         }
     }
 
-    public ProjectDAO importProjectFile(String base64CompressedProjectData) {
-        String importedData = null;
-        try {
-            importedData = compressionHelper.decompress(Base64.getDecoder().decode(base64CompressedProjectData));
-            try {
-                JSONObject importJsonObject = new JSONObject(importedData);
-                String version = importJsonObject.getString(EXPORT_VERSION_KEY);
-                if (EXPORT_VERSION_1_0_1.equals(version)) { // add any version supported by importVersion1
-                    return this.importVersion1(importJsonObject);
-                }
-                this.errorMsg = "Unsupported version:" + version;
-            } catch (JSONException e) {
-                this.errorMsg = "file is not valid JSON format: " + e;
-            } catch (Exception e1) {
-                this.errorMsg = "- error found: " + e1;
-            }
-        } catch (IOException e) {
-            this.errorMsg = "failed to decompress";
-        }
-        logger.error("Import project: " + this.errorMsg);
-        throw new CdbbValidationError("Project import file: " + this.errorMsg);
-    }
-
-    // EXPORT METHODS
-
-    public String exportProject(UUID sourceProjectId)  {
-        // Export will contain original project name and an 'export version id' to allow for future changes
-        // in a project structure or method of export
-        // The export will be in base64 encoded compressed json form
-        // this code will always be for the CURRENT_EXPORT_VERSION only
-        // The methodology of hierarchical data extraction is similar to that of copying a project
-        this.sourceProjectDao = projectRepository.findById(sourceProjectId).orElse(null);
-        if (this.sourceProjectDao != null) {
-            try {
-                Map<String, Object> exportMap = new LinkedHashMap<>();
-                exportMap.put(EXPORT_VERSION_KEY, CURRENT_EXPORT_VERSION);
-                exportMap.put(PROJECT_KEY, getProjectMap());
-                exportMap.put(FO_DD_KEY, getFoDdMap());
-                exportMap.put(ASSET_DD_KEY, getAssetDdMap());
-                String payload = new ObjectMapper().writeValueAsString(exportMap);
-                return Base64.getEncoder().encodeToString(
-                    compressionHelper.compress(payload));
-            } catch (IOException e) {
-                errorMsg = "failed to compress data";
-            }
-        } else {
-            errorMsg = "source not found - " + sourceProjectId;
-        }
-        throw new CdbbValidationError("Export project:"  + errorMsg);
-    }
+    // Export methods
 
     private Map<String, Object> getProjectMap() {
         Map<String, Object> projectExportMap = new LinkedHashMap<>();

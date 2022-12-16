@@ -33,11 +33,6 @@
 <input #projectFileInput type="file" style="display:none;" (change)="importProject($event);projectFileInput.value=''" />
 <input #fodFileInput type="file" style="display:none;" (change)="importDictionary($event, dictionaryType.FUNCTIONAL_OUTPUT);fodFileInput.value=''" />
 <input #adFileInput type="file" style="display:none;" (change)="importDictionary($event, dictionaryType.ASSET);adFileInput.value=''" />
-<app-add-project-dialog
-    *ngIf="this.activeDialog === dialogTypes.NEW_PROJECT_DIALOG"
-    (hasError)="this.onDialogError($event)"
-    (closed)="onDialogClosed($event)">
-</app-add-project-dialog>
 <app-import-project-dialog
     *ngIf="this.activeDialog === dialogTypes.IMPORT_PROJECT_DIALOG"
     (hasError)="this.onDialogError($event)"

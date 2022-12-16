@@ -1,87 +1,79 @@
 
-<div id="addProjectContent"
-     class="modal fade"
-     role="dialog"
-     style="opacity: 1; display: block">
-    <div  class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" ngDraggable [handle]="addProjectHandle">
-            <div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #addProjectHandle>
-                <h3 class="modal-title">Add New Project</h3>
-                <button type="button" class="close" aria-label="Close" (click)="close()">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+
+<div class="modal-header row d-flex justify-content-between mx-1 mx-sm-3 mb-0 pb-0 border-0" #addProjectHandle>
+    <h3 class="modal-title">Add New Project</h3>
+    <button type="button" class="close" aria-label="Close" (click)="close()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="projectForm" (ngSubmit)="createProject()" id="form">
+        <div class="form-group">
+            <h5><label for="projectname" class="form-label text-right">Project Name</label></h5>
+            <input
+                id="projectname"
+                formControlName="name"
+                class="form-control element-text"
+                placeholder="Project Name / Title ... "
+                autocomplete="off">
+            <div id="projectnameFeedback" class="invalid-feedback">
+                <div *ngIf="projectForm.controls.name.errors?.['required']">
+                    Project Name is required.
+                </div>
+                <div *ngIf="projectForm.controls.name.errors?.['forbiddenName']">
+                    Project Name <b>{{projectForm.controls.name.value}}</b> already exists.
+                </div>
             </div>
-            <div class="modal-body">
-                <form [formGroup]="projectForm" (ngSubmit)="createProject()" id="form">
-                    <div class="form-group">
-                        <h5><label for="projectname" class="form-label text-right">Project Name</label></h5>
-                        <input
-                               id="projectname"
-                               formControlName="name"
-                               class="form-control element-text"
-                               placeholder="Project Name / Title ... "
-                               autocomplete="off">
-                        <div id="projectnameFeedback" class="invalid-feedback">
-                            <div *ngIf="projectForm.controls.name.errors?.['required']">
-                                Project Name is required.
-                            </div>
-                            <div *ngIf="projectForm.controls.name.errors?.['forbiddenName']">
-                                Project Name <b>{{projectForm.controls.name.value}}</b> already exists.
-                            </div>
-                        </div>
-                        <h5><label for="foddid" class="form-label text-right">Functional Output Dictionary</label></h5>
-                        <select formControlName="fo_dd_id"
-                                id="foddid"
-                                class="form-control">
-                            <option value="" disabled selected>Select dictionary</option>
-                            <option *ngFor="let fo of this.fos | async" value="{{fo.id}}">{{fo.name}}</option>
-                        </select>
-                        <div id="foddidFeedback" class="invalid-feedback">
-                            <div *ngIf="projectForm.controls.fo_dd_id.errors?.['required']">
-                                Please select a Functional Output Dictionary.
-                            </div>
-                        </div>
-
-                        <h5><label for="assetddid" class="form-label text-right">Asset Dictionary</label></h5>
-                        <select formControlName="asset_dd_id"
-                                id="assetddid"
-                                class="form-control">
-                            <option value="" disabled selected>Select dictionary</option>
-                            <option *ngFor="let asset of this.assets | async" value="{{asset.id}}">{{asset.name}}</option>
-                        </select>
-                        <div id="assetddidFeedback" class="invalid-feedback">
-                            <div *ngIf="projectForm.controls.asset_dd_id.errors?.['required']">
-                                Please select an Asset Dictionary.
-                            </div>
-                        </div>
-
-                        <h5><label for="firs-project-id" class="form-label text-right">Import Functional Outputs from</label></h5>
-                        <select formControlName="import_firs_project_id"
-                                id="firs-project-id"
-                                class="form-control">
-                            <option value="">No import required</option>
-                            <option *ngFor="let project of this.selectableFirProjects()" value="{{project.id}}">{{project.name}}</option>
-                        </select>
-
-                        <h5><label for="airs-project-id" class="form-label text-right">Import Assets from</label></h5>
-                        <select formControlName="import_airs_project_id"
-                                id="airs-project-id"
-                                class="form-control">
-                            <option value="">No import required</option>
-                            <option *ngFor="let project of this.selectableAirProjects()" value="{{project.id}}">{{project.name}}</option>
-                        </select>
-                    </div>
-                </form>
+            <h5><label for="foddid" class="form-label text-right">Functional Output Dictionary</label></h5>
+            <select formControlName="fo_dd_id"
+                    id="foddid"
+                    class="form-control">
+                <option value="" disabled selected>Select dictionary</option>
+                <option *ngFor="let fo of this.fos | async" value="{{fo.id}}">{{fo.name}}</option>
+            </select>
+            <div id="foddidFeedback" class="invalid-feedback">
+                <div *ngIf="projectForm.controls.fo_dd_id.errors?.['required']">
+                    Please select a Functional Output Dictionary.
+                </div>
             </div>
 
-            <div class="modal-footer">
-                <button type="submit"
-                        class="btn btn-outline-primary" form="form"
-                        [disabled]="this.projectForm.pristine">Save
-                </button>
-                <button type="button" class="btn btn-outline-secondary"
-                        (click)="close()">Cancel</button>
+            <h5><label for="assetddid" class="form-label text-right">Asset Dictionary</label></h5>
+            <select formControlName="asset_dd_id"
+                    id="assetddid"
+                    class="form-control">
+                <option value="" disabled selected>Select dictionary</option>
+                <option *ngFor="let asset of this.assets | async" value="{{asset.id}}">{{asset.name}}</option>
+            </select>
+            <div id="assetddidFeedback" class="invalid-feedback">
+                <div *ngIf="projectForm.controls.asset_dd_id.errors?.['required']">
+                    Please select an Asset Dictionary.
+                </div>
             </div>
+
+            <h5><label for="firs-project-id" class="form-label text-right">Import Functional Outputs from</label></h5>
+            <select formControlName="import_firs_project_id"
+                    id="firs-project-id"
+                    class="form-control">
+                <option value="">No import required</option>
+                <option *ngFor="let project of this.selectableFirProjects()" value="{{project.id}}">{{project.name}}</option>
+            </select>
+
+            <h5><label for="airs-project-id" class="form-label text-right">Import Assets from</label></h5>
+            <select formControlName="import_airs_project_id"
+                    id="airs-project-id"
+                    class="form-control">
+                <option value="">No import required</option>
+                <option *ngFor="let project of this.selectableAirProjects()" value="{{project.id}}">{{project.name}}</option>
+            </select>
         </div>
-    </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button type="submit"
+            class="btn btn-outline-primary" form="form"
+            [disabled]="this.projectForm.pristine">Save
+    </button>
+    <button type="button" class="btn btn-outline-secondary"
+            (click)="close()">Cancel</button>
 </div>

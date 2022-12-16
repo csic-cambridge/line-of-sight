@@ -94,11 +94,17 @@
                             </div>
 
                             <div id="project-permissions" class="form=group">
-                                <div *ngFor="let permission of projectPermissions?.permissions" id="projectPermissionsContent">
-                                    <input class="custom-label-css" *ngIf="selectedProject !== undefined && projectPermissions !== undefined && projectPermissions.permissions.length>0"
-                                           (change)="onProjectPermissionChange(permission.name)" id="projectPermissionSelect" type="checkbox" value="{{permission.is_granted}}" [checked]="permission.is_granted"/>
-                                    <label class="custom-label-css" *ngIf="selectedProject !== undefined && projectPermissions !== undefined && projectPermissions.permissions.length>0"
-                                           for="projectPermissionSelect">{{permission.name}}</label>
+                                <div *ngFor="let permission of projectPermissions?.permissions"
+                                     id="projectPermissionsContent">
+                                    <label class="custom-label-css"
+                                           *ngIf="selectedProject !== undefined && projectPermissions !== undefined && projectPermissions.permissions.length>0">
+                                        <input class="custom-label-css"
+                                               (change)="onProjectPermissionChange(permission.name)"
+                                               type="checkbox"
+                                               value="{{permission.is_granted}}"
+                                               [checked]="permission.is_granted"/>
+                                        {{permission.name}}
+                                    </label>
                                 </div>
                             </div>
                         </div>

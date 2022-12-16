@@ -9,8 +9,8 @@ import {AssetDataDictionaryEntryService} from '../../../services/asset-data-dict
 import {ProjectOrganisationalObjectiveService} from '../../../services/project-organisational-objective.service';
 import {IMultiSelectOption, IMultiSelectSettings, IMultiSelectTexts} from 'ngx-bootstrap-multiselect';
 import {Oir} from '../../../types/organisational-objective';
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
-import {IrgraphDeleteDialogComponent} from "../irgraph-delete-dialog/irgraph-delete-dialog.component";
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {IrgraphDeleteDialogComponent} from '../irgraph-delete-dialog/irgraph-delete-dialog.component';
 
 @Component({
   selector: 'app-irgraph-oo-dialog',

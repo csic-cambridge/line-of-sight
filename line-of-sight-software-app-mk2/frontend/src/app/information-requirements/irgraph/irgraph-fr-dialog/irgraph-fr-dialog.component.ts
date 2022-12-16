@@ -72,7 +72,7 @@ export class IrgraphFrDialogComponent implements OnInit {
             frName: this.fb.control({value: '',
                     disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)},
                 [Validators.required,
-                    forbiddenNameValidator(frsList)]),
+                    forbiddenNameValidator(frsList, true)]),
         });
         this.frFOOptions = this.fos.filter(x => this.selectedFr ? !this.selectedFr?.fos?.includes(x.id) : true)
             .map((fos) => {

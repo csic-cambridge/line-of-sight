@@ -590,6 +590,26 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '404':
                     $ref: '#/components/responses/NotFound'
+    /firs:
+        get:
+            operationId: fetchFirs
+            summary: Gets all FIRs for all projects
+            description: Gets all FIRs for all projects
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
     /firs/import/pid/{projectid}:
         post:
             operationId: importFunctionalInformationRequirements
@@ -629,6 +649,27 @@ paths:
                         schema:
                             type: string
                             format: base64
+    /airs:
+        get:
+            operationId: fetchAirs
+            summary: Gets all AIRs for all projects
+            description: Gets all AIRs for all projects
+            responses:
+                '200':
+                    description: Successful operation
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+
     /airs/import/pid/{projectid}:
         post:
             operationId: importAssetInformationRequirements

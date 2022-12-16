@@ -7,9 +7,9 @@ import {PermissionService} from '../../services/permission.service';
 import {BasePermissionService} from '../../services/base/base-permission-service';
 import {BaseProjectService} from '../../services/base/base-project-service';
 
-export function forbiddenNameValidator(names: string[]): ValidatorFn {
+export function forbiddenNameValidator(names: string[], matchCase: boolean): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
-        const forbidden = names.map(x => x.toUpperCase()).includes(control.value?.toUpperCase());
+        const forbidden = names.map(x => matchCase ? x.toUpperCase() : x).includes(matchCase ? control.value?.toUpperCase() : control.value);
         return forbidden ? {forbiddenName: {value: control.value}} : null;
     };
 }
@@ -34,7 +34,7 @@ export class CopyProjectDialogComponent implements OnInit {
     ngOnInit(): void {
         this.projectForm = new FormGroup({
             name: this.fb.control('', [Validators.required,
-                forbiddenNameValidator(this.permissionService.projects.value.map(x => x.name))])
+                forbiddenNameValidator(this.projectService.projects.value.map(x => x.name), true)])
         });
     }
 

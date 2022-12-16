@@ -14,7 +14,6 @@ export class OfflinePermissionService extends BasePermissionService {
                 private foDictService: OfflineFoDictionaryService,
                 private projectService: BaseProjectService) {
         super();
-        this.Reload();
     }
 
     accountChange(data: UserPermissions): void {
@@ -26,14 +25,5 @@ export class OfflinePermissionService extends BasePermissionService {
 
     userPermissionDisabled(permissionId: string): boolean {
         return false;
-    }
-
-    Reload(): void {
-        this.assetDictService.getDictionaries().subscribe(dict =>
-            this.assetDataDictionary.next(dict));
-        this.foDictService.getDictionaries().subscribe(dict =>
-            this.foDataDictionary.next(dict));
-        this.projectService.getProjects().subscribe(proj =>
-            this.projects.next(proj));
     }
 }

@@ -29,7 +29,7 @@ export class RenameProjectDialogComponent implements OnInit {
     ngOnInit(): void {
         this.projectForm = new FormGroup({
             name: this.fb.control('', [Validators.required,
-                forbiddenNameValidator(this.permissionService.projects.value.map(x => x.name))])
+                forbiddenNameValidator(this.projectService.projects.value.map(x => x.name), true)])
         });
     }
     close(): void {

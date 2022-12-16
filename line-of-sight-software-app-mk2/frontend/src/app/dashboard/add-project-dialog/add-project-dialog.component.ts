@@ -8,9 +8,6 @@ import {DashboardDialog} from '../../types/dashboard-dialog';
 import {forbiddenNameValidator} from '../copy-project-dialog/copy-project-dialog.component';
 import {BasePermissionService} from '../../services/base/base-permission-service';
 import {BaseProjectService} from '../../services/base/base-project-service';
-import {AssetDictionaryService} from '../../services/asset-dictionary.service';
-import {FunctionalOutputDictionaryService} from '../../services/functional-output-dictionary.service';
-import {BaseDictionaryService} from '../../services/base/base-dictionary-service';
 
 @Component({
   selector: 'app-add-project-dialog',
@@ -38,17 +35,17 @@ export class AddProjectDialogComponent implements OnInit {
             fo_dd_id: this.fb.control('', Validators.required),
             asset_dd_id: this.fb.control('', Validators.required),
             name: this.fb.control('', [Validators.required,
-                forbiddenNameValidator(this.permissionService.projects.getValue().map(x => x.name))]),
+                forbiddenNameValidator(this.projectService.projects.getValue().map(x => x.name), true)]),
             import_firs_project_id: this.fb.control(''),
             import_airs_project_id: this.fb.control(''),
         });
     }
 
     selectableFirProjects(): Project[] {
-        return this.permissionService.projects.value.filter(project => project.fo_dd_id === this.projectForm.controls.fo_dd_id.value);
+        return this.projectService.projects.value.filter(project => project.fo_dd_id === this.projectForm.controls.fo_dd_id.value);
     }
     selectableAirProjects(): Project[] {
-        return this.permissionService.projects.value.filter(project => project.asset_dd_id === this.projectForm.controls.asset_dd_id.value);
+        return this.projectService.projects.value.filter(project => project.asset_dd_id === this.projectForm.controls.asset_dd_id.value);
     }
     createProject(): void {
         if (this.projectForm.invalid) {

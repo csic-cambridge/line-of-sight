@@ -10,7 +10,6 @@ import {Observable} from 'rxjs';
 export class FunctionalOutputDictionaryService extends BaseDictionaryService<FunctionalOutputDictionary>{
     constructor(http: HttpClient) {
         super(http, 'functional-output-data-dictionary');
-        this.getDictionaries();
     }
     getDictionaries(): Observable<FunctionalOutputDictionary[]> {
         this.http.get<FunctionalOutputDictionary[]>(this.serviceUrl)

@@ -4,6 +4,10 @@ import {DashboardDialog} from '../../types/dashboard-dialog';
 import {DictionaryType} from '../../types/dictionary-type';
 import {BasePermissionService} from '../../services/base/base-permission-service';
 import {AppToastService} from '../../services/app-toast.service';
+import {IrgraphAssetDialogComponent} from '../../information-requirements/irgraph/irgraph-asset-dialog/irgraph-asset-dialog.component';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {AddProjectDialogComponent} from '../add-project-dialog/add-project-dialog.component';
+import {BaseProjectService} from '../../services/base/base-project-service';
 
 @Component({
   selector: 'app-dashboard-project-button',
@@ -21,6 +25,8 @@ export class DashboardProjectButtonComponent {
 
     constructor(
         public toastr: AppToastService,
+        private modalService: NgbModal,
+        private projectService: BaseProjectService,
         public permissionService: BasePermissionService) {
     }
 
@@ -35,7 +41,17 @@ export class DashboardProjectButtonComponent {
     }
 
     openAddProjectModal(): void {
-        this.activeDialog = DashboardDialog.NEW_PROJECT_DIALOG;
+        const modalRef = this.modalService.open(AddProjectDialogComponent, { scrollable: true, centered: true, size: 'lg' });
+
+        modalRef.componentInstance.closed.subscribe(($event: any) => {
+            modalRef.close();
+            this.projectService.getProjects().subscribe(x => {
+                this.projectService.projects.next(x);
+            });
+        });
+        modalRef.componentInstance.hasError.subscribe(($event: any) => {
+            this.onDialogError($event);
+        });
     }
 
     onDialogClosed($event: DashboardDialogClosedParam): void {
@@ -61,14 +77,15 @@ export class DashboardProjectButtonComponent {
         }
 
         if ($event.updated) {
-            this.permissionService.Reload();
+            this.projectService.getProjects().subscribe(x => {
+                this.projectService.projects.next(x);
+            });
         }
     }
 
     importDictionary($event: Event, $dictionary: DictionaryType): void {
         const target: DataTransfer = $event.target as unknown as DataTransfer;
         const reader: FileReader = new FileReader();
-        console.log(target.files[0]);
         reader.onload = (result: any) => {
             this.importData = result.target.result;
             this.importDictionaryType = $dictionary;

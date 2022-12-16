@@ -31,12 +31,30 @@ import reactor.core.publisher.Mono;
 
 
 
-
+/**
+ *Handles the api calls from a client with root /api/firs.
+ */
 @Service
 public class FirsApiDelegateImpl implements FirsApiDelegate {
+
     @Autowired
     FunctionalOutputHelper foHelper;
 
+    /**
+     * Fetches all firs in the system in alphabetical order.
+     * @return Mono&lt;ResponseEntity&lt;String&gt;&gt; all firs
+     */
+    @Override
+    public Mono<ResponseEntity<String>> fetchFirs(ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> foHelper.findAllFirs())
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Imports functional outputs and firs.
+     * @return Mono&lt;ResponseEntity&lt;Flux&lt;FunctionalOutputWithId&gt;&gt;&gt; imported functional outputs
+     */
     @Override
     public Mono<ResponseEntity<Flux<FunctionalOutputWithId>>>
         importFunctionalInformationRequirements(UUID projectid,

@@ -91,6 +91,8 @@ public class ApiPermissions {
             ProjectPermissionTypes.PROJECT_PERMISSION_EDIT_FO_ID)),
         getEntryForApiCall(FO_ROOT, WITH_ENTITY_ID, HttpMethod.DELETE, ProjectPermissionTypes.getAuthorityNameForId(
             ProjectPermissionTypes.PROJECT_PERMISSION_DELETE_FO_ID)),
+        getEntryForApiCall(FIRS_ROOT, NO_ENTITY_ID, HttpMethod.GET, UserPermissionTypes.getAuthorityNameForId(
+            UserPermissionTypes.USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID)),
         getEntryForApiCall(FIRS_ROOT, WITH_ENTITY_ID, HttpMethod.POST, ProjectPermissionTypes.getAuthorityNameForId(
             ProjectPermissionTypes.PROJECT_PERMISSION_IMPORT_DATA_ID)),
 
@@ -103,8 +105,9 @@ public class ApiPermissions {
         getEntryForApiCall(ASSET_ROOT, WITH_ENTITY_ID, HttpMethod.PUT, ProjectPermissionTypes.getAuthorityNameForId(
             ProjectPermissionTypes.PROJECT_PERMISSION_ADD_ASSET_ID)),
         getEntryForApiCall(ASSET_ROOT, WITH_ENTITY_ID, HttpMethod.DELETE, ProjectPermissionTypes.getAuthorityNameForId(
-
             ProjectPermissionTypes.PROJECT_PERMISSION_DELETE_ASSET_ID)),
+        getEntryForApiCall(AIRS_ROOT, NO_ENTITY_ID, HttpMethod.GET, UserPermissionTypes.getAuthorityNameForId(
+            UserPermissionTypes.USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID)),
         getEntryForApiCall(AIRS_ROOT, WITH_ENTITY_ID, HttpMethod.POST, ProjectPermissionTypes.getAuthorityNameForId(
             ProjectPermissionTypes.PROJECT_PERMISSION_IMPORT_DATA_ID)),
 

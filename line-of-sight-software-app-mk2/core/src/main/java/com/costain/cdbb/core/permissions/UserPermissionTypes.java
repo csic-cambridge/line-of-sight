@@ -20,6 +20,9 @@ package com.costain.cdbb.core.permissions;
 import java.util.AbstractMap;
 import java.util.Map;
 
+/**
+ * Defines User permissions.
+ */
 public class UserPermissionTypes {
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
     public static final String ROLE_USER = "ROLE_USER";

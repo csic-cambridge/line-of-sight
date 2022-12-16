@@ -16,5 +16,6 @@ export abstract class BaseOrganisationalObjectiveService {
     abstract save(organisationalObjective: OrganisationalObjective): Observable<OrganisationalObjective>;
 
     abstract delete(ooId: string): Observable<any>;
+    abstract reload(): void;
 
 }

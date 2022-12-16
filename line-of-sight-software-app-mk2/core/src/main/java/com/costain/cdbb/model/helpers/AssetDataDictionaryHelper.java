@@ -79,20 +79,25 @@ public class AssetDataDictionaryHelper {
 
     /**
      * Create AssetDataDictionaryDAO for an existing asset from an asset dto.
-     * @param id the asset id
+     * @param assetDdId the asset dictionary id
      * @param assetDataDictionary the source data
      * @return AssetDataDictionaryDAO the created dao
      */
-    public AssetDataDictionaryDAO fromDto(UUID id, AssetDataDictionary assetDataDictionary) {
-        return fromDto(AssetDataDictionaryDAO.builder().id(id), assetDataDictionary.getName());
+    public AssetDataDictionaryDAO fromDto(UUID assetDdId, AssetDataDictionary assetDataDictionary) {
+        return fromDto(AssetDataDictionaryDAO.builder().id(assetDdId), assetDataDictionary.getName());
     }
 
     private AssetDataDictionaryDAO fromDto(AssetDataDictionaryDAO.AssetDataDictionaryDAOBuilder builder, String name) {
         return builder.name(name).build();
     }
 
+    /**
+     * Import  AssetDataDictionaryDAO for set of dictionary entries uploaded from client.
+     * @param base64CompressedAssetData <p>base64 compressed string.
+     *                        First line is name of dictionary (must be unique) the rest are CSV key value pairs</p>
+     * @return AssetDataDictionaryDAO the created dao
+     */
     public AssetDataDictionaryDAO importDictionary(String base64CompressedAssetData) {
-        // first line is name of dictionary - must be unique
         List<String> importedRecords = null;
         String errorMsg = null;
         try {

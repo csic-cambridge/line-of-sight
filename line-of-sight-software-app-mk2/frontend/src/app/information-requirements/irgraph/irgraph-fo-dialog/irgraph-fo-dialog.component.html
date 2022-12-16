@@ -22,9 +22,9 @@
                    type="search" ngbAutofocus
                    (selectItem)="itemSelected($event)"
                    [ngbTypeahead]="search"
-                   [readOnly]="this.foForm.value.id !== ''"
                    [resultFormatter]="formatter"
                    [inputFormatter]="inputformatter"
+                   [readOnly]="this.foForm.value.id !== ''"
                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
                    class="form-control element-text"
                    placeholder="Functional Output Name / Title ... "
@@ -43,13 +43,29 @@
         </div>
         <!-- FIRs-->
         <div class="form-group">
-            <h5><label for="firText">Functional Information Requirement <i>(FIR)</i></label></h5>
+            <div class="flex-row">
+                <label for="firText" class="form-label h5">Functional Information Requirement <i>(FIR)</i></label>
+                <label *ngIf="this.instanceFir.isPopupOpen() && this.firSearchItems.length > 10"
+                       class="form-label float-right text-primary">
+                    10 of {{this.firSearchItems.length}} matches shown, please refine search
+                </label>
+            </div>
             <div class="input-group flexContainer">
                 <input id="firText"
+                       type="search"
                        class="form-control element-text inputField"
                        formControlName="newFir"
                        (change)="newFirChange($event)"
+                       [ngbTypeahead]="searchFir"
+                       #instanceFir="ngbTypeahead"
+                       (focus)="focusFir$.next($any($event).target.value)"
+                       (click)="clickFir$.next($any($event).target.value)"
                        placeholder="New FIR ... ">
+                <div class="invalid-feedback">
+                    <div *ngIf="foForm.controls.newFir.errors?.['forbiddenName']">
+                        Functional Information Requirement <b>{{foForm.controls.newFir.value}}</b> already exists.
+                    </div>
+                </div>
             </div>
 
             <h6><label><b>Linked FIR</b>

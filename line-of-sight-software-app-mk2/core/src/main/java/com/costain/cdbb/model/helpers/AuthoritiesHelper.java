@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 
 
 /**
- * Provides helper functions for fetching permissions required for a url and owned by a user.
+ * Provides helper functions for fetching permissions required for a url.
  */
 
 @Component
@@ -54,6 +54,12 @@ public class AuthoritiesHelper {
     @Autowired
     UserProjectPermissionRepository userProjectPermissionRepository;
 
+    /**
+     * Fetch the authorities for a user for a url.
+     * @param emailAddress the email address of the user
+     * @param url the url for which the authorities are required
+     * @return List&lt;String&gt; list of authorities
+     */
     public List<String> getAuthoritiesForUserWithEmailAddress(String emailAddress, String url) {
         // Note: the permissions could be cached to save a db lookup each time
         // This would only work though for single server implementations

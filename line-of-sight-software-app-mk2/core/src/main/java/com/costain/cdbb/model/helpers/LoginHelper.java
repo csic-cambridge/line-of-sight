@@ -22,11 +22,18 @@ import java.util.Locale;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * Login provider helper functions.
+ */
 
 @Component
 public class LoginHelper {
 
+    /**
+     * Get the login provider for the string provider.
+     * @param provider the name of the provider for which a login url is required
+     * @return LoginProvider login provider object for the provider
+     */
     public LoginProvider fromDao(String provider) {
         return new LoginProvider()
             .name(provider)

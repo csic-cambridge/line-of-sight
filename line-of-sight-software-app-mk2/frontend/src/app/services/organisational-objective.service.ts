@@ -16,10 +16,6 @@ export class OrganisationalObjectiveService extends BaseOrganisationalObjectiveS
     constructor(private http: HttpClient) {
         super();
         this.serviceUrl = environment.apiBaseUrl + '/api/organisational-objectives';
-        this.http.get<Array<OrganisationalObjective>>(this.serviceUrl).subscribe(x => {
-            console.log('organisationalObjectives', x);
-           this.organisationalObjectives.next(x);
-        });
     }
 
     save(organisationalObjective: OrganisationalObjective): Observable<OrganisationalObjective> {
@@ -30,6 +26,12 @@ export class OrganisationalObjectiveService extends BaseOrganisationalObjectiveS
 
     delete(ooId: string): Observable<any> {
         return this.http.delete(this.serviceUrl + '/' + ooId);
+    }
+
+    reload(): void {
+        this.http.get<Array<OrganisationalObjective>>(this.serviceUrl).subscribe(x => {
+            this.organisationalObjectives.next(x);
+        });
     }
 
 }

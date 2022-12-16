@@ -18,6 +18,9 @@
 package com.costain.cdbb.model.helpers;
 
 import com.costain.cdbb.core.CdbbValidationError;
+import com.costain.cdbb.core.events.ClientNotification;
+import com.costain.cdbb.core.events.EventType;
+import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.FunctionalOutputDAO;
@@ -49,10 +52,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * Provides helper functions for managing and manipulating projects.
+ */
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class ProjectHelper {
@@ -81,7 +87,14 @@ public class ProjectHelper {
     @Autowired
     FunctionalOutputDataDictionaryRepository foDataDictionaryRepository;
 
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
+    /**
+     * Create a dto from a priject dao.
+     * @param dao the source data
+     * @return ProjectWithId the created dto
+     */
     public ProjectWithId fromDao(ProjectDAO dao) {
         ProjectWithId dto = new ProjectWithId();
         dto.id(dao.getId());
@@ -91,6 +104,57 @@ public class ProjectHelper {
         return dto;
     }
 
+    /**
+     * Adds all organisational objectives as Project Organisational Objectives to a project.
+     * @param projectDao The projectDAO the POOs are to be added to
+     */
+    public void addAllOrganisationObjctivesToproject(ProjectDAO projectDao) {
+        Set<OrganisationalObjectiveDAO> ooDaos =
+            organisationalObjectiveRepository.findByIsDeleted(false);
+        Set<ProjectOrganisationalObjectiveDAO> projectOrganisationalObjectives =
+            ooDaos.stream().map(oodao -> ProjectOrganisationalObjectiveDAO.builder()
+                    .projectId(projectDao.getId())
+                    .ooVersion(oodao.getOoVersions().get(0))
+                    .frs(new HashSet<>())
+                    .build())
+                .collect(Collectors.toSet());
+        projectDao.setProjectOrganisationalObjectiveDaos(projectOrganisationalObjectives);
+    }
+
+    /**
+     * Create a project from a dto.
+     * @param project the dto
+     * @return ProjectDAO the created project dao
+     */
+    public ProjectDAO createProject(Project project) {
+        checkProjectNameIsUnique(null, project.getName());
+        ProjectDAO projectDao = repository.save(ProjectDAO.builder()
+            .name(project.getName())
+            .assetDataDictionary(assetDataDictionaryRepository.findById(project.getAssetDdId()).orElse(null))
+            .foDataDictionary(foDataDictionaryRepository.findById(project.getFoDdId()).orElse(null))
+            .build());
+        addAllOrganisationObjctivesToproject(projectDao);
+        repository.save(projectDao);
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ADDED, null, projectDao.getId())));
+        return projectDao;
+    }
+
+    /**
+     * Delete a project.
+     * @param id the id of the project to be deleted
+     */
+    public void deleteProjectById(UUID id) {
+        repository.deleteById(id);
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_DELETED, null, id)));
+    }
+
+    /**
+     * Create dto from project dao.
+     * @param dao the project dao
+     * @return Project dto
+     */
     public Project projectFromDao(ProjectDAO dao) {
         Project dto = new Project();
         dto.name(dao.getName());
@@ -99,6 +163,13 @@ public class ProjectHelper {
         return dto;
     }
 
+    /**
+     * Create project dao from dto and data dictionaries.
+     * @param project project dto without data dictionaries
+     * @param assetDataDictionaryDao asset data dictionary dao for project
+     * @param functionalOutputDataDictionaryDao functional output data dictionary for project
+     * @return ProjectDAO
+     */
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public ProjectDAO ddsFromDto(Project project,
                                  Optional<AssetDataDictionaryDAO> assetDataDictionaryDao,
@@ -111,6 +182,11 @@ public class ProjectHelper {
             .build();
     }
 
+    /**
+     * Create project dao from dto and data dictionaries.
+     * @param project project dto with data dictionaries
+     * @return ProjectDAO
+     */
     public ProjectDAO ddsFromDto(ProjectWithImportProjectIds project) {
         Optional<AssetDataDictionaryDAO> assetDataDictionaryDao =
             assetDataDictionaryRepository.findById(project.getAssetDdId());
@@ -146,6 +222,8 @@ public class ProjectHelper {
                 saveFos(projectDao, fos, importProjectsTheSame);
             }
         }
+        applicationEventPublisher.publishEvent(
+            new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ADDED, null, projectDao.getId())));
         return projectDao;
     }
 
@@ -164,6 +242,13 @@ public class ProjectHelper {
         return repository.save(dao);
     }
 
+    /**
+     * Rename a project.
+     * @param jsonName json string with key "name" for new name of project
+     * @param projectId id of project to rename
+     * @return ProjectDAO renamed project dao
+     * @throws JSONException exception in parsing json
+     */
     public ProjectDAO renameProject(String jsonName, UUID projectId) throws JSONException {
         final String keyName = "name";
         ProjectDAO project = repository.findById(projectId).orElse(null);
@@ -173,10 +258,17 @@ public class ProjectHelper {
             String newName = jsonObject.getString(keyName);
             checkProjectNameIsUnique(project, newName);
             project.setName(newName);
+            applicationEventPublisher.publishEvent(
+                new NotifyClientEvent(new ClientNotification(EventType.PROJECT_RENAMED, null, project.getId())));
         }
         return project;
     }
 
+    /**
+     * Checks if a project exists with a given name, throws CdbbValidationError if so.
+     * @param projectWithThisName Project, if not null, is not included in matches
+     * @param newName Name to be checked
+     */
     public void checkProjectNameIsUnique(ProjectDAO projectWithThisName, String newName) {
         List<ProjectDAO> matchingProjects = repository.findByName(newName);
         if (matchingProjects == null
@@ -287,6 +379,13 @@ public class ProjectHelper {
         return unlinkedAssets;
     }
 
+    /**
+     * Copy a project to a new project.
+     * @param jsonName Name of new project (key="name")
+     * @param sourceProjectId the project id of the project to be copied
+     * @return ProjectWithId
+     * @throws JSONException exception in parsing json
+     */
     public ProjectWithId copyFromProject(String jsonName, UUID sourceProjectId) throws JSONException {
         // This is tricky as not all entities are linked, but unlinked ones may be linked to lower entities
         // The method will be to get the linked entities and copy them to the database
@@ -317,18 +416,30 @@ public class ProjectHelper {
 
             Set<AssetDAO> unlinkedAssets = findUnlinkedSourceAssets(sourceProject, fos);
             saveAssets(copiedProject, unlinkedAssets);
-
+            applicationEventPublisher.publishEvent(
+                new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ADDED, null, copiedProject.getId())));
             return fromDao(copiedProject);
         }
         throw new CdbbValidationError("Copy project: source not found - " + sourceProjectId);
     }
 
+    /**
+     * Create a new project from a dto.
+     * @param project the dto
+     * @return ProjectDAOthe new dao
+     */
     public ProjectDAO fromDto(Project project) {
         return fromDto(ProjectDAO.builder(), project.getName());
     }
 
-    public ProjectDAO fromDto(UUID id, Project project) {
-        return fromDto(ProjectDAO.builder().id(id), project.getName());
+    /**
+     * Update a project from a dto.
+     * @param projectId the project to be updated
+     * @param project the dto
+     * @return
+     */
+    public ProjectDAO fromDto(UUID projectId, Project project) {
+        return fromDto(ProjectDAO.builder().id(projectId), project.getName());
     }
 
     private ProjectDAO fromDto(ProjectDAO.ProjectDAOBuilder builder, String name) {

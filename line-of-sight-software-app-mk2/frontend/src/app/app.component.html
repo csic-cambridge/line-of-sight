@@ -2,7 +2,7 @@
 
 <div class="app-container">
     <div class="grid-container">
-        <div class="header" [hidden]="this.permissionService.loggedInUser.getValue().user_id === undefined">
+        <div class="header" *ngIf="this.getRouter().url !== '/login'" >
             <ng-template #dangerTpl>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="#fff" width="24" height="24" viewBox="0 0 24 24">
                     <path
@@ -26,7 +26,7 @@
                     <button type="button" class="btn btn-outline-danger action-btn-grp pull-right"
                             (click)="logout()">Logout</button>
                     <button type="button" class="btn btn-outline-info action-btn-grp pull-right" routerLinkActive="active"
-                            [disabled]="!this.permissionService.loggedInUser.value.is_super_user"
+                            [disabled]="!this.meService.User.value.is_super_user"
                             [routerLink]="'/superuser'">Super User</button>
                     <button class="btn btn-outline-info action-btn-grp pull-right"
                             [disabled]="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_OOS)"

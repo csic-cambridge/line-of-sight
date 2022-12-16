@@ -20,6 +20,8 @@ import {debounceTime, distinctUntilChanged, filter, map} from 'rxjs/operators';
 import {requiredNameValidator} from '../../../helpers/validation/required-name-validator';
 import {NgbModal, NgbTypeahead} from '@ng-bootstrap/ng-bootstrap';
 import {IrgraphDeleteDialogComponent} from '../irgraph-delete-dialog/irgraph-delete-dialog.component';
+import {forbiddenNameValidator} from '../../../dashboard/copy-project-dialog/copy-project-dialog.component';
+import {AirsService} from '../../../services/airs.service';
 
 @Component({
   selector: 'app-irgraph-asset-dialog',
@@ -31,22 +33,28 @@ export class IrgraphAssetDialogComponent implements OnInit {
                 private fb: FormBuilder,
                 public toastr: AppToastService,
                 public permissionService: BasePermissionService,
+                public airsService: AirsService,
                 private modalService: NgbModal,
                 private assetDdeService: AssetDataDictionaryEntryService) {
     }
 
     @Input() project!: Project;
     @Input() selectedAsset!: Asset;
-    @Input() fos: FunctionalOutput[] = [];
-    @Input() assets: Asset[] = [];
+    @Input() fos!: FunctionalOutput[];
+    @Input() assets!: Asset[];
     @Output() closed = new EventEmitter<{ updated: boolean, dialog: IrGraphDialogs }>();
     @Output() hasError = new EventEmitter<any>();
     @ViewChild('instance', {static: true}) instance: NgbTypeahead | undefined;
+    @ViewChild('instanceAir', { static: true }) instanceAir: NgbTypeahead | undefined;
     focus$ = new Subject<string>();
     click$ = new Subject<string>();
+    focusAir$ = new Subject<string>();
+    clickAir$ = new Subject<string>();
     searchItems = [] as DataDictionaryEntry[];
+    airSearchItems = [] as string[];
     showDelete = false;
     assetForm = new FormGroup({});
+    newAirs = [] as string[];
     formatter = (result: DataDictionaryEntry) => result.text;
     inputformatter = (x: { text: string }) => x.text;
 
@@ -67,6 +75,23 @@ export class IrgraphAssetDialogComponent implements OnInit {
             ),
         );
     }
+    searchAir: OperatorFunction<string, readonly string[]> = (text$: Observable<string>) => {
+        const debouncedText$ = text$.pipe(
+            debounceTime(200),
+            distinctUntilChanged());
+
+        const clicksWithClosedPopup$ = this.clickAir$.pipe(filter(() => !this.instanceAir?.isPopupOpen()));
+        const inputFocus$ = this.focusAir$;
+        return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe(
+            map((term) => {
+                    const items = this.newAirs.filter((v) =>
+                        v.toLowerCase().indexOf(term.toLowerCase()) > -1);
+                    this.airSearchItems = items;
+                    return items.slice(0, 10);
+                }
+            ),
+        );
+    }
 
     ngOnInit(): void {
         this.buildForm();
@@ -81,7 +106,9 @@ export class IrgraphAssetDialogComponent implements OnInit {
     }
 
     buildForm(): void {
-
+        if (!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_AIRS)) {
+            this.getAirs();
+        }
         this.assetForm = new FormGroup({
             id: this.fb.control(''),
             airs: this.fb.array([]),
@@ -89,7 +116,7 @@ export class IrgraphAssetDialogComponent implements OnInit {
             newAir: this.fb.control({
                 value: '',
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_AIRS)
-            }),
+            }, [forbiddenNameValidator(this.selectedAsset?.airs, false)]),
             entry_Id: this.fb.control(''),
             assetTitle: this.fb.control('', [Validators.required,
                 requiredNameValidator(this.getNewAssets().map(x => x.text))]),
@@ -239,6 +266,11 @@ export class IrgraphAssetDialogComponent implements OnInit {
         };
         this.assetForm.patchValue({
             entry_Id: $event.item.entry_id,
+        });
+    }
+    getAirs(): void {
+        this.airsService.get().subscribe(x => {
+            this.newAirs = x.filter(x => !this.selectedAsset.airs.includes(x));
         });
     }
 }

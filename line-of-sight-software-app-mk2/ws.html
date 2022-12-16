@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Test for Profile notification client
+    </title>
+</head>
+<body>
+<script>
+    document.cookie = 'Access-Control-Allow-Origin= *';
+    var socket = new WebSocket('ws://localhost:8080/ws/cdbb');
+
+    socket.addEventListener('message', function (event) {
+      window.alert('message from CDBB server: ' + event.data);
+    });
+</script>
+</body>
+</html>

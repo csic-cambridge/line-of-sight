@@ -1,16 +1,18 @@
 import { Injectable } from '@angular/core';
-import {Observable} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {FunctionalRequirement} from '../types/functional-requirement';
 import {HttpClient} from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {BaseProjectService} from './base/base-project-service';
+import {ProjectOrganisationalObjective} from '../types/project-organisational-objective';
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class FunctionalRequirementService {
-
+    public functionalRequirements: BehaviorSubject<FunctionalRequirement[]> =
+        new BehaviorSubject<FunctionalRequirement[]>([]);
     private serviceUrl;
 
     constructor(
@@ -22,6 +24,11 @@ export class FunctionalRequirementService {
 
     getFunctionalRequirements(projectId: string): Observable<Array<FunctionalRequirement>> {
         return this.http.get<Array<FunctionalRequirement>>(this.serviceUrl + '/' + this.ps.getProjectIdUrlPath(projectId));
+    }
+    loadFunctionalRequirements(projectId: string): void {
+        this.getFunctionalRequirements(projectId).subscribe(x => {
+            this.functionalRequirements.next(x);
+        });
     }
 
     save(functionalRequirement: FunctionalRequirement, projectId: string): Observable<FunctionalRequirement> {

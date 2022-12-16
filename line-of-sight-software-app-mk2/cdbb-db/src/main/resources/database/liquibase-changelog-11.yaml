@@ -1,0 +1,30 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1669304100:-1
+        author: philiprushby
+        changes:
+            -   sql:
+                    dbms: 'mysql, mariadb'
+                    stripComments: true
+                    splitStatements: true
+                    sql:
+                        ALTER TABLE airs
+                        CHANGE COLUMN `airs` `airs` VARCHAR(255) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL;
+                        ALTER TABLE airs_aud
+                        CHANGE COLUMN `airs` `airs` VARCHAR(255) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NOT NULL;
+                        ALTER TABLE firs
+                        CHANGE COLUMN `firs` `firs` VARCHAR(255) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NULL DEFAULT NULL;
+                        ALTER TABLE firs_aud
+                        CHANGE COLUMN `firs` `firs` VARCHAR(255) CHARACTER SET 'utf8' COLLATE 'utf8_bin' NOT NULL;
+
+    - changeSet:
+        id: 1669801451:-1
+        author: philiprushby
+        changes:
+            -   sql:
+                    dbms: 'mysql, mariadb'
+                    stripComments: true
+                    splitStatements: true
+                    sql:
+                        ALTER TABLE `cdbb`.`project`
+                        CHANGE COLUMN `name` `name` VARCHAR(100) CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci' NULL DEFAULT NULL ;

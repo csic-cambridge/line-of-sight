@@ -505,7 +505,7 @@ public class ProjectRestTest {
 
     @Test
     public void exportImportAnotherOrganisationTest() {
-        // this needs to exercise No POO creation and handle the 3 cases of Data Dictionary matching
+        // this needs to exercise replacement POO creation and handle the 3 cases of Data Dictionary matching
         // i.e. match existing by name, match existing by entries and create new
         // modify json to make import to 'another' organisation and importation of both data dictionaries
         // will also exercise get projects with dd apis
@@ -548,7 +548,7 @@ public class ProjectRestTest {
             } catch (Exception e) {
                 fail(e);
             }
-            projectManager.compareProjects(projectDaos.get(0), importedProject2, 0);
+            projectManager.compareProjects(projectDaos.get(0), importedProject2, null);
             this.checkProjectsWithSpecificDds(
                 TestApiManager.sampleFoDdId, 1,
                 TestApiManager.sampleAssetDdId, 1);
@@ -569,7 +569,7 @@ public class ProjectRestTest {
                 fail(e);
             }
             projectManager.compareProjects(projectDaos.get(0),
-                importedProject3, 0);
+                importedProject3, null);
             this.checkProjectsWithSpecificDds(
                 TestApiManager.sampleFoDdId, 2,
                 TestApiManager.sampleAssetDdId, 2);
@@ -594,7 +594,7 @@ public class ProjectRestTest {
                 fail(e);
             }
             projectManager.compareProjects(projectDaos.get(0),
-                importedProject4, 0, REPLACEMENT_FO_DD_NAME_2, REPLACEMENT_ASSET_DD_NAME_2);
+                importedProject4, null, REPLACEMENT_FO_DD_NAME_2, REPLACEMENT_ASSET_DD_NAME_2);
             this.checkProjectsWithSpecificDds(
                 TestApiManager.sampleFoDdId, 2,
                 TestApiManager.sampleAssetDdId, 2);

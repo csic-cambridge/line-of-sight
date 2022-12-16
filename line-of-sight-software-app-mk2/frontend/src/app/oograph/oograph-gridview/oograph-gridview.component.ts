@@ -2,7 +2,7 @@ import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output} from '@an
 import {OrganisationalObjective} from '../../types/organisational-objective';
 import {BaseOrganisationalObjectiveService} from '../../services/base/base-organisational-objective-service';
 import {BasePermissionService} from '../../services/base/base-permission-service';
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from 'rxjs';
 
 @Component({
   selector: 'app-oograph-gridview',
@@ -10,7 +10,7 @@ import {Observable} from "rxjs";
   styleUrls: ['./oograph-gridview.component.scss']
 })
 export class OographGridviewComponent implements OnInit, AfterViewInit {
-    objectives!: Observable<OrganisationalObjective[]>;
+    objectives!: BehaviorSubject<OrganisationalObjective[]>;
     @Output() opened = new EventEmitter<OrganisationalObjective>();
 
     @Input() updateMasonryLayout!: boolean;

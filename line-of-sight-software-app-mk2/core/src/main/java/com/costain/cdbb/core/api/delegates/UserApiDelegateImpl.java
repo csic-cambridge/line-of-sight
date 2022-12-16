@@ -76,7 +76,7 @@ public class UserApiDelegateImpl implements UserApiDelegate {
             ServerWebExchange exchange) {
         // only used to set super user status
         return user.map(dto -> userHelper.updateFromDto(userId, dto))
-            .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
+            .flatMap(dao -> Mono.fromCallable(() -> userHelper.save(dao)))
             .map(savedDao -> userHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());

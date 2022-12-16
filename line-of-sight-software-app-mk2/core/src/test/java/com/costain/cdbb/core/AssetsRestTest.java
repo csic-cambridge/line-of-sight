@@ -34,11 +34,13 @@ import com.costain.cdbb.repositories.AssetRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -230,6 +232,36 @@ public class AssetsRestTest {
             AssetDAO asset = assetManager.createAsset(projectId, port, "Fir Create", ddEntryDaos.get(0));
             deleteAsset(asset);
         } catch (JSONException e) {
+            fail(e);
+        }
+    }
+
+    @Test
+    public void getAllAirs() {
+        ResponseEntity<String> response = apiManager.doSuccessfulGetApiRequest(
+            "http://localhost:" + port + "/api/airs");
+        // process result
+        String ddResultAsJsonStr = response.getBody();
+        try {
+            JSONArray airs = new JSONArray(ddResultAsJsonStr);
+            // get airs from all assets
+            Set<String> airsFromDb = new TreeSet<String>();
+            Iterable<AssetDAO> assets = assetRepository.findAll();
+            for (AssetDAO asset : assets) {
+                for (String air : asset.getAirs()) {
+                    airsFromDb.add(air);
+                }
+            }
+            List<String> sortedAirsFromDb = new ArrayList<String>(airsFromDb);
+            Collections.sort(sortedAirsFromDb, String.CASE_INSENSITIVE_ORDER);
+            // compare response
+            assertEquals(sortedAirsFromDb.size(), airs.length());
+            int i = 0;
+            for (String fromDb : sortedAirsFromDb) {
+                assertEquals(fromDb, airs.getString(i++));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
             fail(e);
         }
     }

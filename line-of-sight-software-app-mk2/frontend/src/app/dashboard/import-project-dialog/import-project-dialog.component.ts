@@ -5,6 +5,7 @@ import {forbiddenNameValidator} from '../copy-project-dialog/copy-project-dialog
 import {BasePermissionService} from '../../services/base/base-permission-service';
 import {BaseIoService} from '../../services/base/base-io-service';
 import {AppToastService} from '../../services/app-toast.service';
+import {BaseProjectService} from '../../services/base/base-project-service';
 
 @Component({
   selector: 'app-import-project-dialog',
@@ -21,6 +22,7 @@ export class ImportProjectDialogComponent implements OnInit {
     constructor(
         public permissionService: BasePermissionService,
         private fb: FormBuilder,
+        public projectService: BaseProjectService,
         private ioService: BaseIoService) {
     }
 
@@ -35,7 +37,7 @@ export class ImportProjectDialogComponent implements OnInit {
         this.projectForm = new FormGroup({
             id: this.fb.control(''),
             name: this.fb.control(data ? data.project.project_name : '', [Validators.required,
-                forbiddenNameValidator(this.permissionService.projects.value.map(x => x.name))])
+                forbiddenNameValidator(this.projectService.projects.value.map(x => x.name), true)])
         });
         this.projectForm.get('name')?.markAsDirty();
     }

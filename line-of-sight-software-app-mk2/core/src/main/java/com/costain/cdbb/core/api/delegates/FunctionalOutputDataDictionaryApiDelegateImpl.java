@@ -80,6 +80,12 @@ public class FunctionalOutputDataDictionaryApiDelegateImpl implements Functional
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Import a new functional output data dictionary.
+     * @param body first line is name of dictionary followed by comma separated key value entries
+     * @return <p>Mono&lt;ResponseEntity&lt;FunctionalOutputDataDictionary&gt;&gt;
+     * functional output data dictionary</p>
+     */
     @Override
     public Mono<ResponseEntity<FunctionalOutputDataDictionary>> importFunctionalOutputDataDictionary(Mono<String> body,
                                                                                ServerWebExchange exchange) {

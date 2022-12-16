@@ -39,11 +39,13 @@ import com.costain.cdbb.repositories.FunctionalOutputRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -298,15 +300,42 @@ public class FunctionalOutputsRestTest {
         }
     }
 
-
-
-
     @Test
     public void createAndDeleteFunctionalOutput() {
         try {
             FunctionalOutputDAO functionalOutput = foManager.createFunctionalOutput(projectId, port);
             foManager.deleteFunctionalOutput(projectId, port, functionalOutput);
         } catch (JSONException e) {
+            fail(e);
+        }
+    }
+
+    @Test
+    public void getAllFirs() {
+        ResponseEntity<String> response = apiManager.doSuccessfulGetApiRequest(
+            "http://localhost:" + port + "/api/firs");
+        // process result
+        String ddResultAsJsonStr = response.getBody();
+        try {
+            JSONArray firs = new JSONArray(ddResultAsJsonStr);
+            // get firs from all fos
+            Set<String> firsFromDb = new TreeSet<String>();
+            Iterable<FunctionalOutputDAO> fos = functionalOutputRepository.findAll();
+            for (FunctionalOutputDAO fo : fos) {
+                for (String fir : fo.getFirs()) {
+                    firsFromDb.add(fir);
+                }
+            }
+            List<String> sortedFirsFromDb = new ArrayList<String>(firsFromDb);
+            Collections.sort(sortedFirsFromDb, String.CASE_INSENSITIVE_ORDER);
+            // compare response
+            assertEquals(sortedFirsFromDb.size(), firs.length());
+            int i = 0;
+            for (String fromDb : sortedFirsFromDb) {
+                assertEquals(fromDb, firs.getString(i++));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
             fail(e);
         }
     }

@@ -42,6 +42,9 @@ import org.springframework.web.server.session.CookieWebSessionIdResolver;
 import org.springframework.web.server.session.WebSessionIdResolver;
 import reactor.core.publisher.Mono;
 
+/**
+ * Manages access to back-end services.
+ */
 
 @Profile("!no_security")
 @Configuration
@@ -71,25 +74,21 @@ public class SecurityConfig {
                 .pathMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                 // Allow CORS options requests
                 .pathMatchers("/*.map").permitAll()
+                    .pathMatchers("/core/*.html").permitAll() // TEMPORARY ONLY
+                    .pathMatchers("/*.html").permitAll() // TEMPORARY ONLY
                 .pathMatchers("/*.css").permitAll()
                 .pathMatchers("/*.js").permitAll()
                 .pathMatchers("/favicon.*").permitAll()
-                //.pathMatchers("/login").permitAll()
-                .pathMatchers("/logout").permitAll()
+                .pathMatchers(CustomWebFilter.LOGIN_ROUTE).permitAll()
                 .pathMatchers("/api/oauth-providers").permitAll()
                 .pathMatchers("/oauth2/authorization/**").permitAll()
-                .pathMatchers(CustomWebFilter.DASHBOARD_ROUTE).authenticated()
-                .pathMatchers(CustomWebFilter.OOGRAPH_ROUTE).authenticated()
-                .pathMatchers(CustomWebFilter.PROJECT_ROUTE).authenticated()
-                .pathMatchers(CustomWebFilter.SUPERUSER_ROUTE).authenticated()
-                    .pathMatchers("/api/project/import").permitAll() // TEMPORARY FOR ROB
-                    .pathMatchers("/api/project/export/**").permitAll() // TEMPORARY FOR ROB
-                    .pathMatchers("/api/firs/import/**").permitAll() // TEMPORARY FOR ROB
-                    .pathMatchers("/api/airs/import/**").permitAll() // TEMPORARY FOR ROB
-                    .pathMatchers("/api/asset-data-dictionary").permitAll() // TEMPORARY FOR ROB
-                    .pathMatchers("/api/functional-output-data-dictionary").permitAll() // TEMPORARY FOR ROB
-
+                .pathMatchers("/logout").permitAll()
+                .pathMatchers(CustomWebFilter.DASHBOARD_ROUTE).permitAll()
+                .pathMatchers(CustomWebFilter.OOGRAPH_ROUTE).permitAll()
+                .pathMatchers(CustomWebFilter.PROJECT_ROUTE).permitAll()
+                .pathMatchers(CustomWebFilter.SUPERUSER_ROUTE).permitAll()
                 .pathMatchers("/api/**").access(authManagerHandler)
+                .pathMatchers("/cdbb-ws").permitAll()
                 .pathMatchers("/").permitAll()
                 .pathMatchers("/actuator/**").access(authManagerHandler)
             )

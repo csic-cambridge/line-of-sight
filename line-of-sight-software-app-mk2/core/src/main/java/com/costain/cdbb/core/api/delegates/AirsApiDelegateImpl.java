@@ -32,16 +32,34 @@ import reactor.core.publisher.Mono;
 
 
 
+/**
+ *Handles the api calls from a client with root /api/airs.
+ */
 @Service
 public class AirsApiDelegateImpl implements AirsApiDelegate {
     @Autowired
     AssetHelper assetHelper;
 
+    /**
+     * Fetches all firs in the system in alphabetical order.
+     * @return Mono&lt;ResponseEntity&lt;String&gt;&gt; all firs
+     */
+    @Override
+    public Mono<ResponseEntity<String>> fetchAirs(ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> assetHelper.findAllAirs())
+            .map(ResponseEntity::ok)
+            .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Imports assets and airs.
+     * @return Mono&lt;ResponseEntity&lt;Flux&lt;AssetWithId&gt;&gt;&gt; imported assets
+     */
     @Override
     public Mono<ResponseEntity<Flux<AssetWithId>>>
         importAssetInformationRequirements(UUID projectid,
-                                                Mono<String> body,
-                                                ServerWebExchange exchange) {
+                                           Mono<String> body,
+                                           ServerWebExchange exchange) {
         return body.map(dto -> Flux.fromIterable(
                         assetHelper.importAirs(dto, projectid))
             .map(savedDao -> assetHelper.fromDao(savedDao)))

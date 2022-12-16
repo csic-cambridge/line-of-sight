@@ -9,8 +9,8 @@
                 <button type="button" aria-haspopup="true" aria-expanded="false"
                         class="btn btn-outline-primary dropdown-toggle dropbtn">Functional Requirements</button>
                 <div class="dropdown-content">
-                    <button class="dropdown-item"
-                            [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
+                    <button class="dropdown-item" *ngIf="this.project.id"
+                            [disabled]="this.permissionService.permissionDisabled(this.project.id.toString(), this.permissionService.PPIds.EDIT_FRS)"
                             (click)="new(dialogTypes.FR_DIALOG)">Add Functional Requirement</button>
                 </div>
             </div>
@@ -19,10 +19,10 @@
             <div class="dropdown">
                 <button type="button" aria-haspopup="true" aria-expanded="false" class="btn btn-outline-primary dropdown-toggle dropbtn">Functional Outputs</button>
                 <div class="dropdown-content">
-                    <button class="dropdown-item"
+                    <button class="dropdown-item" *ngIf="this.project.id"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
                             (click)="new(dialogTypes.FO_DIALOG)">Add Functional Output</button>
-                    <button class="dropdown-item"
+                    <button class="dropdown-item" *ngIf="this.project.id"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.IMPORT_DATA)"
                             (click)="firfileInput.click();">
                         Import Functional Information Requirements
@@ -36,10 +36,10 @@
             <div class="dropdown">
                 <button type="button" aria-haspopup="true" aria-expanded="false" class="btn btn-outline-primary dropdown-toggle dropbtn">Assets</button>
                 <div class="dropdown-content">
-                    <button class="dropdown-item"
+                    <button class="dropdown-item" *ngIf="this.project.id"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_ASSETS)"
                             (click)="new(dialogTypes.ASSET_DIALOG)">Add Asset</button>
-                    <button class="dropdown-item"
+                    <button class="dropdown-item" *ngIf="this.project.id"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.IMPORT_DATA)"
                             (click)="airsfileInput.click()">
                         Import Asset Information Requirements
@@ -53,8 +53,9 @@
     <hr>
     <div class="row row-cols-4" id="leader-line-container">
         <div class="col">
-            <div class="d-flex flex-column justify-content-around h-100">
-                <div *ngFor="let poo of poos" class="card text-center information-requirement w-50 mx-auto">
+            <div class="d-flex flex-column justify-content-around h-100" *ngIf="poos">
+                <div *ngFor="let poo of poos.value"
+                     class="card text-center information-requirement w-50 mx-auto">
                     <a (click)="editPoo(poo)">
                         <h5 class="card-header" id="{{poo.id}}"
                             (mouseover)="mouseEnterPOO($event)"
@@ -79,8 +80,8 @@
             </div>
         </div>
         <div class="col">
-            <div class="d-flex flex-column justify-content-around h-100">
-                <div *ngFor="let fr of frs" class="card text-center information-requirement w-50 mx-auto"
+            <div class="d-flex flex-column justify-content-around h-100" *ngIf="this.project.id">
+                <div *ngFor="let fr of frs.value" class="card text-center information-requirement w-50 mx-auto"
                      (dragover)="allowLinkToFR($event)"
                      (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS) && linkToFR($event)">
                     <a (click)="editFr(fr)">
@@ -96,8 +97,8 @@
             </div>
         </div>
         <div class="col">
-            <div class="d-flex flex-column justify-content-around h-100">
-                <div *ngFor="let fo of fos" class="card text-center information-requirement w-50 mx-auto"
+            <div class="d-flex flex-column justify-content-around h-100" *ngIf="this.project.id">
+                <div *ngFor="let fo of fos.value" class="card text-center information-requirement w-50 mx-auto"
                      (dragover)="allowLinkToFO($event)"
                      (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS) && linkToFO($event)">
                     <a (click)="editFo(fo)">
@@ -118,7 +119,7 @@
             </div>
         </div>
         <div class="col">
-            <div class="d-flex flex-column justify-content-around">
+            <div class="d-flex flex-column justify-content-around" *ngIf="this.project.id">
                 <div class="card text-center information-requirement w-50 mx-auto" *ngFor="let asset of this.assets | async"
                      (dragover)="allowLinkToAsset($event)"
                      (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS) && linkToAsset($event)">

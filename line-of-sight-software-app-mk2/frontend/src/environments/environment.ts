@@ -5,7 +5,8 @@
 export const environment = {
     production: false,
     apiBaseUrl: 'http://localhost:8080',
-    offline: false
+    offline: false,
+    wsEndpoint: 'ws://localhost:8080/cdbb-ws'
 };
 
 /*

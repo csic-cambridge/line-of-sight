@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Inject} from '@angular/core';
+import {AfterViewInit, Component, Inject, OnInit} from '@angular/core';
 import {Asset} from '../../types/asset';
 import {ProjectOrganisationalObjective} from '../../types/project-organisational-objective';
 import {FunctionalRequirement} from '../../types/functional-requirement';
@@ -15,33 +15,40 @@ import {DataDictionaryEntry} from '../../types/data-dictionary-entry';
 import { ProjectDataService } from 'src/app/services/project-data.service';
 import { Project } from 'src/app/types/project';
 import {PermissionService} from '../../services/permission.service';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
 import {IrGraphDialogs} from '../../types/ir-graph-dialogs';
-import {DialogClosedParam} from '../../types/dialog-closed-param';
 import {AppToastService} from '../../services/app-toast.service';
 import {BaseIoService} from '../../services/base/base-io-service';
 import {IrgraphOoDialogComponent} from './irgraph-oo-dialog/irgraph-oo-dialog.component';
 import {IrgraphFrDialogComponent} from './irgraph-fr-dialog/irgraph-fr-dialog.component';
 import {IrgraphFoDialogComponent} from './irgraph-fo-dialog/irgraph-fo-dialog.component';
 import {IrgraphAssetDialogComponent} from './irgraph-asset-dialog/irgraph-asset-dialog.component';
+import {WsService} from '../../services/ws.service';
 
 @Component({
     selector: 'app-irgraph',
     templateUrl: './irgraph.component.html',
     styleUrls: ['./irgraph.component.scss']
 })
-export class IRGraphComponent implements AfterViewInit {
-    constructor(@Inject(DOCUMENT) private document: any,  private assetService: AssetService,
+export class IRGraphComponent implements OnInit {
+    constructor(@Inject(DOCUMENT) private document: any,
                 private pooService: ProjectOrganisationalObjectiveService,
                 private frService: FunctionalRequirementService,
                 private foService: FunctionalOutputService,
+                private assetService: AssetService,
                 public toastr: AppToastService,
                 private ioService: BaseIoService,
                 private assetDdeService: AssetDataDictionaryEntryService,
                 private foDdeService: FunctionalOutputDataDictionaryEntryService,
                 private modalService: NgbModal,
+                private wsService: WsService,
                 private projectDataService: ProjectDataService,
                 public permissionService: PermissionService) {
+
+        this.poos = this.pooService.projectOrganisationalObjectives;
+        this.frs = this.frService.functionalRequirements;
+        this.fos = this.foService.functionalOutputs;
+        this.assets = this.assetService.assets;
     }
 
     static darkblue = '#4974a7';
@@ -59,13 +66,13 @@ export class IRGraphComponent implements AfterViewInit {
     optionsModel: Array<number> = [];
     private errorMessage: ((error: any) => void) | null | undefined;
 
-    poos: Array<ProjectOrganisationalObjective> = [];
-    frs: Array<FunctionalRequirement> = [];
-    frsArray: Array<FunctionalRequirement> = [];
-    fos: Array<FunctionalOutput> = [];
-    fosArray: Array<FunctionalOutput> = [];
+    poos: BehaviorSubject<ProjectOrganisationalObjective[]>;
+    frs: BehaviorSubject<FunctionalRequirement[]>;
+    assets: BehaviorSubject<Asset[]>;
+    fos: BehaviorSubject<FunctionalOutput[]>;
 
-    assets: BehaviorSubject<Asset[]> = new BehaviorSubject<Asset[]>([]);
+    fosArray: Array<FunctionalOutput> = [];
+    frsArray: Array<FunctionalRequirement> = [];
     assetsArray: Array<Asset> = [];
     foForSelect: FunctionalOutput | undefined;
     frToSave: FunctionalRequirement | undefined;
@@ -90,12 +97,15 @@ export class IRGraphComponent implements AfterViewInit {
         }
     }
 
-    ngAfterViewInit(): void {
+
+    ngOnInit(): void {
+        this.wsService.ReloadProject.subscribe(x => {
+            setTimeout(() => {
+                this.reloadLinks();
+            }, 500);
+        });
+
         this.readProject();
-        this.getAssets();
-        this.getFunctionalOutputs();
-        this.getFunctionalRequirements();
-        this.getProjectOrganisationalObjectives();
 
         const elmWrapper = document.getElementById('wrapper');
         const elmContainer = document.getElementById('topLevelBody');
@@ -106,41 +116,22 @@ export class IRGraphComponent implements AfterViewInit {
                 (rectWrapper.top + pageYOffset) + 'px)';
         }
 
+        this.loadEntities();
+
     }
 
-    getProjectOrganisationalObjectives(): void {
-        this.pooService.getProjectOrganisationalObjectives(this.project.id)
-            .subscribe(poos => {
-                this.poos = poos;
-                this.poos.flatMap((poo) => poo.frs.map((fr) => [poo.id, fr]))
-                    .forEach(v => this.addEntityLink(v[0], v[1]));
-            });
-    }
-
-    getFunctionalOutputs(): void {
-        this.foService.getFunctionalOutputs(this.project.id)
-            .subscribe(fos => {
-                this.fos = fos;
-                this.fos.flatMap((fo) => fo.assets.map((asset) => [fo.id, asset]))
-                    .forEach(v => this.addEntityLink(v[0], v[1]));
-            });
-    }
-
-    getFunctionalRequirements(): void {
-        this.frService.getFunctionalRequirements(this.project.id)
-            .subscribe(frs => {
-                this.frs = frs;
-
-                this.frs.flatMap((fr) => fr.fos.map((fo) => [fr.id, fo]))
-                    .forEach(v => this.addEntityLink(v[0], v[1]));
-            });
-    }
-
-    getAssets(): void {
-        this.assetService.getAssets(this.project.id)
-            .subscribe(assets => {
-                this.assets.next(assets);
-            });
+    private loadEntities(): void {
+        const pooRequest = this.pooService.getProjectOrganisationalObjectives(this.project.id);
+        const foRequest = this.foService.getFunctionalOutputs(this.project.id);
+        const assetRequest = this.assetService.getAssets(this.project.id);
+        const frRequest = this.frService.getFunctionalRequirements(this.project.id);
+        combineLatest([pooRequest, foRequest, assetRequest, frRequest]).subscribe(results => {
+            this.poos.next(results[0]);
+            this.fos.next(results[1]);
+            this.assets.next(results[2]);
+            this.frs.next(results[3]);
+            this.reloadLinks();
+        });
     }
 
     foLinkedToAssetCheck(assetDDId: string, selectedAssetId: string, foAssetLength: any, assetId: string, foAsset: string): boolean {
@@ -198,7 +189,7 @@ export class IRGraphComponent implements AfterViewInit {
         const targetId = event.target.id;
 
         if (data.sourceType === 'project_organisational_objective') {
-            const startPOO = this.poos.find(poo => poo.id === data.source);
+            const startPOO = this.poos.value.find(poo => poo.id === data.source);
             if (startPOO !== undefined) {
                 if (startPOO.frs.find(fr => fr === targetId) === undefined) {
                     startPOO.frs.push(targetId);
@@ -223,7 +214,7 @@ export class IRGraphComponent implements AfterViewInit {
         const targetId = event.target.id;
 
         if (data.sourceType === 'functional_requirement') {
-            const startFr = this.frs.find(fr => fr.id === data.source);
+            const startFr = this.frs.value.find(fr => fr.id === data.source);
             if (startFr !== undefined) {
                 if (startFr.fos.find(fo => fo === targetId) === undefined) {
                     startFr.fos.push(targetId);
@@ -247,7 +238,7 @@ export class IRGraphComponent implements AfterViewInit {
         // @ts-ignore
         const targetId = event.target.id;
         if (data.sourceType === 'functional_output') {
-            const startFO = this.fos.find(objective => objective.id === data.source);
+            const startFO = this.fos.value.find(objective => objective.id === data.source);
             if (startFO !== undefined) {
                 if (startFO.assets.find(asset => asset === targetId) === undefined) {
                     startFO.assets.push(targetId);
@@ -282,12 +273,12 @@ export class IRGraphComponent implements AfterViewInit {
     getFOLinks(id: string, left: boolean, right: boolean): string[] {
         const links: string[] = [];
         if (left) {
-            const linkedFRs = this.frs.filter(fr => fr.fos.find(fo => fo === id));
+            const linkedFRs = this.frs.value.filter(fr => fr.fos.find(fo => fo === id));
             linkedFRs.forEach(fr => links.push(fr.id));
             linkedFRs.flatMap(fr => this.getFRLinks(fr.id, true, false)).forEach(fr => links.push(fr));
         }
         if (right) {
-            this.fos.filter(fo => fo.id === id).flatMap(fo => fo.assets).forEach(asset => links.push(asset));
+            this.fos.value.filter(fo => fo.id === id).flatMap(fo => fo.assets).forEach(asset => links.push(asset));
         }
         return links;
     }
@@ -295,19 +286,19 @@ export class IRGraphComponent implements AfterViewInit {
     getFRLinks(id: string, left: boolean, right: boolean): string[] {
         const links: string[] = [];
         if (right) {
-            const linkedFOs = this.frs.filter(fr => fr.id === id).flatMap(fr => fr.fos);
+            const linkedFOs = this.frs.value.filter(fr => fr.id === id).flatMap(fr => fr.fos);
             linkedFOs.forEach(fo => links.push(fo));
             linkedFOs.flatMap(fo => this.getFOLinks(fo, false, true)).forEach(foLinks => links.push(foLinks));
         }
         if (left) {
-            this.poos.filter(obj => obj.frs.find(fr => fr === id)).forEach(obj => links.push(obj.id));
+            this.poos.value.filter(obj => obj.frs.find(fr => fr === id)).forEach(obj => links.push(obj.id));
         }
         return links;
     }
 
     getAssetLinks(id: string): string[] {
         const links: string[] = [];
-        const linkedFOs: string[] = this.fos.filter(fo => fo.assets.find(asset => asset === id)).map(fo => fo.id);
+        const linkedFOs: string[] = this.fos.value.filter(fo => fo.assets.find(asset => asset === id)).map(fo => fo.id);
         linkedFOs.forEach(fo => links.push(fo));
         linkedFOs.flatMap(fo => this.getFOLinks(fo, true, false)).forEach(foLink => links.push(foLink));
 
@@ -316,7 +307,7 @@ export class IRGraphComponent implements AfterViewInit {
 
     getPOOLinks(id: string): string[] {
         const links: string[] = [];
-        const linkedFRs: string[] = this.poos.filter(poo => poo.id === id)
+        const linkedFRs: string[] = this.poos.value.filter(poo => poo.id === id)
             .flatMap(poo => poo.frs);
         linkedFRs.forEach(fr => links.push(fr));
         linkedFRs.flatMap(fr => this.getFRLinks(fr, false, true)).forEach(frLink => links.push(frLink));
@@ -418,17 +409,16 @@ export class IRGraphComponent implements AfterViewInit {
         const modalRef = this.modalService.open(IrgraphOoDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.selectedPoo = poo;
         modalRef.componentInstance.project = this.project;
-        modalRef.componentInstance.frs = this.frs;
-        modalRef.componentInstance.poos = this.poos;
+        modalRef.componentInstance.frs = this.frs.value;
+        modalRef.componentInstance.poos = this.poos.value;
 
         modalRef.componentInstance.closed.subscribe(($event: any) => {
             modalRef.close();
             if ($event.updated) {
-                this.pooService.getProjectOrganisationalObjectives(this.project.id)
-                    .subscribe(poos => {
-                        this.poos = poos;
-                        this.reloadLinks();
-                    });
+                this.pooService.getProjectOrganisationalObjectives(this.project.id).subscribe(x => {
+                    this.poos.next(x);
+                    this.reloadLinks();
+                });
             }
         });
         modalRef.componentInstance.hasError.subscribe(($event: any) => {
@@ -440,16 +430,16 @@ export class IRGraphComponent implements AfterViewInit {
         const modalRef = this.modalService.open(IrgraphFrDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.selectedFr = fr;
         modalRef.componentInstance.project = this.project;
-        modalRef.componentInstance.frs = this.frs;
-        modalRef.componentInstance.poos = this.poos;
-        modalRef.componentInstance.fos = this.fos;
+        modalRef.componentInstance.frs = this.frs.value;
+        modalRef.componentInstance.poos = this.poos.value;
+        modalRef.componentInstance.fos = this.fos.value;
 
         modalRef.componentInstance.closed.subscribe(($event: any) => {
             modalRef.close();
             if ($event.updated) {
                 this.frService.getFunctionalRequirements(this.project.id)
                     .subscribe(frs => {
-                        this.frs = frs;
+                        this.frs.next(frs);
                         this.reloadLinks();
                     });
             }
@@ -463,8 +453,8 @@ export class IRGraphComponent implements AfterViewInit {
     editFo(fo: any): void {
         const modalRef = this.modalService.open(IrgraphFoDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.project = this.project;
-        modalRef.componentInstance.frs = this.frs;
-        modalRef.componentInstance.fos = this.fos;
+        modalRef.componentInstance.frs = this.frs.value;
+        modalRef.componentInstance.fos = this.fos.value;
         modalRef.componentInstance.assets = this.assets.value;
         modalRef.componentInstance.foDataDictionary = this.foDdeService.entries$.value;
         modalRef.componentInstance.selectedFO = fo;
@@ -474,7 +464,7 @@ export class IRGraphComponent implements AfterViewInit {
             if ($event.updated) {
                 this.foService.getFunctionalOutputs(this.project.id)
                     .subscribe(fos => {
-                        this.fos = fos;
+                        this.fos.next(fos);
                         this.reloadLinks();
                     });
             }
@@ -488,7 +478,7 @@ export class IRGraphComponent implements AfterViewInit {
 
         const modalRef = this.modalService.open(IrgraphAssetDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.project = this.project;
-        modalRef.componentInstance.fos = this.fos;
+        modalRef.componentInstance.fos = this.fos.value;
         modalRef.componentInstance.assets = this.assets.value;
         modalRef.componentInstance.selectedAsset = asset;
 
@@ -510,11 +500,18 @@ export class IRGraphComponent implements AfterViewInit {
     new(dialog: IrGraphDialogs): void{
         switch (dialog) {
             case IrGraphDialogs.FO_DIALOG: {
-                this.editFo({id: ''} as FunctionalOutput);
+                const data = {id: ''} as FunctionalOutput;
+                data.firs = [];
+                data.assets = [];
+                data.data_dictionary_entry = {} as DataDictionaryEntry;
+                this.editFo(data);
                 break;
             }
             case IrGraphDialogs.ASSET_DIALOG: {
-                this.editAsset({id: ''} as Asset);
+                const data = {id: ''} as Asset;
+                data.airs = [];
+                data.data_dictionary_entry = {} as DataDictionaryEntry;
+                this.editAsset(data);
                 break;
             }
             default: {
@@ -534,12 +531,15 @@ export class IRGraphComponent implements AfterViewInit {
     }
 
     handleRestError(error: any): void {
+        console.log('handleRestError', error);
+        console.log('handleRestError', error.error);
+        console.log('handleRestError', error.error.error);
         this.errorMessage = error.message;
         if (error.status === 403) {
             window.alert('You do not have permission to access the function you have requested');
         }
         else if (error.error.forUi === true) {
-            this.toastr.show(error.error.error,
+            this.toastr.show(error.error,
                 { classname: 'bg-danger text-light', delay: 5000 });
         }
         else{
@@ -551,25 +551,25 @@ export class IRGraphComponent implements AfterViewInit {
     reloadLinks(): void {
         this.entityLinks.forEach(x => x.clear());
 
-        this.poos.flatMap((poo) => poo.frs.map((fr) => [poo.id, fr]))
+        this.poos.value.flatMap((poo) => poo.frs.map((fr) => [poo.id, fr]))
             .forEach(v => {
                 setTimeout(() => {
                     this.addEntityLink(v[0], v[1]);
-                }, 1000);
+                }, 1500);
             });
 
-        this.fos.flatMap((fo) => fo.assets.map((asset) => [fo.id, asset]))
+        this.fos.value.flatMap((fo) => fo.assets.map((asset) => [fo.id, asset]))
             .forEach(v => {
                 setTimeout(() => {
                     this.addEntityLink(v[0], v[1]);
-                }, 1000);
+                }, 1500);
             });
 
-        this.frs.flatMap((fr) => fr.fos.map((fo) => [fr.id, fo]))
+        this.frs.value.flatMap((fr) => fr.fos.map((fo) => [fr.id, fo]))
             .forEach(v => {
                 setTimeout(() => {
                     this.addEntityLink(v[0], v[1]);
-                }, 1000);
+                }, 1500);
             });
     }
 
@@ -593,14 +593,13 @@ export class IRGraphComponent implements AfterViewInit {
 
                     this.foService.getFunctionalOutputs(this.project.id)
                         .subscribe(fos => {
-                            this.fos = fos;
+                            this.fos.next(fos);
                             this.reloadLinks();
                         });
                 })
                 .catch(err => {
-                    this.toastr.show('Import Project Firs Failed.',
+                    this.toastr.show(JSON.parse(err.error).error,
                         { classname: 'bg-danger text-light', delay: 5000 });
-                    this.handleRestError(err);
                 });
         };
         reader.readAsBinaryString(target.files[0]);
@@ -621,9 +620,8 @@ export class IRGraphComponent implements AfterViewInit {
                         this.reloadLinks();
                     });
             }).catch(err => {
-                this.toastr.show('Import Project AIRs Failed.',
+                this.toastr.show(JSON.parse(err.error).error,
                     { classname: 'bg-danger text-light', delay: 5000 });
-                this.handleRestError(err);
             });
         };
         reader.readAsBinaryString(target.files[0]);
