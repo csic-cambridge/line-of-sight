@@ -52,7 +52,8 @@ public class AssetsApiDelegateImpl implements AssetsApiDelegate {
      */
     @Override
     public Mono<ResponseEntity<Flux<AssetWithId>>> findAssetsByProject(UUID projectId, ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(repository.findByProjectId(projectId))
+        return Mono.fromCallable(() -> Flux.fromIterable(
+                repository.findByProjectIdOrderByDataDictionaryEntry_EntryId(projectId))
                 .map(dao -> assetHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());

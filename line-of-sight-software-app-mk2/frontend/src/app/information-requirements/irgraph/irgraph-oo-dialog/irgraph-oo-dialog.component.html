@@ -10,8 +10,26 @@
 <div class="modal-body">
     <form [formGroup]="pooForm" (ngSubmit)="save()" id="form">
         <!-- POO -->
-        <div class="form-group">
+        <div class="form-group" *ngIf="!env.offline">
             <h3><b>{{this.selectedPoo?.name}}</b></h3>
+        </div>
+
+        <div class="form-group" *ngIf="env.offline">
+            <h5><label for="ooId" class="form-label text-right">Title</label></h5>
+            <input id="ooId"
+                   formControlName="name" ngbAutofocus
+                   class="form-control element-text"
+                   placeholder="Organisational Objective Name / Title ... "
+                   autocomplete="off">
+
+            <div id="copyNameFeedback" class="invalid-feedback">
+                <div *ngIf="pooForm.controls.name.errors?.['required']">
+                    Title is required.
+                </div>
+                <div *ngIf="pooForm.controls.name.errors?.['forbiddenName']">
+                    Organisational Objective <b>{{pooForm.controls.name.value.text}}</b> already exists.
+                </div>
+            </div>
         </div>
         <!--Versions-->
         <div id="pooVersionDiv" class="form=group" *ngFor="let poo of poos">
@@ -27,6 +45,16 @@
             </select>
         </div>
         <!-- OIRs -->
+
+        <div class="form-group" *ngIf="env.offline">
+            <h5><label for="oirText">Organisation Information Requirement <i>(OIR)</i></label></h5>
+            <div class="input-group">
+                <input id="oirText" name="oirs"
+                       formControlName="newOir"
+                       class="form-control element-text"
+                       placeholder="OIR Text ... ">
+            </div>
+        </div>
         <div formArrayName="oirs">
             <div *ngFor="let oir of this.oirs().controls; let i=index">
                 <label class="custom-label-css">

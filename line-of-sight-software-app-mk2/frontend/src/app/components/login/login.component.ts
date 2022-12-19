@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
-import {AuthenticationService} from '../../services/authentication.service';
 import {LoginProvider} from '../../types/login-provider';
 import {BaseAuthenticationService} from '../../services/base/base-authentication.service';
-import {OfflineAuthenticationService} from '../../services/offline/offline-authentication.service';
+import {environment} from '../../../environments/environment';
+import {Router} from '@angular/router';
 
 
 @Component({
@@ -14,12 +14,18 @@ import {OfflineAuthenticationService} from '../../services/offline/offline-authe
 
 export class LoginComponent {
     providerData: Array<LoginProvider> | undefined;
+    public env = environment;
 
-    constructor(private authService: BaseAuthenticationService) {
+    constructor(private router: Router,
+                private authService: BaseAuthenticationService) {
         authService.getProvider().subscribe(
             (oauthProviderData: Array<LoginProvider>) => {
                 this.providerData = oauthProviderData;
             }
         );
+    }
+
+    offlineLogin(): void {
+        this.router.navigate(['/project']);
     }
 }

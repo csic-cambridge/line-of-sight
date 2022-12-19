@@ -9,10 +9,13 @@
                         <p *ngIf="this.providerData != undefined && this.providerData.length ===1">Please login with :</p>
                         <p *ngIf="this.providerData != undefined && this.providerData.length > 1">Please login with one of the following:</p>
                     </div>
-                    <div *ngFor= "let data of this.providerData">
-                        <a  style="font-size: 24px" href={{data.url}}>{{data.name}}</a>
-                        <br/>
+                    <div *ngIf="!env.offline">
+                        <div *ngFor= "let data of this.providerData">
+                            <a  style="font-size: 24px" href={{data.url}}>{{data.name}}</a>
+                            <br/>
+                        </div>
                     </div>
+                    <a style="font-size: 24px" (click)="offlineLogin()" href="#" *ngIf="env.offline">Showcase login</a>
                 </div>
             </div>
         </div>

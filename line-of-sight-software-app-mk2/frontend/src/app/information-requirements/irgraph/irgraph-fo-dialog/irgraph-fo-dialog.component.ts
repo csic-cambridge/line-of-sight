@@ -1,8 +1,6 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {AssetDataDictionaryEntryService} from '../../../services/asset-data-dictionary-entry.service';
 import {Asset} from '../../../types/asset';
-import {FunctionalOutputService} from '../../../services/functional-output.service';
 import {Project} from '../../../types/project';
 import {DataDictionaryEntry} from '../../../types/data-dictionary-entry';
 import {FunctionalOutput} from '../../../types/functional-output';
@@ -17,7 +15,9 @@ import {requiredNameValidator} from '../../../helpers/validation/required-name-v
 import {IrgraphDeleteDialogComponent} from '../irgraph-delete-dialog/irgraph-delete-dialog.component';
 import {NgbModal, NgbTypeahead} from '@ng-bootstrap/ng-bootstrap';
 import {forbiddenNameValidator} from '../../../dashboard/copy-project-dialog/copy-project-dialog.component';
-import {FirsService} from '../../../services/firs.service';
+import {BaseFirsService} from '../../../services/base/base-firs-service';
+import {BaseFunctionalOutputService} from '../../../services/base/base-functional-output-service';
+import {BaseAssetDictionaryEntryService} from '../../../services/base/base-asset-dictionary-entry-service';
 
 @Component({
   selector: 'app-irgraph-fo-dialog',
@@ -26,12 +26,12 @@ import {FirsService} from '../../../services/firs.service';
 })
 export class IrgraphFoDialogComponent implements OnInit {
     constructor(private fb: FormBuilder,
-                private foService: FunctionalOutputService,
+        private foService: BaseFunctionalOutputService,
                 public permissionService: BasePermissionService,
-                public firsService: FirsService,
+                public firsService: BaseFirsService,
                 public toastr: AppToastService,
                 private modalService: NgbModal,
-                public assetDdeService: AssetDataDictionaryEntryService) {
+                public assetDdeService: BaseAssetDictionaryEntryService) {
     }
     @Input() foDataDictionary!: DataDictionaryEntry[];
     @Input() project!: Project;
@@ -189,7 +189,7 @@ export class IrgraphFoDialogComponent implements OnInit {
             id: this.selectedFO.id,
             data_dictionary_entry: {
                 id: this.selectedFO.data_dictionary_entry.text.split('-')[0].trim(),
-                entry_id: this.selectedFO.data_dictionary_entry.text.split('-')[0].trim(),
+                entry_id: this.selectedFO.data_dictionary_entry.entry_id.split('-')[0].trim(),
                 text: (typeof this.foForm.value.foName === 'string') ? this.foForm.value.foName : this.foForm.value.foName.text
             },
             name: '',

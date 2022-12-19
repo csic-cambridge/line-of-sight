@@ -5,7 +5,9 @@ import { OOGraphComponent } from './oograph/oograph.component';
 import { SuperuserComponent } from './components/superuser/superuser.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import {AuthGuardService} from './services/auth-guard.service';
+import {environment} from '../environments/environment';
 
+const env = environment;
 const routes: Routes = [
 {path: 'login', component: LoginComponent},
 {path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuardService]},
@@ -13,7 +15,7 @@ const routes: Routes = [
 {path: 'superuser', component: SuperuserComponent, canActivate: [AuthGuardService]},
 {path: 'project', loadChildren: () => import('./information-requirements/information-requirements.module')
 .then(m => m.InformationRequirementsModule), canActivate: [AuthGuardService]},
-{path: '', redirectTo: '/dashboard', pathMatch: 'full'},
+{path: '', redirectTo: env.offline ? '/project' : '/dashboard', pathMatch: 'full'},
 { path: '**', component: NotFoundComponent },
 ];
 

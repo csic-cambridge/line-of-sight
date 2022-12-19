@@ -1,0 +1,18 @@
+
+
+<div class="modal-header">
+    <h3 class="modal-title">Delete Showcase</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <p>Are you sure you want to delete your data?</p>
+</div>
+<div class="modal-footer">
+    <ng-container>
+        <button data-dismiss="modal" class="btn btn-outline-danger" (click)="delete()">Ok</button>
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary"
+                (click)="closeModal()">Cancel</button>
+    </ng-container>
+</div>

@@ -3,8 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 
 export abstract class BaseAuthenticationService {
-    constructor(router: Router,
-                http: HttpClient) {
+    constructor() {
     }
 
     abstract login(): void;

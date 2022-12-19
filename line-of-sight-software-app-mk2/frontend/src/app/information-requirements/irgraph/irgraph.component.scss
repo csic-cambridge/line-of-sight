@@ -1,19 +1,46 @@
 .information-requirement {
     margin-top: 1em;
     margin-bottom: 1em;
-
+    cursor: pointer;
     font-size: 0.6rem;
     line-height: 1;
-
     .card-body {
         padding: unset;
+        color: #000;
+    }
+    .card-header {
+        font-size: 0.7rem;
+        color: #000;
+        &.on, &.selected{
+            background-color: #4974a7;
+            color: #fff;
+        }
+        .dropdown-content{
+            margin-top: 10px;
+        }
+    }
+}
+.hide-entities{
+    .card-body {
+        display: none;
     }
 
     .card-header {
-        font-size: 0.7rem;
+        display: none;
+        &.selected  {
+            display: block;
+            &:not(.hide-ir) +.card-body {
+                display: block;
+            }
+        }
     }
 }
+.hide-ir {
+    +.card-body {
+        display: none;
+    }
 
+}
 .element-text {
     font-size: medium;
 }
@@ -38,6 +65,10 @@
 .dropbtn {
     cursor: pointer;
 }
+
+.dropdown-toggle {
+     white-space: normal;
+ }
 
 .dropdown {
     position: relative;
@@ -64,4 +95,25 @@
 
 .dropdown:hover .dropdown-content {
     display: block;
+}
+
+.show-ir-button{
+    display: block;
+    text-align: right;
+    margin-bottom: 15px;
+    button {
+        cursor: pointer;
+        svg{
+            pointer-events: none;
+        }
+    }
+}
+#leader-line-container {
+    .dropdown-toggle:after {
+        display: none;
+    }
+
+    a {
+        text-decoration: none;
+    }
 }

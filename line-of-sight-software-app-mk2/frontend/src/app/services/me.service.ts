@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {BaseMeService} from './base/base-me-service';
 import {BaseProjectService} from './base/base-project-service';
+import {map} from 'rxjs/operators';
 
 @Injectable({
     providedIn: 'root'
@@ -22,14 +23,7 @@ export class MeService extends BaseMeService {
     }
 
     getMe(): Observable<User> {
-        if (this.User.value.user_id === undefined) {
-            const userPromise = this.http.get<User>(`${environment.apiBaseUrl}/api/me`).toPromise();
-            userPromise.then(user => {
-                this.User.next(user);
-                return of(user);
-            });
-        }
-        return of(this.User.value);
+        return this.http.get<User>(`${environment.apiBaseUrl}/api/me`);
     }
 
     getUserPermissions(): Observable<UserPermissions> {

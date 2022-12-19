@@ -20,7 +20,8 @@ export class OOGraphComponent {
     constructor(private ooService: BaseOrganisationalObjectiveService,
                 private modalService: NgbModal,
                 public toastr: AppToastService,
-                public permissionService: BasePermissionService, private cookieService: CookieService) {
+                public permissionService: BasePermissionService,
+                private cookieService: CookieService) {
         this.ooService.reload();
     }
 

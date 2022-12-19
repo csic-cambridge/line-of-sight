@@ -4,27 +4,19 @@ import {environment} from '../../environments/environment';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {DataDictionaryEntry} from '../types/data-dictionary-entry';
 import {shareReplay} from 'rxjs/operators';
+import {BaseFunctionalOutputDictionaryEntryService} from './base/base-functional-output-dictionary-entry-service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class FunctionalOutputDataDictionaryEntryService {
+export class FunctionalOutputDataDictionaryEntryService extends BaseFunctionalOutputDictionaryEntryService {
 
     private serviceUrl;
     private cache$: Observable<Array<DataDictionaryEntry>> | undefined;
-    public entries$: BehaviorSubject<DataDictionaryEntry[]> = new BehaviorSubject<DataDictionaryEntry[]>([]);
 
-    constructor(
-        private http: HttpClient,
-    ) {
+    constructor(private http: HttpClient) {
+        super();
         this.serviceUrl = environment.apiBaseUrl + '/api/functional-output-data-dictionary';
-    }
-
-    getFunctionalOutputDataDictionaryEntries(projectId: string): Observable<Array<DataDictionaryEntry>> {
-        if (!this.cache$) {
-            this.cache$ = this.http.get<Array<DataDictionaryEntry>>(this.serviceUrl + '/' + projectId).pipe(shareReplay());
-        }
-        return this.cache$;
     }
 
     load(projectId: string): void {
@@ -32,5 +24,12 @@ export class FunctionalOutputDataDictionaryEntryService {
             .subscribe(data => {
                 this.entries$.next(data);
             });
+    }
+
+    getDataDictionaryEntries(projectId: string): Observable<Array<DataDictionaryEntry>> {
+        if (!this.cache$) {
+            this.cache$ = this.http.get<Array<DataDictionaryEntry>>(this.serviceUrl + '/' + projectId).pipe(shareReplay());
+        }
+        return this.cache$;
     }
 }

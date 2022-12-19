@@ -11,9 +11,8 @@ import {LoginProvider} from '../../types/login-provider';
 export class OfflineAuthenticationService extends BaseAuthenticationService {
 
     constructor(
-        private router: Router,
-        private http: HttpClient) {
-        super(router, http);
+        private router: Router) {
+        super();
     }
 
     public login(): void {
@@ -21,7 +20,7 @@ export class OfflineAuthenticationService extends BaseAuthenticationService {
     }
 
     public getProvider(): Observable<any> {
-        const loginrovider = {url: '/dashboard', name: 'Local login'} as LoginProvider;
+        const loginrovider = {url: 'project', name: 'Showcase login'} as LoginProvider;
         return of([loginrovider]);
     }
 

@@ -1,9 +1,20 @@
 import { Injectable } from '@angular/core';
 import {BaseIoService} from '../base/base-io-service';
 import {BaseProjectService} from '../base/base-project-service';
-import {Project} from '../../types/project';
 import {OfflineAssetDictionaryService} from './offline-asset-dictionary.service';
 import {OfflineFoDictionaryService} from './offline-fo-dictionary.service';
+import {OfflineAirsService} from './offline-airs.service';
+import {OfflineFirsService} from './offline-firs.service';
+import {FunctionalOutput} from '../../types/functional-output';
+import {FunctionalRequirement} from '../../types/functional-requirement';
+import {Asset} from '../../types/asset';
+import {ProjectOrganisationalObjective} from '../../types/project-organisational-objective';
+import {map} from 'rxjs/operators';
+import {BaseProjectOrganisationalObjectiveService} from '../base/base-project-organisational-objective-service';
+import {BaseFunctionalRequirementService} from '../base/base-functional-requirement-service';
+import {BaseFunctionalOutputService} from '../base/base-functional-output-service';
+import {BaseAssetService} from '../base/base-asset-service';
+import versionJson from '../../../../package.json';
 
 @Injectable({
   providedIn: 'root'
@@ -12,19 +23,33 @@ export class OfflineIoService extends BaseIoService {
 
   constructor(private projectService: BaseProjectService,
               private assetDictService: OfflineAssetDictionaryService,
-              private foDictService: OfflineFoDictionaryService) { super(); }
+              private offlineAirsService: OfflineAirsService,
+              private offlineFirsService: OfflineFirsService,
+              private foDictService: OfflineFoDictionaryService,
+              private pooService: BaseProjectOrganisationalObjectiveService,
+              private frService: BaseFunctionalRequirementService,
+              private foService: BaseFunctionalOutputService,
+              private assetService: BaseAssetService) { super(); }
 
     exportProject(id: string | undefined): Promise<any> {
 
-        const promise = new Promise<void>((resolve, reject) => {
+        const promise = new Promise<string>((resolve, reject) => {
+            const data = {
+                import_version: versionJson.version,
+                fos: [] as FunctionalOutput[],
+                frs: [] as FunctionalRequirement[],
+                assets: [] as Asset[],
+                poos: [] as ProjectOrganisationalObjective[]
+            };
+            this.foService.getFunctionalOutputs('').pipe(map(x => data.fos = x)).subscribe();
+            this.frService.getFunctionalRequirements('').pipe(map(x => data.frs = x)).subscribe();
+            this.assetService.getAssets('').pipe(map(x => data.assets = x)).subscribe();
+            this.pooService.getProjectOrganisationalObjectives('').pipe(map(x => data.poos = x)).subscribe();
 
-            const find = this.projectService.projects.value.find(x => x.id === id);
-            if (find) {
-                return JSON.stringify(find);
-                resolve();
+            if (data) {
+                resolve(JSON.stringify(data));
             } else {
-                return '';
-                reject();
+                reject('export failed');
             }
         });
 
@@ -32,16 +57,21 @@ export class OfflineIoService extends BaseIoService {
     }
 
     importProject(projectData: string): Promise<any>  {
-        const promise = new Promise<void>((resolve, reject) => {
-            this.projectService.save(JSON.parse(projectData) as Project).subscribe({
-                next: (res: any) => {
-                    return res;
-                    resolve();
-                },
-                error: (err: any) => {
-                    reject(err);
-                },
-            });
+        const promise = new Promise<string>((resolve, reject) => {
+            const project = JSON.parse(projectData);
+            if (project.import_version !== versionJson.version){
+                reject(`Import file version ${project.import_version} does not match the current version ${versionJson.version}.`);
+                return;
+            }
+            localStorage.setItem('functionalOutputData', JSON.stringify(project.fos));
+            localStorage.setItem('functionalRequirementData', JSON.stringify(project.frs));
+            localStorage.setItem('assetData', JSON.stringify(project.assets));
+            localStorage.setItem('projectOrganisationalObjectiveData', JSON.stringify(project.poos));
+            this.foService.loadFunctionalOutputs('');
+            this.frService.loadFunctionalRequirements('');
+            this.assetService.loadAssets('');
+            this.pooService.loadProjectOrganisationalObjectives('');
+            resolve('Import completed.');
         });
         return promise;
     }
@@ -68,16 +98,22 @@ export class OfflineIoService extends BaseIoService {
 
     importFirs(data: string, projectId: string): Promise<any>   {
         const promise = new Promise<void>((resolve, reject) => {
-            if (this.projectService.importFirs(data, projectId)){ resolve(); }
-            else{reject(); }
+            if (this.offlineFirsService.import(data)) {
+                resolve();
+            } else {
+                reject();
+            }
         });
         return promise;
     }
 
     importAirs(data: string, projectId: string): Promise<any>  {
         const promise = new Promise<void>((resolve, reject) => {
-            if (this.projectService.importAirs(data, projectId)){ resolve(); }
-            else{reject(); }
+            if (this.offlineAirsService.import(data)) {
+                resolve();
+            } else {
+                reject();
+            }
         });
         return promise;
     }

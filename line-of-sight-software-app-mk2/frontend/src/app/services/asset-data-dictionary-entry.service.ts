@@ -1,25 +1,25 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {environment} from '../../environments/environment';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {DataDictionaryEntry} from '../types/data-dictionary-entry';
 import {shareReplay} from 'rxjs/operators';
+import {BaseAssetDictionaryEntryService} from './base/base-asset-dictionary-entry-service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AssetDataDictionaryEntryService {
+export class AssetDataDictionaryEntryService extends BaseAssetDictionaryEntryService {
 
     private serviceUrl;
     private cache$: Observable<Array<DataDictionaryEntry>> | undefined;
 
-    public entries$: BehaviorSubject<DataDictionaryEntry[]> = new BehaviorSubject<DataDictionaryEntry[]>([]);
-
     constructor( private http: HttpClient) {
+        super();
         this.serviceUrl = environment.apiBaseUrl + '/api/asset-data-dictionary';
     }
 
-    getAssetDataDictionaryEntries(projectId: string): Observable<Array<DataDictionaryEntry>> {
+    getDataDictionaryEntries(projectId: string): Observable<Array<DataDictionaryEntry>> {
         if (!this.cache$) {
             this.cache$ = this.http.get<Array<DataDictionaryEntry>>(this.serviceUrl + '/' + projectId).pipe(shareReplay());
         }

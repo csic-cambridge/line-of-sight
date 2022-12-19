@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../types/project';
+import {BaseProjectDataService} from './base/base-project-data-service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProjectDataService {
+export class ProjectDataService extends BaseProjectDataService {
 
   private noProject: Project = {
       id: '',
@@ -15,7 +16,9 @@ export class ProjectDataService {
 
   private project: Project = this.noProject;
 
-  constructor() {}
+  constructor() {
+      super();
+  }
 
   setProject(project: Project): void{
       if (project === null) {

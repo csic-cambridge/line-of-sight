@@ -23,6 +23,9 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
 
     @Input() leftLink?: string;
     @Input() rightLink?: string;
+    @Input() showIRs?: string;
+    @Input() showSelected?: boolean;
+
     private resizeObserver: ResizeObserver = new ResizeObserver(this.onResize);
     private leaderline: any;
 
@@ -61,11 +64,15 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
         if (this.leaderline === undefined && this.leftLink !== undefined && this.rightLink !== undefined) {
             const startElement = document.getElementById(this.leftLink);
             const endElement = document.getElementById(this.rightLink);
-            if (startElement != null && endElement != null) {
+
+            if (startElement != null
+                && endElement != null && (!this.showSelected || (endElement.classList.contains('selected')
+                    && startElement.classList.contains('selected')))) {
                 this.leaderline = new LeaderLine(startElement, endElement,
                     {
                         size: 2,
-                        color: IRGraphComponent.darkblue,
+                        color: (startElement.classList.contains('selected') && endElement.classList.contains('selected')) ?
+                            IRGraphComponent.darkblue : '#ccc',
                         startSocket: 'right',
                         endSocket: 'left'
                     }

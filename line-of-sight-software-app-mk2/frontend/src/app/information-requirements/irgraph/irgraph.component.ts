@@ -4,18 +4,10 @@ import {ProjectOrganisationalObjective} from '../../types/project-organisational
 import {FunctionalRequirement} from '../../types/functional-requirement';
 import {FunctionalOutput} from '../../types/functional-output';
 import {ModalDismissReasons, NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {AssetService} from '../../services/asset.service';
-import {ProjectOrganisationalObjectiveService} from '../../services/project-organisational-objective.service';
-import {FunctionalRequirementService} from '../../services/functional-requirement.service';
-import {FunctionalOutputService} from '../../services/functional-output.service';
 import {DOCUMENT} from '@angular/common';
-import {AssetDataDictionaryEntryService} from '../../services/asset-data-dictionary-entry.service';
-import {FunctionalOutputDataDictionaryEntryService} from '../../services/functional-output-data-dictionary-entry.service';
 import {DataDictionaryEntry} from '../../types/data-dictionary-entry';
-import { ProjectDataService } from 'src/app/services/project-data.service';
 import { Project } from 'src/app/types/project';
-import {PermissionService} from '../../services/permission.service';
-import {BehaviorSubject, combineLatest, Observable} from 'rxjs';
+import {BehaviorSubject, combineLatest} from 'rxjs';
 import {IrGraphDialogs} from '../../types/ir-graph-dialogs';
 import {AppToastService} from '../../services/app-toast.service';
 import {BaseIoService} from '../../services/base/base-io-service';
@@ -24,6 +16,21 @@ import {IrgraphFrDialogComponent} from './irgraph-fr-dialog/irgraph-fr-dialog.co
 import {IrgraphFoDialogComponent} from './irgraph-fo-dialog/irgraph-fo-dialog.component';
 import {IrgraphAssetDialogComponent} from './irgraph-asset-dialog/irgraph-asset-dialog.component';
 import {WsService} from '../../services/ws.service';
+import {BasePermissionService} from '../../services/base/base-permission-service';
+import {BaseProjectDataService} from '../../services/base/base-project-data-service';
+import {BaseAssetService} from '../../services/base/base-asset-service';
+import {BaseFunctionalOutputService} from '../../services/base/base-functional-output-service';
+import {BaseFunctionalRequirementService} from '../../services/base/base-functional-requirement-service';
+import {BaseProjectOrganisationalObjectiveService} from '../../services/base/base-project-organisational-objective-service';
+import {BaseAssetDictionaryEntryService} from '../../services/base/base-asset-dictionary-entry-service';
+import {BaseFunctionalOutputDictionaryEntryService} from '../../services/base/base-functional-output-dictionary-entry-service';
+import {environment} from '../../../environments/environment';
+import {CookieService} from 'ngx-cookie-service';
+import {map} from 'rxjs/operators';
+import * as pako from 'pako';
+import {DashboardDialog} from '../../types/dashboard-dialog';
+import {ClearShowcaseDialogComponent} from '../../components/login/clear-showcase-dialog/clear-showcase-dialog.component';
+import {ConfirmProjectImportDialogComponent} from './confirm-project-import-dialog/confirm-project-import-dialog.component';
 
 @Component({
     selector: 'app-irgraph',
@@ -32,18 +39,19 @@ import {WsService} from '../../services/ws.service';
 })
 export class IRGraphComponent implements OnInit {
     constructor(@Inject(DOCUMENT) private document: any,
-                private pooService: ProjectOrganisationalObjectiveService,
-                private frService: FunctionalRequirementService,
-                private foService: FunctionalOutputService,
-                private assetService: AssetService,
+                private pooService: BaseProjectOrganisationalObjectiveService,
+                private frService: BaseFunctionalRequirementService,
+                private foService: BaseFunctionalOutputService,
+                private assetService: BaseAssetService,
                 public toastr: AppToastService,
                 private ioService: BaseIoService,
-                private assetDdeService: AssetDataDictionaryEntryService,
-                private foDdeService: FunctionalOutputDataDictionaryEntryService,
+                private assetDdeService: BaseAssetDictionaryEntryService,
+                private foDdeService: BaseFunctionalOutputDictionaryEntryService,
                 private modalService: NgbModal,
                 private wsService: WsService,
-                private projectDataService: ProjectDataService,
-                public permissionService: PermissionService) {
+                private projectDataService: BaseProjectDataService,
+                public permissionService: BasePermissionService,
+                private cookieService: CookieService) {
 
         this.poos = this.pooService.projectOrganisationalObjectives;
         this.frs = this.frService.functionalRequirements;
@@ -52,7 +60,13 @@ export class IRGraphComponent implements OnInit {
     }
 
     static darkblue = '#4974a7';
-
+    public env = environment;
+    showIRs = this.cookieService.get('app-irgraph-showIRs') === '0' ? false : true;
+    showSelected: boolean = this.cookieService.get('app-irgraph-showSelected') === '1' ? true : false;
+    isSinglePooClick = true;
+    isSingleFOClick = true;
+    isSingleAssetClick = true;
+    isSingleFRClick = true;
     activeId: string | undefined;
     activeDialog = IrGraphDialogs.NONE;
     public dialogTypes = IrGraphDialogs;
@@ -97,7 +111,6 @@ export class IRGraphComponent implements OnInit {
         }
     }
 
-
     ngOnInit(): void {
         this.wsService.ReloadProject.subscribe(x => {
             setTimeout(() => {
@@ -107,17 +120,16 @@ export class IRGraphComponent implements OnInit {
 
         this.readProject();
 
-        const elmWrapper = document.getElementById('wrapper');
-        const elmContainer = document.getElementById('topLevelBody');
-        if (elmWrapper) {
-            const rectWrapper = elmWrapper.getBoundingClientRect();
-            elmWrapper.style.transform = 'translate(-' +
-                (rectWrapper.left + pageXOffset) + 'px, -' +
-                (rectWrapper.top + pageYOffset) + 'px)';
-        }
-
         this.loadEntities();
+    }
 
+    getProjectOrganisationalObjectives(): void {
+        this.pooService.loadProjectOrganisationalObjectives(this.project.id);
+        this.pooService.getProjectOrganisationalObjectives(this.project.id)
+            .subscribe(poos => {
+                poos.flatMap((poo) => poo.frs.map((fr) => [poo.id, fr]))
+                    .forEach(v => this.addEntityLink(v[0], v[1]));
+            });
     }
 
     private loadEntities(): void {
@@ -164,29 +176,27 @@ export class IRGraphComponent implements OnInit {
     }
 
     pooLinkStart(event: DragEvent): boolean {
-        // @ts-ignore
-        event.dataTransfer.setData('application/json', JSON.stringify({sourceType: 'project_organisational_objective', source: event.target.id}));
+        (event.dataTransfer as DataTransfer).setData('application/json', JSON.stringify(
+            {sourceType: 'project_organisational_objective', source: (event.target as HTMLElement).id}));
         return true;
     }
 
     foLinkStart(event: DragEvent): boolean {
-        // @ts-ignore
-        event.dataTransfer.setData('application/json', JSON.stringify({sourceType: 'functional_output', source: event.target.id}));
+        (event.dataTransfer as DataTransfer).setData('application/json', JSON.stringify({sourceType: 'functional_output',
+            source: (event.target as HTMLElement).id}));
         return true;
     }
 
     frLinkStart(event: DragEvent): boolean {
-        // @ts-ignore
-        event.dataTransfer.setData('application/json', JSON.stringify({sourceType: 'functional_requirement', source: event.target.id}));
+        (event.dataTransfer as DataTransfer).setData('application/json', JSON.stringify({sourceType: 'functional_requirement',
+            source: (event.target as HTMLElement).id}));
         return true;
     }
 
     linkToFR(event: DragEvent): boolean {
         event.preventDefault();
-        // @ts-ignore
-        const data = JSON.parse(event.dataTransfer.getData('application/json'));
-        // @ts-ignore
-        const targetId = event.target.id;
+        const data = JSON.parse((event.dataTransfer as DataTransfer).getData('application/json'));
+        const targetId = (event.target as HTMLElement).id;
 
         if (data.sourceType === 'project_organisational_objective') {
             const startPOO = this.poos.value.find(poo => poo.id === data.source);
@@ -208,10 +218,8 @@ export class IRGraphComponent implements OnInit {
 
     linkToFO(event: DragEvent): boolean {
         event.preventDefault();
-        // @ts-ignore
-        const data = JSON.parse(event.dataTransfer.getData('application/json'));
-        // @ts-ignore
-        const targetId = event.target.id;
+        const data = JSON.parse((event.dataTransfer as DataTransfer).getData('application/json'));
+        const targetId = (event.target as HTMLElement).id;
 
         if (data.sourceType === 'functional_requirement') {
             const startFr = this.frs.value.find(fr => fr.id === data.source);
@@ -233,10 +241,8 @@ export class IRGraphComponent implements OnInit {
 
     linkToAsset(event: DragEvent): boolean {
         event.preventDefault();
-        // @ts-ignore
-        const data = JSON.parse(event.dataTransfer.getData('application/json'));
-        // @ts-ignore
-        const targetId = event.target.id;
+        const data = JSON.parse((event.dataTransfer as DataTransfer).getData('application/json'));
+        const targetId = (event.target as HTMLElement).id;
         if (data.sourceType === 'functional_output') {
             const startFO = this.fos.value.find(objective => objective.id === data.source);
             if (startFO !== undefined) {
@@ -315,86 +321,144 @@ export class IRGraphComponent implements OnInit {
         return links;
     }
 
-    mouseEnterFO(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getFOLinks(event.target.id, true, true);
-            // @ts-ignore
-            links.forEach(link => document.getElementById(link).style.backgroundColor = IRGraphComponent.darkblue);
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = IRGraphComponent.darkblue;
-        }
+    mouseEnterFO(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getFOLinks(id, true, true);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('on'));
+        // (document.getElementById(id) as HTMLElement).classList.add('on');
     }
 
-    mouseLeaveFO(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getFOLinks(event.target.id, true, true);
-            // @ts-ignore
-            links.forEach(link => document.getElementById(link).style.backgroundColor = null);
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = null;
-        }
+    mouseLeaveFO(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getFOLinks(id, true, true);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.remove('on'));
+        // (document.getElementById(id) as HTMLElement).classList.remove('on');
     }
 
-    mouseEnterAsset(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getAssetLinks(event.target.id);
-            // @ts-ignore
-            links.forEach(link => document.getElementById(link).style.backgroundColor = IRGraphComponent.darkblue);
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = IRGraphComponent.darkblue;
-        }
+    selectFO(id: string): void {
+        this.isSingleFOClick = true;
+        setTimeout(() => {
+            if (this.isSingleFOClick){
+                const selected = (document.getElementById(id) as HTMLElement).classList.contains('selected');
+                const element = document.getElementById('leader-line-container');
+                if (element !== null) {
+                    const matches = element.querySelectorAll('.card-header.selected');
+                    matches.forEach(x => x.classList.remove('selected'));
+                }
+                if (!selected) {
+                    const links = this.getFOLinks(id, true, true);
+                    links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('selected'));
+                    (document.getElementById(id) as HTMLElement).classList.add('selected');
+                }
+                this.reloadLinks();
+            }
+        }, 250);
     }
 
-    mouseLeaveAsset(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getAssetLinks(event.target.id);
-            // @ts-ignore
-            links.forEach(link => document.getElementById(link).style.backgroundColor = null);
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = null;
-        }
+    mouseEnterAsset(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getAssetLinks(id);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('on'));
+        // (document.getElementById(id) as HTMLElement).classList.add('on');
     }
 
-    mouseEnterPOO(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getPOOLinks(event.target.id);
-            // @ts-ignore
-            links.forEach(link => document.getElementById(link).style.backgroundColor = IRGraphComponent.darkblue);
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = IRGraphComponent.darkblue;
-        }
+    mouseLeaveAsset(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getAssetLinks(id);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.remove('on'));
+        // (document.getElementById(id) as HTMLElement).classList.remove('on');
     }
 
-    mouseLeavePOO(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getPOOLinks(event.target.id);
-            // @ts-ignore
-            links.forEach(link => document.getElementById(link).style.backgroundColor = null);
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = null;
-        }
+    selectAsset(id: string): void {
+        this.isSingleAssetClick = true;
+        setTimeout(() => {
+            if (this.isSingleAssetClick) {
+                const selected = (document.getElementById(id) as HTMLElement).classList.contains('selected');
+                const element = document.getElementById('leader-line-container');
+                if (element !== null) {
+                    const matches = element.querySelectorAll('.card-header.selected');
+                    matches.forEach(x => x.classList.remove('selected'));
+                }
+                if (!selected) {
+                    const links = this.getAssetLinks(id);
+                    links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('selected'));
+                    (document.getElementById(id) as HTMLElement).classList.add('selected');
+                }
+                this.reloadLinks();
+
+            }
+        }, 250);
     }
 
-    mouseEnterFR(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getFRLinks(event.target.id, true, true);
-            links.forEach(link => {
-                // @ts-ignore
-                document.getElementById(link).style.backgroundColor = IRGraphComponent.darkblue;
-            });
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = IRGraphComponent.darkblue;
-        }
+    mouseEnterPOO(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getPOOLinks(id);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('on'));
+        // (document.getElementById(id) as HTMLElement).classList.add('on');
     }
 
-    mouseLeaveFR(event: any): void {
-        if (event.target !== null && event.target.id !== null) {
-            const links = this.getFRLinks(event.target.id, true, true);
-            // @ts-ignore
-            links.forEach(link => document.getElementById(link).style.backgroundColor = null);
-            // @ts-ignore
-            document.getElementById(event.target.id).style.backgroundColor = null;
-        }
+    mouseLeavePOO(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getPOOLinks(id);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.remove('on'));
+        // (document.getElementById(id) as HTMLElement).classList.remove('on');
+    }
+
+    selectPoo(id: string): void {
+
+
+        this.isSinglePooClick = true;
+        setTimeout(() => {
+            if (this.isSinglePooClick){
+                const selected = (document.getElementById(id) as HTMLElement).classList.contains('selected');
+                const element = document.getElementById('leader-line-container');
+                if (element !== null) {
+                    const matches = element.querySelectorAll('.card-header.selected');
+                    matches.forEach(x => x.classList.remove('selected'));
+                }
+                if (!selected) {
+                    const links = this.getPOOLinks(id);
+                    links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('selected'));
+                    (document.getElementById(id) as HTMLElement).classList.add('selected');
+                }
+                this.reloadLinks();
+            }
+        }, 250);
+    }
+
+    mouseEnterFR(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getFRLinks(id, true, true);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('on'));
+        // (document.getElementById(id) as HTMLElement).classList.add('on');
+    }
+
+    mouseLeaveFR(id: string): void {
+        // UNCOMMENT TO ENEABLE HOVER FEATURE
+        // const links = this.getFRLinks(id, true, true);
+        // links.forEach(link => (document.getElementById(link) as HTMLElement).classList.remove('on'));
+        // (document.getElementById(id) as HTMLElement).classList.remove('on');
+    }
+
+    selectFR(id: string): void {
+
+        this.isSingleFRClick = true;
+        setTimeout(() => {
+            if (this.isSingleFRClick){
+                const selected = (document.getElementById(id) as HTMLElement).classList.contains('selected');
+                const element = document.getElementById('leader-line-container');
+                if (element !== null) {
+                    const matches = element.querySelectorAll('.card-header.selected');
+                    matches.forEach(x => x.classList.remove('selected'));
+                }
+                if (!selected) {
+                    const links = this.getFRLinks(id, true, true);
+                    links.forEach(link => (document.getElementById(link) as HTMLElement).classList.add('selected'));
+                    (document.getElementById(id) as HTMLElement).classList.add('selected');
+                }
+                this.reloadLinks();
+            }
+        }, 250);
     }
 
     open(content: any): void {
@@ -406,6 +470,8 @@ export class IRGraphComponent implements OnInit {
     }
 
     editPoo(poo: any): void {
+
+        this.isSinglePooClick = false;
         const modalRef = this.modalService.open(IrgraphOoDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.selectedPoo = poo;
         modalRef.componentInstance.project = this.project;
@@ -427,6 +493,8 @@ export class IRGraphComponent implements OnInit {
     }
 
     editFr(fr: any): void {
+
+        this.isSingleFRClick = false;
         const modalRef = this.modalService.open(IrgraphFrDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.selectedFr = fr;
         modalRef.componentInstance.project = this.project;
@@ -451,6 +519,8 @@ export class IRGraphComponent implements OnInit {
 
 
     editFo(fo: any): void {
+
+        this.isSingleFOClick = false;
         const modalRef = this.modalService.open(IrgraphFoDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.project = this.project;
         modalRef.componentInstance.frs = this.frs.value;
@@ -476,6 +546,7 @@ export class IRGraphComponent implements OnInit {
 
     editAsset(asset: any): void {
 
+        this.isSingleAssetClick = false;
         const modalRef = this.modalService.open(IrgraphAssetDialogComponent, { scrollable: true, centered: true, size: 'lg' });
         modalRef.componentInstance.project = this.project;
         modalRef.componentInstance.fos = this.fos.value;
@@ -512,6 +583,14 @@ export class IRGraphComponent implements OnInit {
                 data.airs = [];
                 data.data_dictionary_entry = {} as DataDictionaryEntry;
                 this.editAsset(data);
+                break;
+            }
+            case IrGraphDialogs.OO_DIALOG: {
+                const data = {id: ''} as ProjectOrganisationalObjective;
+                data.oirs = [];
+                data.deleted_oirs = [];
+                data.frs = [];
+                this.editPoo(data);
                 break;
             }
             default: {
@@ -625,5 +704,108 @@ export class IRGraphComponent implements OnInit {
             });
         };
         reader.readAsBinaryString(target.files[0]);
+    }
+
+    toggleShowIRs(): void {
+        this.showIRs = !this.showIRs;
+        this.cookieService.set('app-irgraph-showIRs', this.showIRs ? '1' : '0');
+        this.reloadLinks();
+    }
+    toggleShowSelected(): void {
+        this.showSelected = !this.showSelected;
+        this.cookieService.set('app-irgraph-showSelected', this.showSelected ? '1' : '0');
+        this.reloadLinks();
+    }
+
+    hideIR(id: any, evt: Event): void {
+        evt.preventDefault();
+        evt.stopPropagation();
+        (document.getElementById(id) as HTMLElement).classList.toggle('hide-ir');
+        this.reloadLinks();
+    }
+
+    showHide(id: string): string {
+        return (document.getElementById(id) as HTMLElement)
+            .classList.contains('hide-ir') ?  'Show' : 'Hide';
+    }
+
+    importProject(evt: Event): void {
+        const target: DataTransfer = evt.target as unknown as DataTransfer;
+        const reader: FileReader = new FileReader();
+        const file = target.files[0];
+        reader.onload = (e: any) => {
+            if (this.foService.functionalOutputs.value.length > 0 ||
+                this.frService.functionalRequirements.value.length > 0 ||
+                this.assetService.assets.value.length > 0 ||
+                this.pooService.projectOrganisationalObjectives.value.length > 0){
+                const modalRef = this.modalService.open(ConfirmProjectImportDialogComponent,
+                    { scrollable: true, centered: true, size: 'lg' });
+
+                modalRef.componentInstance.closed.subscribe(($event: any) => {
+                    modalRef.close();
+                    if ($event) {
+
+                        this.ioService.importProject(e.target.result).then(msg => {
+                            this.toastr.show(msg,
+                                { classname: 'bg-success text-light', delay: 5000 });
+                            const proj = this.projectDataService.getProject();
+                            proj.name = file.name.replace('.los_cs', '');
+                            this.projectDataService.setProject(proj);
+                            this.reloadLinks();
+                        }, err => {
+                            this.toastr.show(err,
+                                { classname: 'bg-danger text-light', delay: 5000 });
+                        });
+                    }
+
+                });
+            } else {
+                this.ioService.importProject(e.target.result).then(msg => {
+                    this.toastr.show(msg,
+                        { classname: 'bg-success text-light', delay: 5000 });
+                    const proj = this.projectDataService.getProject();
+                    proj.name = file.name.replace('.los_cs', '');
+                    this.projectDataService.setProject(proj);
+                    this.reloadLinks();
+                }, err => {
+                    this.toastr.show(err,
+                        { classname: 'bg-danger text-light', delay: 5000 });
+                });
+            }
+
+        };
+        reader.readAsBinaryString(target.files[0]);
+    }
+
+    export(): void {
+        this.ioService.exportProject(this.project.id)
+            .then(data => {
+                const blob = new Blob([data], {type: 'application/octet-stream'});
+                const fileLink = document.createElement('a');
+                fileLink.href = window.URL.createObjectURL(blob);
+                fileLink.download = `${this.project.name.replace(/[^a-zA-Z0-9]/g, '')}.los_cs`;
+                fileLink.click();
+
+                this.toastr.show('Export Project Completed',
+                    { classname: 'bg-success text-light', delay: 5000 });
+            }, err => {
+                this.toastr.show('Export Project Failed',
+                    { classname: 'bg-error text-light', delay: 5000 });
+            });
+    }
+    clearData(): void {
+        const modalRef = this.modalService.open(ClearShowcaseDialogComponent, { scrollable: true, centered: true, size: 'lg' });
+
+        modalRef.componentInstance.closed.subscribe(($event: any) => {
+            modalRef.close();
+            if ($event) {
+                this.pooService.projectOrganisationalObjectives.next([]);
+                this.frService.functionalRequirements.next([]);
+                this.foService.functionalOutputs.next([]);
+                this.assetService.assets.next([]);
+                this.reloadLinks();
+            }
+
+        });
     }
 }

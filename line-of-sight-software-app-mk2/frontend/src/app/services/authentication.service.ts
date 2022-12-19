@@ -15,7 +15,7 @@ export class AuthenticationService extends BaseAuthenticationService {
         private router: Router,
         private http: HttpClient
     ) {
-        super(router, http);
+        super();
         this.getProvidersUrl = environment.apiBaseUrl + '/api/oauth-providers';
         this.logoutUrl = environment.apiBaseUrl + '/logout';
     }

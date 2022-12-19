@@ -7,18 +7,17 @@ import {environment} from '../../environments/environment';
 import {BaseProjectService} from './base/base-project-service';
 import {BaseOrganisationalObjectiveService} from './base/base-organisational-objective-service';
 import {OrganisationalObjective} from '../types/organisational-objective';
+import {BaseProjectOrganisationalObjectiveService} from './base/base-project-organisational-objective-service';
 
 @Injectable({
     providedIn: 'root'
 })
-export class ProjectOrganisationalObjectiveService {
+export class ProjectOrganisationalObjectiveService extends BaseProjectOrganisationalObjectiveService {
     private serviceUrl;
-
-    public projectOrganisationalObjectives: BehaviorSubject<ProjectOrganisationalObjective[]> =
-        new BehaviorSubject<ProjectOrganisationalObjective[]>([]);
 
     constructor(private http: HttpClient,
                 private ps: BaseProjectService) {
+        super(ps);
         this.serviceUrl = environment.apiBaseUrl + '/api/project-organisational-objectives';
     }
     getProjectOrganisationalObjectives(projectId: string): Observable<Array<ProjectOrganisationalObjective>> {

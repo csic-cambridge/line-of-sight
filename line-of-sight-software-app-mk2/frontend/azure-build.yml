@@ -3,6 +3,8 @@ trigger:
     include:
       - feature/cdbb-151-UsersAndPermissions
       - feature/cdbb-152-ImportAndExport
+      - feature/cdbb-153-Final-drop-without-showcase-functionality
+      - feature/cdbb-154_Showcase_Version
   paths:
     include:
       - frontend/*
@@ -23,7 +25,7 @@ steps:
 - script: |
     npm install -g @angular/cli
     npm install --legacy-peer-deps
-    ng build
+    ng build --configuration=offline
   workingDirectory: 'frontend'
   displayName: 'npm install and build'
 
@@ -33,12 +35,9 @@ steps:
   workingDirectory: 'frontend'
   displayName: 'karma tests'
 
-#- task: CopyFiles@2
-#  inputs:
-#    SourceFolder: '$(Build.SourcesDirectory)/AdminPortal/dist'
-#    targetFolder: '$(Build.ArtifactStagingDirectory)'
-
-#- task: PublishBuildArtifacts@1
-#  displayName: 'Publish Artifact: drop'
-#  inputs:
-#    PathtoPublish: '$(build.artifactstagingdirectory)'
+- task: PublishPipelineArtifact@0
+  inputs:
+    targetPath: $(Build.SourcesDirectory)/frontend/dist
+    artifact: 'drop'
+    publishLocation: 'pipeline'
+  displayName: 'Store artifact'

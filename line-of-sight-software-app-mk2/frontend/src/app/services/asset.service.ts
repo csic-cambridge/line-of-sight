@@ -4,28 +4,26 @@ import {Asset} from '../types/asset';
 import {HttpClient} from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {BaseProjectService} from './base/base-project-service';
-import {FunctionalOutput} from '../types/functional-output';
+import {BaseAssetService} from './base/base-asset-service';
 @Injectable({
     providedIn: 'root'
 })
-export class AssetService {
+export class AssetService extends BaseAssetService {
 
     private serviceUrl;
-    private projectService: BaseProjectService;
-    public assets: BehaviorSubject<Asset[]> =
-        new BehaviorSubject<Asset[]>([]);
 
     constructor(
         private http: HttpClient,
         private ps: BaseProjectService
     ) {
+        super(ps);
         this.serviceUrl = environment.apiBaseUrl + '/api/assets';
-        this.projectService = ps;
     }
 
     getAssets(projectId: string): Observable<Array<Asset>> {
         return this.http.get<Array<Asset>>(this.serviceUrl + '/' + this.projectService.getProjectIdUrlPath(projectId));
     }
+
     loadAssets(projectId: string): void {
         this.getAssets(projectId).subscribe(x => {
             this.assets.next(x);

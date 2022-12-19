@@ -3,7 +3,6 @@ import {Observable} from 'rxjs';
 import {OrganisationalObjective} from '../types/organisational-objective';
 import {HttpClient} from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import {HttpClientModule} from '@angular/common/http';
 import {BaseOrganisationalObjectiveService} from './base/base-organisational-objective-service';
 
 @Injectable({

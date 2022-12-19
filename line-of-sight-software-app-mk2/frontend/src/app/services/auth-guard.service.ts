@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {BaseMeService} from './base/base-me-service';
 import {BasePermissionService} from './base/base-permission-service';
-import {ProjectDataService} from './project-data.service';
 import {Observable, of} from 'rxjs';
-import {map, take} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
+import {BaseProjectDataService} from './base/base-project-data-service';
 
 @Injectable({
     providedIn: 'root'
@@ -14,21 +14,20 @@ export class AuthGuardService implements CanActivate {
     constructor(public auth: BaseMeService,
                 public router: Router,
                 private permissionService: BasePermissionService,
-                private projectDataService: ProjectDataService,
+                private projectDataService: BaseProjectDataService,
                 private meService: BaseMeService) {
-
     }
 
     canActivate(next: ActivatedRouteSnapshot,
                 state: RouterStateSnapshot): | boolean
         | Observable<boolean | UrlTree> {
         let enabled = true;
-        console.log('canActivate');
 
-        this.auth.getMe().subscribe(() => {},
-            error => {
-                this.router.navigate(['/login']);
-            });
+        this.auth.getMe().pipe(map(x => {
+            this.meService.User.next(x);
+            })).subscribe(() => {}, error => {
+            this.router.navigate(['/login']);
+        });
 
         switch (state.url) {
             case '/oograph':

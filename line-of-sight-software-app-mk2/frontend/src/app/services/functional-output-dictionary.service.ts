@@ -1,15 +1,18 @@
 import { Injectable } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {FunctionalOutputDictionary} from '../types/functional-output-dictionary';
-import {BaseDictionaryService} from './base/base-dictionary-service';
 import {Observable} from 'rxjs';
+import {BaseFunctionalOutputDictionaryService} from './base/base-functional-output-dictionary-service';
+import {environment} from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
-export class FunctionalOutputDictionaryService extends BaseDictionaryService<FunctionalOutputDictionary>{
-    constructor(http: HttpClient) {
-        super(http, 'functional-output-data-dictionary');
+export class FunctionalOutputDictionaryService extends BaseFunctionalOutputDictionaryService {
+    private serviceUrl: string;
+    constructor(private http: HttpClient) {
+        super();
+        this.serviceUrl = `${environment.apiBaseUrl}/api/functional-output-data-dictionary`;
     }
     getDictionaries(): Observable<FunctionalOutputDictionary[]> {
         this.http.get<FunctionalOutputDictionary[]>(this.serviceUrl)

@@ -12,11 +12,12 @@ import { IrgraphFrDialogComponent } from './irgraph/irgraph-fr-dialog/irgraph-fr
 import { IrgraphOoDialogComponent } from './irgraph/irgraph-oo-dialog/irgraph-oo-dialog.component';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import { IrgraphDeleteDialogComponent } from './irgraph/irgraph-delete-dialog/irgraph-delete-dialog.component';
+import { ConfirmProjectImportDialogComponent } from './irgraph/confirm-project-import-dialog/confirm-project-import-dialog.component';
 
 
 
 @NgModule({
-  declarations: [IRGraphComponent, EntityLinkComponent, IrgraphAssetDialogComponent, IrgraphFoDialogComponent, IrgraphFrDialogComponent, IrgraphOoDialogComponent, IrgraphDeleteDialogComponent],
+  declarations: [IRGraphComponent, EntityLinkComponent, IrgraphAssetDialogComponent, IrgraphFoDialogComponent, IrgraphFrDialogComponent, IrgraphOoDialogComponent, IrgraphDeleteDialogComponent, ConfirmProjectImportDialogComponent],
     imports: [
         CommonModule,
         InformationRequirementsRoutingModule,

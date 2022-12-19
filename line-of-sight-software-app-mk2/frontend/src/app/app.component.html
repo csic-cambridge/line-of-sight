@@ -20,21 +20,22 @@
                         </b>
                     </span>
                     <br/>
-                    <span style="font-size: 10px">You are logged in as <b>{{this.getLoggedInUsername()}}</b></span>
+                    <span style="font-size: 10px" *ngIf="!env.offline">You are logged in as <b>{{this.getLoggedInUsername()}}</b></span>
                 </div>
                 <div>
                     <button type="button" class="btn btn-outline-danger action-btn-grp pull-right"
-                            (click)="logout()">Logout</button>
-                    <button type="button" class="btn btn-outline-info action-btn-grp pull-right" routerLinkActive="active"
+                            (click)="logout()"  *ngIf="!env.offline">Logout</button>
+                    <button type="button" class="btn btn-outline-info action-btn-grp pull-right"
+                            routerLinkActive="active" *ngIf="!env.offline"
                             [disabled]="!this.meService.User.value.is_super_user"
                             [routerLink]="'/superuser'">Super User</button>
                     <button class="btn btn-outline-info action-btn-grp pull-right"
                             [disabled]="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_OOS)"
-                            routerLinkActive="active"
+                            routerLinkActive="active" *ngIf="!env.offline"
                             [routerLink]="'/oograph'">Organisational Objectives</button>
                     <button type="button" class="btn btn-outline-info action-btn-grp pull-right"
                             [disabled]="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_PROJECTS_DASHBOARD)"
-                            routerLinkActive="active"
+                            routerLinkActive="active" *ngIf="!env.offline"
                             [routerLink]="'/dashboard'">Projects</button>
                 </div>
             </nav>

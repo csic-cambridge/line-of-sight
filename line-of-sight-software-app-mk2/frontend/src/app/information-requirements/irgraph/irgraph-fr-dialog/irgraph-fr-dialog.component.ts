@@ -6,9 +6,6 @@ import {
 } from '@angular/core';
 import {IrGraphDialogs} from '../../../types/ir-graph-dialogs';
 import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {PermissionService} from '../../../services/permission.service';
-import {AssetDataDictionaryEntryService} from '../../../services/asset-data-dictionary-entry.service';
-import {FunctionalRequirementService} from '../../../services/functional-requirement.service';
 import {Project} from '../../../types/project';
 import {FunctionalRequirement} from '../../../types/functional-requirement';
 import {ProjectOrganisationalObjective} from '../../../types/project-organisational-objective';
@@ -17,6 +14,9 @@ import {FunctionalOutput} from '../../../types/functional-output';
 import {IrgraphDeleteDialogComponent} from '../irgraph-delete-dialog/irgraph-delete-dialog.component';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {forbiddenNameValidator} from '../../../dashboard/copy-project-dialog/copy-project-dialog.component';
+import {BaseFunctionalRequirementService} from '../../../services/base/base-functional-requirement-service';
+import {BasePermissionService} from '../../../services/base/base-permission-service';
+import {BaseAssetDictionaryEntryService} from '../../../services/base/base-asset-dictionary-entry-service';
 @Component({
   selector: 'app-irgraph-fr-dialog',
   templateUrl: './irgraph-fr-dialog.component.html',
@@ -37,10 +37,10 @@ export class IrgraphFrDialogComponent implements OnInit {
     mySettings: IMultiSelectSettings = {buttonClasses: 'form-control element-text', enableSearch: true, dynamicTitleMaxItems: 0};
     selectedFOArray: Array<string> = [];
     constructor(private fb: FormBuilder,
-                private frService: FunctionalRequirementService,
-                public permissionService: PermissionService,
+                private frService: BaseFunctionalRequirementService,
+                public permissionService: BasePermissionService,
                 private modalService: NgbModal,
-                public assetDdeService: AssetDataDictionaryEntryService) {
+                public assetDdeService: BaseAssetDictionaryEntryService) {
     }
 
     ngOnInit(): void {

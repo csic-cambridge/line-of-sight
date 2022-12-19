@@ -51,7 +51,8 @@ public class FunctionalOutputsApiDelegateImpl implements FunctionalOutputsApiDel
     @Override
     public Mono<ResponseEntity<Flux<FunctionalOutputWithId>>> findFunctionalOutputsByProject(
         UUID projectId, ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> Flux.fromIterable(repository.findByProjectId(projectId))
+        return Mono.fromCallable(() -> Flux.fromIterable(
+            repository.findByProjectIdOrderByDataDictionaryEntry_EntryId(projectId))
                 .map(dao -> foHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());

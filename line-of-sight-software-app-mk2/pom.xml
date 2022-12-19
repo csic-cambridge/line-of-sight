@@ -5,7 +5,7 @@
 
     <groupId>com.costain.cdbb</groupId>
     <artifactId>cdbb</artifactId>
-    <version>1.4.0</version>
+    <version>1.5.0</version>
     <packaging>pom</packaging>
     <name>Line Of Sight Software App MK2</name>
     <description>Line of Sight</description>
@@ -462,6 +462,16 @@
                             <phase>compile</phase>
                             <configuration>
                                 <arguments>run-script build-prod</arguments>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>npm build for production showcase</id>
+                            <goals>
+                                <goal>npm</goal>
+                            </goals>
+                            <phase>compile</phase>
+                            <configuration>
+                                <arguments>run-script build-prod-showcase</arguments>
                             </configuration>
                         </execution>
                     </executions>

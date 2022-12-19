@@ -1,8 +1,35 @@
 
 <div class="container-xxl" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html" >
+
+    <div class="show-ir-button btn-group" role="group">
+<!--    UNCOMMENT TO SHOW/HIDE ENTITIES    -->
+<!--        <button type="button" class="btn btn-outline-primary"-->
+<!--                [ngClass]="this.showSelected ? 'active':''" (click)="toggleShowSelected()">-->
+<!--            {{this.showSelected ? 'Show All Entities' : 'Show Selected Entities'}}-->
+<!--        </button>-->
+
+        <button type="button" class="btn btn-outline-primary" *ngIf="env.offline"
+                (click)="projectFileInput.click()">Import</button>
+        <button type="button" class="btn btn-outline-primary" *ngIf="env.offline"
+                (click)="export()">Export</button>
+        <button type="button" class="btn btn-outline-danger" *ngIf="env.offline"
+                (click)="clearData()">Delete Showcase</button>
+    </div>
+    <input #projectFileInput type="file" style="display:none;"
+           accept=".los_cs"
+           (change)="importProject($event);projectFileInput.value=''" />
+
     <div class="row buttons-div">
         <div class="col" align="center">
-            <h5><label class="form-label">Project Organisational Objectives</label></h5>
+            <h5 *ngIf="!env.offline"><label class="form-label">Project Organisational Objectives</label></h5>
+            <div class="dropdown" *ngIf="env.offline">
+                <button type="button" aria-haspopup="true" aria-expanded="false"
+                        class="btn btn-outline-primary dropdown-toggle dropbtn">Project Organisational Objectives</button>
+                <div class="dropdown-content">
+                    <button class="dropdown-item" *ngIf="this.project.id"
+                            (click)="new(dialogTypes.OO_DIALOG)">Add Project Organisational Objectives</button>
+                </div>
+            </div>
         </div>
         <div class="col" align="center">
             <div class="dropdown">
@@ -22,7 +49,7 @@
                     <button class="dropdown-item" *ngIf="this.project.id"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)"
                             (click)="new(dialogTypes.FO_DIALOG)">Add Functional Output</button>
-                    <button class="dropdown-item" *ngIf="this.project.id"
+                    <button class="dropdown-item" *ngIf="this.project.id && !env.offline"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.IMPORT_DATA)"
                             (click)="firfileInput.click();">
                         Import Functional Information Requirements
@@ -39,7 +66,7 @@
                     <button class="dropdown-item" *ngIf="this.project.id"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_ASSETS)"
                             (click)="new(dialogTypes.ASSET_DIALOG)">Add Asset</button>
-                    <button class="dropdown-item" *ngIf="this.project.id"
+                    <button class="dropdown-item" *ngIf="this.project.id && !env.offline"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.IMPORT_DATA)"
                             (click)="airsfileInput.click()">
                         Import Asset Information Requirements
@@ -51,18 +78,27 @@
         </div>
     </div>
     <hr>
-    <div class="row row-cols-4" id="leader-line-container">
+    <div class="row row-cols-4" id="leader-line-container" [ngClass]="this.showSelected ? 'hide-entities':''">
         <div class="col">
             <div class="d-flex flex-column justify-content-around h-100" *ngIf="poos">
                 <div *ngFor="let poo of poos.value"
-                     class="card text-center information-requirement w-50 mx-auto">
-                    <a (click)="editPoo(poo)">
-                        <h5 class="card-header" id="{{poo.id}}"
-                            (mouseover)="mouseEnterPOO($event)"
-                            (mouseleave)="mouseLeavePOO($event)"
+                     class="card text-center information-requirement w-50 mx-auto dropdown">
+                    <a (dblclick)="editPoo(poo)" class="dropdown-toggle">
+                        <h5 class="card-header hide-ir" id="{{poo.id}}"
+                            (click)="selectPoo(poo.id)"
+                            (mouseover)="mouseEnterPOO(poo.id)"
+                            (mouseleave)="mouseLeavePOO(poo.id)"
                             (dragstart)="pooLinkStart($event)"
                             [draggable]="true">{{poo.name}}
+                            <div class="dropdown-content">
+                                <button class="dropdown-item" (click)="hideIR(poo.id, $event)">{{showHide(poo.id)}} Organisational Information Requirements</button>
+                            </div>
                         </h5>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush" *ngIf="this.showIRs">
+                                <li *ngFor="let oir of poo.oirs" class="list-group-item">{{oir.oir}}</li>
+                            </ul>
+                        </div>
                         <div *ngIf="poo.oo_versions.length > 1 || poo.oo_is_deleted===true" style="background-color:lightgrey">
                             <span *ngIf="poo.oo_is_deleted===true" style="color:red;"><br/>(Organisationally deleted)</span>
                             <span *ngIf="poo.oo_versions.length > 1">
@@ -71,11 +107,6 @@
                             <hr/>
                         </div>
                     </a>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li *ngFor="let oir of poo.oirs" class="list-group-item">{{oir.oir}}</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </div>
@@ -84,10 +115,11 @@
                 <div *ngFor="let fr of frs.value" class="card text-center information-requirement w-50 mx-auto"
                      (dragover)="allowLinkToFR($event)"
                      (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS) && linkToFR($event)">
-                    <a (click)="editFr(fr)">
+                    <a (dblclick)="editFr(fr)">
                         <h5 class="card-header"
-                            (mouseover)="mouseEnterFR($event)"
-                            (mouseleave)="mouseLeaveFR($event)"
+                            (click)="selectFR(fr.id)"
+                            (mouseover)="mouseEnterFR(fr.id)"
+                            (mouseleave)="mouseLeaveFR(fr.id)"
                             (dragstart)="frLinkStart($event)"
                             [draggable]="true"
                             id="{{fr.id}}">{{fr.name}}
@@ -98,47 +130,61 @@
         </div>
         <div class="col">
             <div class="d-flex flex-column justify-content-around h-100" *ngIf="this.project.id">
-                <div *ngFor="let fo of fos.value" class="card text-center information-requirement w-50 mx-auto"
+                <div *ngFor="let fo of fos.value" class="card text-center information-requirement w-50 mx-auto dropdown"
                      (dragover)="allowLinkToFO($event)"
                      (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS) && linkToFO($event)">
-                    <a (click)="editFo(fo)">
-                        <h5 class="card-header"
-                            (mouseover)="mouseEnterFO($event)"
-                            (mouseleave)="mouseLeaveFO($event)"
+                    <a (dblclick)="editFo(fo)" class="dropdown-toggle">
+                        <h5 class="card-header hide-ir"
+                            (click)="selectFO(fo.id)"
+                            (mouseover)="mouseEnterFO(fo.id)"
+                            (mouseleave)="mouseLeaveFO(fo.id)"
                             (dragstart)="foLinkStart($event)"
                             [draggable]="true"
                             id="{{fo.id}}">{{fo.data_dictionary_entry.text}}
+                            <div class="dropdown-content">
+                                <button class="dropdown-item" (click)="hideIR(fo.id, $event)">{{showHide(fo.id)}} Functional Information Requirements</button>
+                            </div>
                         </h5>
+                        <div class="card-body" *ngIf="fo.firs.length>0">
+                            <ul class="list-group list-group-flush"  *ngIf="this.showIRs">
+                                <li *ngFor="let fir of fo.firs" class="list-group-item">{{fir}}</li>
+                            </ul>
+                        </div>
                     </a>
-                    <div class="card-body" *ngIf="fo.firs.length>0">
-                        <ul class="list-group list-group-flush">
-                            <li *ngFor="let fir of fo.firs" class="list-group-item">{{fir}}</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </div>
         <div class="col">
             <div class="d-flex flex-column justify-content-around" *ngIf="this.project.id">
-                <div class="card text-center information-requirement w-50 mx-auto" *ngFor="let asset of this.assets | async"
+                <div class="card text-center information-requirement w-50 mx-auto dropdown"
+                     *ngFor="let asset of this.assets | async"
                      (dragover)="allowLinkToAsset($event)"
                      (drop)="!this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS) && linkToAsset($event)">
-                    <a (click)="editAsset(asset)">
-                        <h5 class="card-header" (mouseover)="mouseEnterAsset($event)" (mouseleave)="mouseLeaveAsset($event)"
+                    <a (dblclick)="editAsset(asset)" class="dropdown-toggle">
+                        <h5 class="card-header hide-ir"
+                            (click)="selectAsset(asset.id)"
+                            (mouseover)="mouseEnterAsset(asset.id)"
+                            (mouseleave)="mouseLeaveAsset(asset.id)"
                             id="{{asset.id}}">{{asset.data_dictionary_entry.text}}
+                            <div class="dropdown-content">
+                                <button class="dropdown-item" (click)="hideIR(asset.id, $event)">{{showHide(asset.id)}}  Asset Information Requirements</button>
+                            </div>
                         </h5>
+                        <div class="card-body" *ngIf="asset.airs.length>0">
+                            <ul class="list-group list-group-flush"  *ngIf="this.showIRs">
+                                <li *ngFor="let air of asset.airs" class="list-group-item">{{air}}</li>
+                            </ul>
+                        </div>
                     </a>
-                    <div class="card-body" *ngIf="asset.airs.length>0">
-                        <ul class="list-group list-group-flush">
-                            <li *ngFor="let air of asset.airs" class="list-group-item">{{air}}</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
         </div>
-
     </div>
     <div *ngFor="let entityLinks of entityLinks | keyvalue">
         <app-entity-link *ngFor="let entityLink of entityLinks.value"
-                         leftLink="{{entityLinks.key}}" rightLink="{{entityLink}}"></app-entity-link></div>
+                         showIRs="{{this.showIRs}}"
+                         [showSelected]="this.showSelected"
+                         leftLink="{{entityLinks.key}}"
+                         rightLink="{{entityLink}}"></app-entity-link>
+    </div>
 </div>

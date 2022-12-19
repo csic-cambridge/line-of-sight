@@ -9,6 +9,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "build-prod": "ng build --configuration production --build-optimizer --common-chunk",
+    "build-prod-showcase": "ng build --configuration=offline --build-optimizer --common-chunk --output-path=dist/showcase",
     "owasp": "owasp-dependency-check --project \"CDBB\""
   },
   "private": true,

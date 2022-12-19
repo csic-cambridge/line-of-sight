@@ -5,12 +5,10 @@ import {
     OnInit,
     Output, ViewChild,
 } from '@angular/core';
-import {AssetService} from '../../../services/asset.service';
 import {Asset} from '../../../types/asset';
 import {FunctionalOutput} from '../../../types/functional-output';
-import {AssetDataDictionaryEntryService} from '../../../services/asset-data-dictionary-entry.service';
 import {Project} from '../../../types/project';
-import {AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {IrGraphDialogs} from '../../../types/ir-graph-dialogs';
 import {BasePermissionService} from '../../../services/base/base-permission-service';
 import {AppToastService} from '../../../services/app-toast.service';
@@ -21,7 +19,9 @@ import {requiredNameValidator} from '../../../helpers/validation/required-name-v
 import {NgbModal, NgbTypeahead} from '@ng-bootstrap/ng-bootstrap';
 import {IrgraphDeleteDialogComponent} from '../irgraph-delete-dialog/irgraph-delete-dialog.component';
 import {forbiddenNameValidator} from '../../../dashboard/copy-project-dialog/copy-project-dialog.component';
-import {AirsService} from '../../../services/airs.service';
+import {BaseAssetService} from '../../../services/base/base-asset-service';
+import {BaseAirsService} from '../../../services/base/base-airs-service';
+import {BaseAssetDictionaryEntryService} from '../../../services/base/base-asset-dictionary-entry-service';
 
 @Component({
   selector: 'app-irgraph-asset-dialog',
@@ -29,13 +29,13 @@ import {AirsService} from '../../../services/airs.service';
   styleUrls: ['./irgraph-asset-dialog.component.scss']
 })
 export class IrgraphAssetDialogComponent implements OnInit {
-    constructor(private assetService: AssetService,
+    constructor(private assetService: BaseAssetService,
                 private fb: FormBuilder,
                 public toastr: AppToastService,
                 public permissionService: BasePermissionService,
-                public airsService: AirsService,
+                public airsService: BaseAirsService,
                 private modalService: NgbModal,
-                private assetDdeService: AssetDataDictionaryEntryService) {
+                private assetDdeService: BaseAssetDictionaryEntryService) {
     }
 
     @Input() project!: Project;
@@ -121,7 +121,7 @@ export class IrgraphAssetDialogComponent implements OnInit {
             assetTitle: this.fb.control('', [Validators.required,
                 requiredNameValidator(this.getNewAssets().map(x => x.text))]),
         });
-        if (this.selectedAsset) {
+        if (this.selectedAsset.id !== '') {
             this.assetForm.patchValue({
                 assetTitle: {
                     text: this.selectedAsset?.data_dictionary_entry?.text,
@@ -147,7 +147,7 @@ export class IrgraphAssetDialogComponent implements OnInit {
             id: this.assetForm.controls.id.value,
             data_dictionary_entry: {
                 id: this.selectedAsset.data_dictionary_entry.text.split('-')[0].trim(),
-                entry_id: this.selectedAsset.data_dictionary_entry.text.split('-')[0].trim(),
+                entry_id: this.selectedAsset.data_dictionary_entry.entry_id.split('-')[0].trim(),
                 text: (typeof this.assetForm.value.assetTitle === 'string') ?
                     this.assetForm.value.assetTitle : this.assetForm.value.assetTitle.text
             },
@@ -166,12 +166,11 @@ export class IrgraphAssetDialogComponent implements OnInit {
         this.assetService.save(asset, this.project.id)
             .subscribe(
                 () => this.closed.emit({updated: true, dialog: IrGraphDialogs.ASSET_DIALOG}),
-                error => {
+                (error: { error: { error: any; }; }) => {
                     this.toastr.show(`Save Asset Failed.  ${error.error.error}`,
                         {classname: 'bg-danger text-light', delay: 5000});
                     this.hasError.emit(error);
                 });
-
     }
 
     delete(): void {
@@ -185,7 +184,7 @@ export class IrgraphAssetDialogComponent implements OnInit {
                 this.assetService.delete(this.selectedAsset?.id, this.project.id)
                     .subscribe(
                         () => this.closed.emit({updated: true, dialog: IrGraphDialogs.ASSET_DIALOG}),
-                        error => this.hasError.emit(error));
+                        (error: any) => this.hasError.emit(error));
             }
         });
     }
@@ -215,8 +214,8 @@ export class IrgraphAssetDialogComponent implements OnInit {
 
     newAirChange(event: Event): void {
         const target = event.target || event.srcElement || event.currentTarget;
-        const textbox = (target as HTMLInputElement);
-        if (textbox.value === '') {
+        const textBox = (target as HTMLInputElement);
+        if (textBox.value === '') {
             const control = this.assetForm.get('newAir');
             if (control) {
                 control.markAsPristine();
@@ -225,7 +224,7 @@ export class IrgraphAssetDialogComponent implements OnInit {
     }
 
     selectAsset($event: any): void {
-        const asset = this.assetDdeService.entries$.value.find(x => x.text.trim() === $event.target.value);
+        const asset = this.assetDdeService.entries$.value.find((x: { text: string; }) => x.text.trim() === $event.target.value);
         if (asset) {
             this.selectedAsset = {
                 id: '',
@@ -250,7 +249,7 @@ export class IrgraphAssetDialogComponent implements OnInit {
     }
 
     getNewAssets(): DataDictionaryEntry[] {
-        return this.assetDdeService.entries$.value.filter(x =>
+        return this.assetDdeService.entries$.value.filter((x: { entry_id: string; }) =>
             this.assets.filter(a => a.data_dictionary_entry.entry_id === x.entry_id).length === 0);
     }
 
@@ -269,8 +268,8 @@ export class IrgraphAssetDialogComponent implements OnInit {
         });
     }
     getAirs(): void {
-        this.airsService.get().subscribe(x => {
-            this.newAirs = x.filter(x => !this.selectedAsset.airs.includes(x));
+        this.airsService.get().subscribe((x: any[]) => {
+            this.newAirs = x.filter(air => !this.selectedAsset.airs.includes(air));
         });
     }
 }

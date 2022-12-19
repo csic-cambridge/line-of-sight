@@ -1,7 +1,7 @@
 # Line of Sight
 
 Line of Sight (LoS) is a methodology that addresses the development of asset information in relation to organisational objectives, especially addressing the disconnect between Asset Information Requirement (AIR) and
-Objective Information Requirement (OIR).
+Organisational Information Requirement (OIR).
 
 ## Project Dependencies
 
@@ -15,9 +15,16 @@ The application requires the following technologies to be available in the syste
 6. MariaDB (as optional Docker Image)
 
 ## Getting Started
+The application is available in two different versions: a full-featured, multi-user version ('full' version) and a lightweight, single-user version('showcase' version).
 
+The full version requires a centralised backend consisting of a relational database and a java runtime environment running a jar file linked to a browser based front-end.  All users share the same project space for each installation.
+Most of this readme covers the deployment of this version.
+
+The showcase version requires a simple static website to serve the application to any number of single user browser frontends.  There is no linkage between any of the users or their data.  All users operate in a standalone fashion.
+
+##Full Version
 ### Configuration File
-Deployments of the application will require an external configuration file to be specified.
+Deployments of the full version of the application will require an external configuration file to be specified.
 This will be a YAML file and will include
 details of Authentication providers, database connections and other settings.  See the included application.yaml file for
 an example of the format and settings which can be specified.  Other settings can be added if specific functionality or features are required.
@@ -171,6 +178,15 @@ then the application can be run as:
  
 There are many combinations of how the application and database can be run depending on which systems are run in Docker and how the network settings are required.
 It is beyond the scope of this document to provide further options.
+
+## Showcase Version
+###Deployment
+The showcase version requires a static website to be deployed.  Any number of independent users can run the application from the static website.
+The static website files are generated during a build at frontend/dist/showcase.
+
+There is no configuration required.  There is no login or concept of users.  All project data is stored within the browser but may be exported to a local file system.  
+Exported files may be imported at any time, replacing the current project.
+
 
 ## Functionality
 The functionality and working of the Line of Sight Software Application is detailed in the [User Manual](https://github.com/csic-cambridge/line-of-sight/wiki/User-Manual)

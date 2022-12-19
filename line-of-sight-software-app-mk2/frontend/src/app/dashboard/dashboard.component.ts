@@ -38,10 +38,19 @@ export class DashboardComponent implements AfterViewInit, OnInit {
     public dialogTypes = DashboardDialog;
 
     ngOnInit(): void {
-
-
     }
     ngAfterViewInit(): void {
+        if (this.meService.User.value.user_id === undefined) {
+            this.meService.getMe().pipe(map(x => {
+                this.meService.User.next(x);
+                this.loadData();
+            })).subscribe();
+        }
+        else{
+            this.loadData();
+        }
+    }
+    loadData(): void {
 
         this.meService.getUserPermissions().pipe(
             map(userPermissions => {

@@ -10,4 +10,5 @@ import org.springframework.data.repository.CrudRepository;
 public interface AssetRepository extends CrudRepository<AssetDAO, UUID> {
     Set<AssetDAO> findByProjectId(UUID projectId);
     AssetDAO findByProjectIdAndDataDictionaryEntry_EntryId(UUID projectId, String entryId);
+    Set<AssetDAO>findByProjectIdOrderByDataDictionaryEntry_EntryId(UUID projectId);
 }

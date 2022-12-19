@@ -73,6 +73,7 @@ export class WsService {
 
     private processMessage(msg: WebSocketMessage): void {
         console.log('message received: ', msg);
+        console.log(location);
         switch (msg.type) {
             case 100: {
                 if (msg.userId !== this.meService.User.value.user_id) {
@@ -80,6 +81,7 @@ export class WsService {
                 }
                 this.meService.User.next({} as User);
                 this.meService.getMe().subscribe(x => {
+                    this.meService.User.next(x);
                 });
                 this.meService.UserPermissions.next({} as UserPermissions);
                 this.meService.getUserPermissions().subscribe(x => {
@@ -104,7 +106,7 @@ export class WsService {
                 if (!this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_OOS)) {
                     this.organisationalObjectiveService.reload();
                 }
-                if (location.pathname === '/project') {
+                if (location.href.endsWith('/project')) {
                     this.pooService.loadProjectOrganisationalObjectives(this.projectDataService.getProject().id);
                     this.ReloadProject.emit();
                 }
@@ -123,7 +125,7 @@ export class WsService {
                 this.projectService.getProjects().subscribe(x => {
                     this.projectService.projects.next(x);
                 });
-                if (location.pathname === '/project') {
+                if (location.href.endsWith('/project')) {
                     this.frService.loadFunctionalRequirements(this.projectDataService.getProject().id);
                     this.pooService.loadProjectOrganisationalObjectives(this.projectDataService.getProject().id);
                     this.foService.loadFunctionalOutputs(this.projectDataService.getProject().id);
@@ -136,15 +138,17 @@ export class WsService {
 
         setTimeout(() => {
 
-            if (location.pathname === '/oograph' && this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_OOS)) {
+            if (location.href.endsWith('/oograph') &&
+                this.permissionService.userPermissionDisabled(this.permissionService.UPIds.VIEW_OOS)) {
                 location.href = '/dashboard';
             }
-            if (location.pathname === '/superuser' && !this.meService.User.value.is_super_user) {
+            if (location.href.endsWith('/superuser') && !this.meService.User.value.is_super_user) {
                 location.href = '/dashboard';
             }
 
-            if (location.pathname === '/project') {
-                if (this.permissionService.permissionDisabled(this.projectDataService.getProject().id, this.permissionService.PPIds.VIEW_PROJECT_GRAPH)) {
+            if (location.href.endsWith('/project')) {
+                if (this.permissionService.permissionDisabled(this.projectDataService.getProject().id,
+                    this.permissionService.PPIds.VIEW_PROJECT_GRAPH)) {
                     location.href = '/dashboard';
                 }
             }

@@ -4,13 +4,15 @@ import {Project} from '../../../types/project';
 import {FunctionalRequirement} from '../../../types/functional-requirement';
 import {ProjectOrganisationalObjective} from '../../../types/project-organisational-objective';
 import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {PermissionService} from '../../../services/permission.service';
-import {AssetDataDictionaryEntryService} from '../../../services/asset-data-dictionary-entry.service';
-import {ProjectOrganisationalObjectiveService} from '../../../services/project-organisational-objective.service';
 import {IMultiSelectOption, IMultiSelectSettings, IMultiSelectTexts} from 'ngx-bootstrap-multiselect';
 import {Oir} from '../../../types/organisational-objective';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {IrgraphDeleteDialogComponent} from '../irgraph-delete-dialog/irgraph-delete-dialog.component';
+import {BaseProjectOrganisationalObjectiveService} from '../../../services/base/base-project-organisational-objective-service';
+import {BasePermissionService} from '../../../services/base/base-permission-service';
+import {BaseAssetDictionaryEntryService} from '../../../services/base/base-asset-dictionary-entry-service';
+import {environment} from '../../../../environments/environment';
+import {GuidHelper} from '../../../helpers/guid-helper';
 
 @Component({
   selector: 'app-irgraph-oo-dialog',
@@ -29,12 +31,13 @@ export class IrgraphOoDialogComponent implements OnInit {
     pooFRTexts: IMultiSelectTexts = {defaultTitle: 'Select FRs to link', searchEmptyResult: 'No FRs found ...'};
     mySettings: IMultiSelectSettings = {buttonClasses: 'form-control element-text', enableSearch: true, dynamicTitleMaxItems: 0};
     pooForm = new FormGroup({});
+    public env = environment;
 
     constructor(private fb: FormBuilder,
-                private pooService: ProjectOrganisationalObjectiveService,
-                public permissionService: PermissionService,
+                private pooService: BaseProjectOrganisationalObjectiveService,
+                public permissionService: BasePermissionService,
                 private activeModal: NgbModal,
-                public assetDdeService: AssetDataDictionaryEntryService) {
+                public assetDdeService: BaseAssetDictionaryEntryService) {
     }
     oirs(): FormArray {
         return this.pooForm?.get('oirs') as FormArray;
@@ -70,6 +73,7 @@ export class IrgraphOoDialogComponent implements OnInit {
             versionId: this.fb.control({value: '',
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)}),
             name: this.fb.control(''),
+            newOir: this.fb.control(''),
             oirs: this.fb.array([]),
             oirNames: this.fb.array([]),
             oirIds: this.fb.array([]),
@@ -144,6 +148,14 @@ export class IrgraphOoDialogComponent implements OnInit {
                 poo.oirs.push({id: this.oirIds().controls[i].value, oir: this.oirNames().getRawValue()[i]} as Oir);
             }
         });
+
+        if (this.pooForm.value.newOir){
+            const newOir = {
+                id: GuidHelper.getGuid(),
+                oir: this.pooForm.value.newOir
+            };
+            poo.oirs.push(newOir);
+        }
         this.deletedOirs().getRawValue().map((v, i) => {
             if (v) {
                 poo.oirs.push({id: this.deletedOirIds().controls[i].value, oir: this.deletedOirNames().getRawValue()[i]} as Oir);

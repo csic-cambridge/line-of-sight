@@ -25,6 +25,8 @@ export abstract class BaseProjectService {
 
     importAirs(data: string, projectId: string): boolean {
         const project = this.projects.value.find(x => x.id === projectId);
+
+        console.log('importAirs project', project);
         if (project) {
             const all = data.split('\r\n');
 

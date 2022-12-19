@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import {BaseDictionaryService} from '../base/base-dictionary-service';
 import {AssetDictionary} from '../../types/asset-dictionary';
-import {HttpClient} from '@angular/common/http';
 import {DataDictionaryEntry} from '../../types/data-dictionary-entry';
 import {GuidHelper} from '../../helpers/guid-helper';
 import {Observable} from 'rxjs';
@@ -11,8 +10,8 @@ import {NgxIndexedDBService} from 'ngx-indexed-db';
   providedIn: 'root'
 })
 export class OfflineAssetDictionaryService extends BaseDictionaryService<AssetDictionary>{
-    constructor(http: HttpClient, private dbService: NgxIndexedDBService) {
-        super(http, 'asset-data-dictionary');
+    constructor(private dbService: NgxIndexedDBService) {
+        super();
     }
 
     addDictionary(data: string): boolean {
