@@ -733,6 +733,10 @@ databaseChangeLog:
                 columnName: last_modified_timestamp
                 defaultValueComputed: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 tableName: organisational_objective
+          - modifySql:
+              replace:
+                  replace: NOW()
+                  with: (CURRENT_TIMESTAMP)
 
 - changeSet:
     id: 1655386727868-2
@@ -762,6 +766,11 @@ databaseChangeLog:
                 columnName: last_modified_timestamp
                 defaultValueComputed: current_timestamp()
                 tableName: organisational_objective
+          - modifySql:
+                replace:
+                    replace: NOW()
+                    with: (CURRENT_TIMESTAMP)
+
 
 - changeSet:
       id: 1655452686189-1

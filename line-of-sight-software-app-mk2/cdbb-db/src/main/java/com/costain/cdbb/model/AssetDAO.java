@@ -7,19 +7,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.OrderBy;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
-import javax.persistence.CollectionTable;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.Objects;
 import java.util.Set;
@@ -49,10 +47,28 @@ public class AssetDAO {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     private AssetDataDictionaryEntryDAO dataDictionaryEntry;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "airs", joinColumns = @JoinColumn(name = "assetId", referencedColumnName = "id"))
-    @OrderBy(clause = "airs ASC")
-    private Set<String> airs;
+    @OneToMany(mappedBy="assetDao", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<AirsDAO> airs;
+
+    public void setAirs(Set<AirsDAO> _airs){
+        this.airs = _airs;
+        this.setAirs();
+    }
+
+    public void setAirs(){
+        for (AirsDAO airsDao : this.airs) {
+            airsDao.setAssetDao(this);
+        }
+    }
+
+    public void setAssetDaoInAirs() {
+        if (this.airs == null) {
+            return;
+        }
+        for (AirsDAO airsDao : this.airs) {
+            airsDao.setAssetDao(this);
+        }
+    }
 
     @Override
     public String toString() {
@@ -79,4 +95,18 @@ public class AssetDAO {
     public int hashCode() {
         return Objects.hash(id, dataDictionaryEntry, airs);
     }
+
+    public static AssetDAOBuilder builder() {
+        return new CustomAssetDAOBuilder();
+    }
+
+    public static class CustomAssetDAOBuilder extends AssetDAOBuilder{
+        @Override
+        public AssetDAO build() {
+           AssetDAO assetDao = super.build();
+           assetDao.setAssetDaoInAirs();
+           return assetDao;
+        }
+    }
 }
+

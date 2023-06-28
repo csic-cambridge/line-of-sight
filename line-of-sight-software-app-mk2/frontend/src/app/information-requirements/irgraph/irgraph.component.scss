@@ -9,6 +9,7 @@
         color: #000;
     }
     .card-header {
+        width: 100%;
         font-size: 0.7rem;
         color: #000;
         &.on, &.selected{
@@ -59,9 +60,8 @@
     margin-left: 10px;
 }
 .container-xxl{
-    padding: 15px;
+    padding: 0 15px 15px 15px;
 }
-
 .dropbtn {
     cursor: pointer;
 }
@@ -109,11 +109,38 @@
     }
 }
 #leader-line-container {
+    width: 100vw;
     .dropdown-toggle:after {
         display: none;
     }
 
+
+
     a {
         text-decoration: none;
+    }
+}
+
+.row {
+    padding: 15px 0 15px 0;
+}
+
+#subheader {
+    background-color: white;
+    border-bottom: 1px solid #ccc;
+}
+
+::ng-deep body {
+    overflow: hidden;
+}
+
+li {
+    &.oir-selected{
+        background-color: #5aa749;
+        color: #fff;
+    }
+    &.air-selected{
+        background-color: #a7499f;
+        color: #fff;
     }
 }

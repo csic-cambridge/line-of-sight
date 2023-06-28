@@ -119,7 +119,7 @@ public class OoRestTest {
                     }
                     List<String> dbOirs = new ArrayList<>();
                     for (OirDAO oirDao : dao.getOirDaos()) {
-                        dbOirs.add(oirDao.getOir());
+                        dbOirs.add(oirDao.getOirs());
                     }
                 JSONObject finalJsonSingleResponse = jsonSingleResponse;
                 assertAll(

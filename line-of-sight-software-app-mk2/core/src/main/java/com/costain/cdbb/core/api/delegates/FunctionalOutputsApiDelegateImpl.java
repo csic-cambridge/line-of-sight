@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -41,6 +42,9 @@ public class FunctionalOutputsApiDelegateImpl implements FunctionalOutputsApiDel
 
     @Autowired
     private FunctionalOutputHelper foHelper;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     /**
      * Fetch all the functional outputs for a project.
@@ -68,7 +72,8 @@ public class FunctionalOutputsApiDelegateImpl implements FunctionalOutputsApiDel
     public Mono<ResponseEntity<FunctionalOutputWithId>> addFunctionalOutput(
         UUID projectId, Mono<FunctionalOutput> functionalOutput, ServerWebExchange exchange) {
         return functionalOutput.map(dto -> foHelper.inputFromDto(projectId,null, dto))
-            .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
+            .flatMap(dao -> Mono.fromCallable(() ->
+                transactionTemplate.execute(transactionStatus -> repository.save(dao))))
             .map(savedDao -> foHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());

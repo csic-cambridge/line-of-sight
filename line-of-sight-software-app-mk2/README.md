@@ -93,8 +93,8 @@ Follow the steps below with help in setting up a database.
 
   * Create the user for the system
     ``` bash
-    CREATE USER cdbb@'%' IDENTIFIED BY 'cdbbpw';
-    GRANT ALL PRIVILEGES ON *.* TO 'cdbb'@'%' IDENTIFIED BY 'cdbbpw';
+    CREATE USER cdbb@'%' IDENTIFIED BY 'cdbbpw';  (some systems may require a stronger password than this)
+    GRANT ALL PRIVILEGES ON *.* TO 'cdbb'@'%';
     FLUSH PRIVILEGES;
     CREATE SCHEMA cdbb;
     ```
@@ -180,6 +180,11 @@ There are many combinations of how the application and database can be run depen
 It is beyond the scope of this document to provide further options.
 
 ## Showcase Version
+###Build
+The build is done with the build of the main product.
+It can be found in the frontend/dist/showcase folder.
+All files in that folder should be statically served.
+
 ###Deployment
 The showcase version requires a static website to be deployed.  Any number of independent users can run the application from the static website.
 The static website files are generated during a build at frontend/dist/showcase.

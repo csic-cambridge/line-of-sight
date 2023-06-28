@@ -27,6 +27,7 @@ public class ProjectPermissionTypes {
     public static final ProjectPermissionId PROJECT_PERMISSION_VIEW_PROJECT_ID = new ProjectPermissionId(2010);
     public static final ProjectPermissionId PROJECT_PERMISSION_EDIT_POO_ID = new ProjectPermissionId(2110);
     public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_POO_ID = new ProjectPermissionId(2111);
+    public static final ProjectPermissionId PROJECT_PERMISSION_LINK_OIR_AIR = new ProjectPermissionId(2112);
 
     public static final ProjectPermissionId PROJECT_PERMISSION_EDIT_FR_ID = new ProjectPermissionId(2210);
     public static final ProjectPermissionId PROJECT_PERMISSION_DELETE_FR_ID = new ProjectPermissionId(2211);
@@ -49,6 +50,7 @@ public class ProjectPermissionTypes {
             "Edit project organisational objectives(POO)"),
         new AbstractMap.SimpleEntry<>(
         PROJECT_PERMISSION_DELETE_POO_ID.getId(), "Delete project organisational objectives(POO)"),
+        new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_LINK_OIR_AIR.getId(), "Link OIR with AIR"),
         new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_FR_ID.getId(), "Edit functional requirements(FR)"),
         new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_DELETE_FR_ID.getId(), "Delete functional requirements(FR)"),
         new AbstractMap.SimpleEntry<>(PROJECT_PERMISSION_EDIT_FO_ID.getId(), "Edit functional outputs(FO)"),

@@ -1,0 +1,65 @@
+
+<!-- Project Organisational Objectives Content -->
+
+<div class="modal-header" #orgObjHandle>
+    <h3 class="modal-title">Organisational Information Requirement</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="airForm" (ngSubmit)="save()" id="form">
+        <!--        Select OIR to link-->
+        <div class="form-group">
+            <h3><b>{{this.selectedOir.oir}}</b></h3>
+            <div class="input-group flexContainer" formName="newAir">
+                <input
+                    id="new-air-text"
+                        [readonly]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                        [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                       class="form-control element-text inputField"
+                       placeholder="New AIR Link ... "
+                       (selectItem)="selectAir($event.item)"
+                       [ngbTypeahead]="searchAir"
+                       [inputFormatter]="resultFormatter"
+                       [resultFormatter]="resultFormatter"
+                       #instanceOir="ngbTypeahead"
+                       (focus)="focusOir$.next($any($event).target.value)"
+                       (click)="clickOir$.next($any($event).target.value)"
+                       autocomplete="off">
+            </div>
+        </div>
+        <h4>Linked AIRs</h4>
+
+        <label *ngIf="this.selectedOir.airs.length <= 0">
+            No linked AIRs
+        </label>
+        <form [formGroup]="airForm">
+            <div formArrayName="poosLinkedAirs">
+                <div *ngFor="let oir of this.airs().controls; let i=index">
+                    <button (click)="selectAllAirsByName(this.airNames().controls[i].value)" [disabled]="moreAirsWithName(this.airNames().controls[i].value)" type="button" class="btn btn-link">Select all</button>
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               type="checkbox"
+                               [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                               [readonly]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                               (change)="oirChange($event)"
+                               [attr.index]="i"
+                               [checked]="oir.value" />
+                        {{this.airNamesWithAssetName().controls[i].value}}
+                    </label>
+                </div>
+
+            </div>
+        </form>
+
+    </form>
+</div>
+<div class="modal-footer">
+    <ng-container>
+        <button [disabled]="savable() || this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR) " type="submit" data-dismiss="modal" class="btn btn-outline-primary" form="form">Save</button>
+<!--        [disabled]="pooForm?.pristine"-->
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+    </ng-container>
+
+</div>

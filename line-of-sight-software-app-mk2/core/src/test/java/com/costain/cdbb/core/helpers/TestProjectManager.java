@@ -19,11 +19,14 @@ package com.costain.cdbb.core.helpers;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.costain.cdbb.model.AirsDAO;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
+import com.costain.cdbb.model.OirDAO;
 import com.costain.cdbb.model.OrganisationalObjectiveDAO;
 import com.costain.cdbb.model.ProjectDAO;
 import com.costain.cdbb.model.ProjectOrganisationalObjectiveDAO;
@@ -33,21 +36,31 @@ import com.costain.cdbb.repositories.FunctionalRequirementRepository;
 import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectOrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 
 // This class manages projects for the integration tests
 @Component
 public class TestProjectManager {
+    public static final String SAMPLE_PROJECT_ID = "387dac90-e188-11ec-8fea-0242ac120002";
+    public static final String SAMPLE_PROJECT_NAME = "Sample Project";
+    public static final boolean INCLUDE_OIR_AIR_LINKS = false;
+    public static final boolean EXCLUDE_OIR_AIR_LINKS = !INCLUDE_OIR_AIR_LINKS;
+
     @Autowired
     ProjectRepository projectRepository;
 
@@ -61,6 +74,9 @@ public class TestProjectManager {
     FunctionalRequirementRepository frRepository;
 
     @Autowired
+    private TestOoManager ooManager;
+
+    @Autowired
     FunctionalOutputRepository foRepository;
 
     @Autowired
@@ -68,6 +84,12 @@ public class TestProjectManager {
 
     @Autowired
     TestApiManager apiManager;
+
+    @Autowired
+    TestFunctionalOutputManager foManager;
+
+    @Autowired
+    TestAssetManager assetManager;
 
     public UUID create(String projectName, int port) throws Exception {
         return create(projectName, null, null, port);
@@ -133,7 +155,7 @@ public class TestProjectManager {
 
     private boolean matchFrsNamesNotIds(
         ProjectDAO matchProject, Set<FunctionalRequirementDAO> frsToMatch, Set<FunctionalRequirementDAO> sourceFrs) {
-        int result =  (int) frsToMatch.stream().filter(
+        int result = (int) frsToMatch.stream().filter(
             frToMatch ->
                 sourceFrs.stream().filter(
                     sourceFr -> {
@@ -155,10 +177,10 @@ public class TestProjectManager {
         // find poo with matching ooversion - check its frs have different ids but same name
         ProjectDAO matchProject, ProjectOrganisationalObjectiveDAO pooToMatchAgainstSource,
         Set<ProjectOrganisationalObjectiveDAO> sourcePoos) {
-        List<ProjectOrganisationalObjectiveDAO> matchedPooList =  sourcePoos.stream().filter(
+        List<ProjectOrganisationalObjectiveDAO> matchedPooList = sourcePoos.stream().filter(
             sourcePoo -> {
                 System.out.println("Comparing project ids - " + sourcePoo.getProjectId() + " - "
-                    +  matchProject.getId());
+                    + matchProject.getId());
                 System.out.println("Comparing ooversion ids - " + pooToMatchAgainstSource.getOoVersion().getId()
                     + " - " + sourcePoo.getOoVersion().getId());
                 return sourcePoo.getProjectId().equals(matchProject.getId())
@@ -172,16 +194,18 @@ public class TestProjectManager {
         return false;
     }
 
-    public void compareProjects(ProjectDAO sourceProject, ProjectDAO copiedProject) {
-        compareProjects(sourceProject, copiedProject, null, null, null);
+    public void compareProjects(ProjectDAO sourceProject, ProjectDAO copiedProject, boolean excludeOirAirLinks) {
+        compareProjects(sourceProject, copiedProject, null, null, null, excludeOirAirLinks);
     }
 
-    public void compareProjects(ProjectDAO sourceProject, ProjectDAO copiedProject, Integer pooOverrideCount) {
-        compareProjects(sourceProject, copiedProject, pooOverrideCount, null, null);
+    public void compareProjects(ProjectDAO sourceProject, ProjectDAO copiedProject,
+                                Integer pooOverrideCount, boolean excludeOirAirLinks) {
+        compareProjects(sourceProject, copiedProject, pooOverrideCount, null, null, excludeOirAirLinks);
     }
 
     public void compareProjects(ProjectDAO sourceProject, ProjectDAO copiedProject, Integer pooOverrideCount,
-                                String expectedFoDdName, String expectedAssetDdName) {
+                                String expectedFoDdName, String expectedAssetDdName,
+                                boolean excludeOirAirLinks) {
         assertAll(
             () -> {
                 String errorMsg = "FO Data Dictionary name incorrect"
@@ -206,19 +230,35 @@ public class TestProjectManager {
                 }
             },
             () -> assertEquals(null == pooOverrideCount
-                ? sourceProject.getProjectOrganisationalObjectiveDaos().size()
-                : pooOverrideCount,
+                    ? sourceProject.getProjectOrganisationalObjectiveDaos().size()
+                    : pooOverrideCount,
                 copiedProject.getProjectOrganisationalObjectiveDaos().size(),
                 "Different number of POOs"),
             () -> assertEquals(sourceProject.getFunctionRequirementDaos().size(),
                 copiedProject.getFunctionRequirementDaos().size(),
                 "Different number of FRs")
         );
-        // check Poos using ooVersions and frs under each (already tested for same number)
-        int matchingPoos = (int) sourceProject.getProjectOrganisationalObjectiveDaos().stream().filter(sourceDao ->
-            findPooWithMatchingOoVersionFromPooList(
-                copiedProject, sourceDao, copiedProject.getProjectOrganisationalObjectiveDaos())
-        ).count();
+        if (!excludeOirAirLinks) {
+            for (ProjectOrganisationalObjectiveDAO sourcePooDao
+                : sourceProject.getProjectOrganisationalObjectiveDaos()) {
+                for (ProjectOrganisationalObjectiveDAO copiedPooDao
+                    : copiedProject.getProjectOrganisationalObjectiveDaos()) {
+                    if (sourcePooDao.getOoVersion().getOo().getId()
+                        .equals(copiedPooDao.getOoVersion().getOo().getId())) {
+                        assertEquals(sourcePooDao.getFrs().size(), copiedPooDao.getFrs().size(),
+                            "Poo links count to Frs does not match for OO id = "
+                                + sourcePooDao.getOoVersion().getOo().getId()
+                                + ", source = " + sourcePooDao.getFrs().size()
+                                + ", copied = " + copiedPooDao.getFrs().size());
+                    }
+                }
+            }
+            // check Poos using ooVersions and frs under each (already tested for same number)
+            int matchingPoos = (int) sourceProject.getProjectOrganisationalObjectiveDaos().stream().filter(sourceDao ->
+                findPooWithMatchingOoVersionFromPooList(
+                    copiedProject, sourceDao, copiedProject.getProjectOrganisationalObjectiveDaos())
+            ).count();
+        }
 
         //       assertEquals(matchingPoos, null == pooOverrideCount
         //           ? sourceProject.getProjectOrganisationalObjectiveDaos().size()
@@ -241,10 +281,10 @@ public class TestProjectManager {
         Map<String, FunctionalOutputDAO> copiedFosMap = new HashMap<>();
         copiedFos.stream().forEach(foDao -> copiedFosMap.put(foDao.getDataDictionaryEntry().getEntryId(), foDao));
         sourceFos.stream().forEach(foDao ->
-            assertTrue(sourceFosMap.get(foDao.getDataDictionaryEntry().getEntryId()).getFirs()
-                .containsAll(copiedFosMap.get(foDao.getDataDictionaryEntry().getEntryId()).getFirs())
-                && copiedFosMap.get(foDao.getDataDictionaryEntry().getEntryId()).getFirs()
-                .containsAll(sourceFosMap.get(foDao.getDataDictionaryEntry().getEntryId()).getFirs())));
+            assertTrue(foManager.compareFirsDaos(
+                sourceFosMap.get(foDao.getDataDictionaryEntry().getEntryId()).getFirs(),
+                copiedFosMap.get(foDao.getDataDictionaryEntry().getEntryId()).getFirs())));
+
 
         // Data Dictionaries - Assets
         Set<AssetDAO> sourceAssets = assetRepository.findByProjectId(sourceProject.getId());
@@ -258,11 +298,117 @@ public class TestProjectManager {
         Map<String, AssetDAO> copiedAssetsMap = new HashMap<>();
         copiedAssets.stream().forEach(assetDao ->
             copiedAssetsMap.put(assetDao.getDataDictionaryEntry().getEntryId(), assetDao));
-        sourceAssets.stream().forEach(assetDao ->
-            assertTrue(sourceAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs()
-                .containsAll(copiedAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs())
-                && copiedAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs()
-                .containsAll(sourceAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs())));
+        sourceAssets.stream().forEach(assetDao -> {
+            assertTrue(assetManager.compareAirsDaoStrings(
+                sourceAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs(),
+                copiedAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs()));
+            assertTrue(excludeOirAirLinks || compareOirsOfAirs(
+                sourceAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs(),
+                copiedAssetsMap.get(assetDao.getDataDictionaryEntry().getEntryId()).getAirs()));
+        });
+
+    }
+
+    public UUID createCopyOfSampleProject(int port) throws Exception {
+
+        String copiedProjectName = "New Copy Of " + SAMPLE_PROJECT_NAME + "-" + System.currentTimeMillis();
+        Optional<ProjectDAO> optProject = projectRepository.findById(UUID.fromString(SAMPLE_PROJECT_ID));
+        assertTrue(optProject.isPresent(), "Source project " + SAMPLE_PROJECT_ID + " not found for copying");
+        UUID copiedProjectId = optProject.get().getId();
+        JSONObject copyProjectJsonObject = new JSONObject();
+        copyProjectJsonObject.put("name", copiedProjectName);
+        ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
+            copyProjectJsonObject.toString(),
+            "http://localhost:" + port + "/api/project/pid/" + SAMPLE_PROJECT_ID);
+        String personResultAsJsonStr = response.getBody();
+
+        JSONObject jsonObject = new JSONObject(personResultAsJsonStr);
+        assertTrue(jsonObject.has("id"), "Create project response has no id field");
+
+        copiedProjectId = UUID.fromString((String) jsonObject.get("id"));
+
+        String newProjectName = (String) jsonObject.get("name");
+        Set<OrganisationalObjectiveDAO> ooDaos =
+            StreamSupport.stream(ooRepository.findAll().spliterator(), false)
+                .collect(Collectors.toSet());
+        List<ProjectOrganisationalObjectiveDAO> pooDaos =
+            pooRepository.findByProjectIdOrderByOoVersionNameAsc(copiedProjectId);
+
+        UUID finalCopiedProjectId = copiedProjectId;
+        assertAll(
+            () -> assertEquals(ooDaos.size(), pooDaos.size(),
+                "Expected " + ooDaos.size() + " poos but found " + pooDaos.size()),
+            () -> assertTrue(jsonObject.has("name"), "Create project response has no name field"),
+
+            () -> assertNotEquals(SAMPLE_PROJECT_ID, finalCopiedProjectId.toString()),
+            () -> assertEquals(copiedProjectName, newProjectName)
+        );
+        System.out.println("Project " + SAMPLE_PROJECT_NAME + " with Id " + SAMPLE_PROJECT_ID
+            + " was copied to project " + newProjectName + " with Id " + copiedProjectId);
+
+        // test copied project by fetching properties from database
+        ProjectDAO copiedProject = projectRepository.findById(copiedProjectId).get();
+        ProjectDAO sourceProject = optProject.get();
+        System.out.println("Source project = " + sourceProject);
+        System.out.println("Copied project = " + copiedProject);
+        assertTrue(copiedProject.getName().startsWith(copiedProjectName));
+        this.compareProjects(sourceProject, copiedProject, INCLUDE_OIR_AIR_LINKS);
+        return copiedProjectId;
+    }
+
+    private boolean compareOirsOfAirs(Set<AirsDAO> airs1, Set<AirsDAO> airs2) {
+        if (airs1 == null && airs2 == null) {
+            return true;
+        }
+        if (airs1 == null || airs2 == null) {
+            return false;
+        }
+        if (airs1.size() != airs2.size()) {
+            return false;
+        }
+        // can only compare the strings of the oirs as they must have different ids
+        // set up oirs1 and oirs2 for each airs string and then match them
+        Map<String, AirsOirs> airsOirs12 = new HashMap<>();
+        for (AirsDAO airsDao : airs1) {
+            AirsOirs airsOirs = new AirsOirs();
+            for (OirDAO oirsDao : airsDao.getOirs()) {
+                airsOirs.addOirs1(oirsDao.getOirs());
+            }
+            airsOirs12.put(airsDao.getAirs(), airsOirs);
+        }
+        // now find matching airs dao and put Oirs into airsOirs12
+        for (AirsDAO airsDao : airs2) {
+            AirsOirs airsOirs = airsOirs12.get(airsDao.getAirs());
+            if (null == airsOirs) {
+                System.err.println("Could not find match for airs2 = " + airsDao.getAirs() + " in airs1");
+                return false;
+            }
+            for (OirDAO oirsDao : airsDao.getOirs()) {
+                airsOirs.addOirs2(oirsDao.getOirs());
+            }
+            // now do match of both sets Oirs strings
+            if (!(airsOirs.oirs1.containsAll(airsOirs.oirs2) && airsOirs.oirs2.containsAll(airsOirs.oirs1))) {
+                System.err.println("failed to match Oirs1 with Oirs2 for Airs " + airsDao.getAirs());
+                return false;
+            }
+            airsOirs12.remove(airsDao.getAirs());
+        }
+        return airsOirs12.isEmpty();
+    }
+
+    public static class AirsOirs {
+        List<String> oirs1 = new ArrayList<>();
+        List<String> oirs2 = new ArrayList<>();
+
+        public void addOirs1(String oirs) {
+            oirs1.add(oirs);
+        }
+
+        public void addOirs2(String oirs) {
+            oirs2.add(oirs);
+        }
 
     }
 }
+
+

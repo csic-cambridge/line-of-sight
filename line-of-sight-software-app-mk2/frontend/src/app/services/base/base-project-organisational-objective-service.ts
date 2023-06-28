@@ -20,4 +20,6 @@ export abstract class BaseProjectOrganisationalObjectiveService {
     abstract save(poo: ProjectOrganisationalObjective, projectId: string): Observable<ProjectOrganisationalObjectiveUpdate>;
 
     abstract delete(pooId: string, projectId: string): Observable<any>;
+
+
 }

@@ -19,6 +19,7 @@ package com.costain.cdbb.core.api.delegates;
 
 
 import com.costain.cdbb.api.AirsApiDelegate;
+import com.costain.cdbb.model.Airs;
 import com.costain.cdbb.model.AssetWithId;
 import com.costain.cdbb.model.helpers.AssetHelper;
 import java.util.UUID;
@@ -45,8 +46,9 @@ public class AirsApiDelegateImpl implements AirsApiDelegate {
      * @return Mono&lt;ResponseEntity&lt;String&gt;&gt; all firs
      */
     @Override
-    public Mono<ResponseEntity<String>> fetchAirs(ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> assetHelper.findAllAirs())
+    public Mono<ResponseEntity<Flux<Airs>>> fetchAirs(ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(assetHelper.findAllAirs())
+            .map(dao -> new Airs().id(dao.getId().toString()).airs(dao.getAirs())))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }

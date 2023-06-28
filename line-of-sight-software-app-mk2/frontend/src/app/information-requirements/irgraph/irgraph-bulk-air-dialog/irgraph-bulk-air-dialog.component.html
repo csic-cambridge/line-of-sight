@@ -1,0 +1,59 @@
+
+<div class="modal-header">
+    <h3 class="modal-title">Bulk AIR Edit</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="bulkAirForm" (ngSubmit)="save()" id="form">
+        <div class="form-group">
+            <div class="input-group flexContainer" formName="newBulkAir">
+                <input id="new-bulk-air"
+                       formControlName="newOirLink"
+                       class="form-control element-text inputField"
+                       placeholder="New AIR... "
+                       [ngbTypeahead]="searchAir"
+                       [inputFormatter]="resultFormatter"
+                       [resultFormatter]="resultFormatter"
+                       (selectItem)="selectAirs($event.item)"
+                       (change)="onAirChange($event)"
+                       (focus)="focusOir$.next($any($event).target.value)"
+                       (click)="clickOir$.next($any($event).target.value)"
+                       autocomplete="off">
+            </div>
+
+        </div>
+        <h4>Assets</h4>
+        <button style="padding-left: 0" (click)="selectAllAssets()" [disabled]="isAllSelected()" type="button" class="btn btn-link">Select all</button>
+        <button style="padding-left: 0" (click)="deselectAllAssets()" [disabled]="isAllDeselected()" type="button" class="btn btn-link">Deselect all</button>
+
+        <label *ngIf="this.assets.length <= 0">
+            No Assets
+        </label>
+        <form [formGroup]="bulkAirForm">
+            <div formArrayName="assets">
+                <div *ngFor="let asset of this.assetsControls().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               type="checkbox"
+                               [attr.index]="i"
+                               (change)="assetChange($event)"
+                               [checked]="asset.value" />
+                        {{this.assetNames().controls[i].value}}
+                    </label>
+                </div>
+
+            </div>
+        </form>
+
+    </form>
+</div>
+<div class="modal-footer">
+
+    <ng-container>
+        <button type="submit" data-dismiss="modal" class="btn btn-outline-primary" form="form" [disabled]="getUpdates().length <= 0" >Save</button>
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+    </ng-container>
+
+</div>

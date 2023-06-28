@@ -31,6 +31,16 @@
         <!-- FOS -->
         <div class="form-group">
             <h5><label>Functional Output<i>(FO)</i></label></h5>
+            <div class="input-group">
+                <ngx-bootstrap-multiselect
+                    name="fosArray"
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
+                    [options]="frFOOptions"
+                    [texts]="frFOTexts"
+                    formControlName="selectedFos"
+                    [settings]="mySettings">
+                </ngx-bootstrap-multiselect>
+            </div>
             <h6><label><b>Linked Functional Outputs</b>
                 <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt">
                     (Uncheck to <b>delete</b> linked FOs)
@@ -49,16 +59,7 @@
                     </label>
                 </div>
             </div>
-            <div class="input-group">
-                <ngx-bootstrap-multiselect
-                    name="fosArray"
-                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FRS)"
-                    [options]="frFOOptions"
-                    [texts]="frFOTexts"
-                    formControlName="selectedFos"
-                    [settings]="mySettings">
-                </ngx-bootstrap-multiselect>
-            </div>
+
         </div>
         <!-- POO Linked to the FR -->
         <div class="form-group">

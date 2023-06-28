@@ -1,0 +1,68 @@
+
+<!-- Project Organisational Objectives Content -->
+
+<div class="modal-header" #orgObjHandle>
+    <h3 class="modal-title">Asset Information Requirement</h3>
+    <button type="button" class="close" aria-label="Close" (click)="closeModal()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+<div class="modal-body">
+    <form [formGroup]="oirForm" (ngSubmit)="save()" id="form">
+<!--        Select OIR to link-->
+        <div class="form-group">
+            <h3><b>{{this.selectedAir.airs}}</b></h3>
+            <div class="input-group flexContainer" formName="newOir">
+                <input id="new-oir-text" ngbAutofocus
+                       class="form-control element-text inputField"
+                       placeholder="New OIR Link ... "
+                       [readonly]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                       [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                       (selectItem)="selectOir($event)"
+                       [ngbTypeahead]="searchOir"
+                       [inputFormatter]="resultFormatter"
+                       [resultFormatter]="resultFormatter"
+                       #instanceOir="ngbTypeahead"
+                       (focus)="focusOir$.next($any($event).target.value)"
+                       (click)="clickOir$.next($any($event).target.value)"
+                       autocomplete="off">
+            </div>
+
+        </div>
+        <h4>Linked OIRs</h4>
+
+
+        <label *ngIf="this.poosLinkedAirs.length <= 0">
+            No linked OIRs
+        </label>
+        <form [formGroup]="oirForm">
+            <div formArrayName="poosLinkedAirs">
+                <div *ngFor="let oir of this.oirs().controls; let i=index">
+                    <label class="custom-label-css">
+                        <input class="custom-checkbox-css"
+                               type="checkbox"
+                               [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                               [readonly]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+                               (change)="oirChange($event)"
+                               [attr.index]="i"
+                               [checked]="oir.value" />
+                        {{this.oirNames().controls[i].value}}
+                    </label>
+                </div>
+
+            </div>
+        </form>
+
+    </form>
+</div>
+<div class="modal-footer">
+
+    <ng-container>
+        <button
+            [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.LINK_OIR_AIR)"
+            type="submit" data-dismiss="modal" class="btn btn-outline-primary" form="form">Save</button>
+        <!--                [disabled]="pooForm?.pristine">Save</button>-->
+        <button type="button" data-dismiss="modal" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+    </ng-container>
+
+</div>

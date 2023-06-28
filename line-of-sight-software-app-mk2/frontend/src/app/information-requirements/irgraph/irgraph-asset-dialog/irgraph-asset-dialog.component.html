@@ -14,14 +14,14 @@
 
             <div class="flex-row">
                 <label for="asset-Id" class="form-label text-right h5">Title</label>
-                <label *ngIf="this.instance.isPopupOpen() && this.searchItems.length > 10"
+                <label *ngIf="this.instance.isPopupOpen()"
                        class="form-label float-right text-primary">
-                    10 of {{this.searchItems.length}} matches shown, please refine search
+                   {{this.searchItems.length}} matches shown
                 </label>
             </div>
             <input id="asset-Id"
                    formControlName="assetTitle"
-                   type="search" ngbAutofocus
+                   type="search"
                    (selectItem)="itemSelected($event)"
                    [ngbTypeahead]="search"
                    [readOnly]="this.assetForm.controls.id.value !== ''"
@@ -46,19 +46,20 @@
         <div class="form-group">
             <div class="flex-row">
                 <label for="new-air-text" class="h5 form-label">Asset Information Requirement <i>(AIR)</i></label>
-                <label *ngIf="this.instanceAir.isPopupOpen() && this.airSearchItems.length > 10"
+                <label *ngIf="this.instanceAir.isPopupOpen()"
                        class="form-label float-right text-primary">
-                    10 of {{this.airSearchItems.length}} matches shown, please refine search
+                     {{this.airSearchItems.length}} matches shown
                 </label>
             </div>
             <div class="input-group flexContainer" formName="newAir">
                 <input id="new-air-text" ngbAutofocus
                        class="form-control element-text inputField"
                        formControlName="newAir"
-                       formControlName="newAir"
                        (change)="newAirChange($event)"
                        placeholder="New AIR ... "
                        [ngbTypeahead]="searchAir"
+                       [inputFormatter]="resultFormatter"
+                       [resultFormatter]="resultFormatter"
                        #instanceAir="ngbTypeahead"
                        (focus)="focusAir$.next($any($event).target.value)"
                        (click)="clickAir$.next($any($event).target.value)"

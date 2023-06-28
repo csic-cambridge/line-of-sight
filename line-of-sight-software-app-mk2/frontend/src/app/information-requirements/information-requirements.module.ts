@@ -13,11 +13,14 @@ import { IrgraphOoDialogComponent } from './irgraph/irgraph-oo-dialog/irgraph-oo
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import { IrgraphDeleteDialogComponent } from './irgraph/irgraph-delete-dialog/irgraph-delete-dialog.component';
 import { ConfirmProjectImportDialogComponent } from './irgraph/confirm-project-import-dialog/confirm-project-import-dialog.component';
-
+import {NgxPanZoomModule} from "ngx-panzoom";
+import {IrgraphOirDialogComponent} from "./irgraph/irgraph-oir-dialog/irgraph-oir-dialog.component";
+import {IrgraphAirDialogComponent} from './irgraph/irgraph-air-dialog/irgraph-air-dialog.component'
+import {IrgraphBulkAirDialogComponent} from "./irgraph/irgraph-bulk-air-dialog/irgraph-bulk-air-dialog.component";
 
 
 @NgModule({
-  declarations: [IRGraphComponent, EntityLinkComponent, IrgraphAssetDialogComponent, IrgraphFoDialogComponent, IrgraphFrDialogComponent, IrgraphOoDialogComponent, IrgraphDeleteDialogComponent, ConfirmProjectImportDialogComponent],
+  declarations: [IRGraphComponent, IrgraphAirDialogComponent, EntityLinkComponent, IrgraphAssetDialogComponent, IrgraphFoDialogComponent, IrgraphFrDialogComponent, IrgraphOoDialogComponent,IrgraphOirDialogComponent, IrgraphDeleteDialogComponent, ConfirmProjectImportDialogComponent, IrgraphBulkAirDialogComponent],
     imports: [
         CommonModule,
         InformationRequirementsRoutingModule,
@@ -25,7 +28,8 @@ import { ConfirmProjectImportDialogComponent } from './irgraph/confirm-project-i
         ReactiveFormsModule,
         NgbModule,
         AngularDraggableModule,
-        NgxBootstrapMultiselectModule
+        NgxBootstrapMultiselectModule,
+        NgxPanZoomModule
     ]
 })
 export class InformationRequirementsModule { }

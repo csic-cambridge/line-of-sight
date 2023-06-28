@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,11 +39,13 @@ import reactor.core.publisher.Mono;
 public class AssetsApiDelegateImpl implements AssetsApiDelegate {
 
     @Autowired
-    private AssetRepository repository;
+    private AssetRepository assetRepository;
 
     @Autowired
     private AssetHelper assetHelper;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
 
     /**
@@ -53,7 +56,7 @@ public class AssetsApiDelegateImpl implements AssetsApiDelegate {
     @Override
     public Mono<ResponseEntity<Flux<AssetWithId>>> findAssetsByProject(UUID projectId, ServerWebExchange exchange) {
         return Mono.fromCallable(() -> Flux.fromIterable(
-                repository.findByProjectIdOrderByDataDictionaryEntry_EntryId(projectId))
+                assetRepository.findByProjectIdOrderByDataDictionaryEntry_EntryId(projectId))
                 .map(dao -> assetHelper.fromDao(dao)))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -68,7 +71,8 @@ public class AssetsApiDelegateImpl implements AssetsApiDelegate {
     @Override
     public Mono<ResponseEntity<AssetWithId>> addAsset(UUID projectId, Mono<Asset> asset, ServerWebExchange exchange) {
         return asset.map(dto -> assetHelper.fromDto(null, dto, projectId))
-            .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
+            .flatMap(dao -> Mono.fromCallable(() ->
+                transactionTemplate.execute(transactionStatus -> assetRepository.save(dao))))
             .map(savedDao -> assetHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
@@ -85,7 +89,7 @@ public class AssetsApiDelegateImpl implements AssetsApiDelegate {
     public Mono<ResponseEntity<AssetWithId>> updateAsset(UUID projectId, UUID assetId,
                                                          Mono<Asset> asset, ServerWebExchange exchange) {
         return asset.map(dto -> assetHelper.fromDto(assetId, dto, projectId))
-            .flatMap(dao -> Mono.fromCallable(() -> repository.save(dao)))
+            .flatMap(dao -> Mono.fromCallable(() -> assetRepository.save(dao)))
             .map(savedDao -> assetHelper.fromDao(savedDao))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());

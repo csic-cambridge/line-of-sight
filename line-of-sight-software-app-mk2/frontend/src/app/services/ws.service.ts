@@ -16,7 +16,7 @@ import {BaseMeService} from './base/base-me-service';
 import {UserPermissions} from '../types/user-permissions';
 import {User} from '../types/user';
 
-export const WS_ENDPOINT = environment.wsEndpoint;
+//export const WS_ENDPOINT = environment.wsEndpoint;
 
 @Injectable({
   providedIn: 'root'
@@ -58,7 +58,7 @@ export class WsService {
     }
 
     private getNewWebSocket(): WebSocketSubject<any> {
-        return webSocket(WS_ENDPOINT);
+        return webSocket('ws://' + window.location.host + '/cdbb-ws'); //WS_ENDPOINT);
     }
 
     sendMessage(msg: any): void {

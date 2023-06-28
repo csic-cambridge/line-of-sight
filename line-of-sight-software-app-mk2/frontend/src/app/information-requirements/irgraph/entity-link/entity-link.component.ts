@@ -6,7 +6,7 @@ import {
     OnInit,
     OnDestroy,
     OnChanges,
-    SimpleChanges, HostListener,
+    SimpleChanges, HostListener, ViewChild, ElementRef,
 } from '@angular/core';
 import {DOCUMENT} from '@angular/common';
 import 'leader-line';
@@ -19,19 +19,16 @@ declare let LeaderLine: any;
     templateUrl: './entity-link.component.html',
     styleUrls: ['./entity-link.component.scss']
 })
-export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
+export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy {
 
     @Input() leftLink?: string;
     @Input() rightLink?: string;
     @Input() showIRs?: string;
     @Input() showSelected?: boolean;
-
     private resizeObserver: ResizeObserver = new ResizeObserver(this.onResize);
     private leaderline: any;
 
     constructor(@Inject(DOCUMENT) private document: any) {
-    }
-    ngOnChanges(changes: SimpleChanges): void {
     }
 
     ngOnDestroy(): void {
@@ -41,12 +38,13 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
         const element = document.getElementById('leader-line-container');
         if (element !== null) {
             this.resizeObserver.unobserve(element);
-
             this.resizeObserver.disconnect();
         }
+
     }
 
     ngOnInit(): void {
+
     }
 
     ngAfterViewInit(): void {
@@ -58,7 +56,10 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
             // not sure why, but sometimes rightlink is not found (it should have rendered by now) but a second attempt will solve it.
             this.createLink();
         }
+
     }
+
+
 
     createLink(): boolean{
         if (this.leaderline === undefined && this.leftLink !== undefined && this.rightLink !== undefined) {
@@ -74,7 +75,8 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
                         color: (startElement.classList.contains('selected') && endElement.classList.contains('selected')) ?
                             IRGraphComponent.darkblue : '#ccc',
                         startSocket: 'right',
-                        endSocket: 'left'
+                        endSocket: 'left',
+                        zIndex: -1,
                     }
                 );
                 return true;
@@ -86,6 +88,12 @@ export class EntityLinkComponent implements OnInit, AfterViewInit, OnDestroy, On
     onResize(): void {
         if (this.leaderline != null) {
             this.leaderline.position();
+        }
+    }
+
+    setColor(color: string): void {
+        if (this.leaderline != null) {
+            this.leaderline.color = color
         }
     }
 

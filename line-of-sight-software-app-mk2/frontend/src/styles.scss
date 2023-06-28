@@ -28,3 +28,10 @@ form.ng-submitted{
         margin: 30px 0 0 0;
     }
 }
+
+ngb-typeahead-window {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-width: 766px;
+}

@@ -69,13 +69,14 @@ export class OographDialogComponent implements OnInit {
 
         this.linkedOOIRs().getRawValue().map((v, i) => {
             if (v) {
-                updatedOirs.push({id: this.linkedOOIRIds().controls[i].value, oir: this.linkedOOIRNames().controls[i].value});
+                updatedOirs.push({id: this.linkedOOIRIds().controls[i].value, oir: this.linkedOOIRNames().controls[i].value, airs:[]});
             }
         });
         if (this.ooForm.value.newOir){
             const newOir = {
                 id: '',
-                oir: this.ooForm.value.newOir
+                oir: this.ooForm.value.newOir,
+                airs: []
             };
             updatedOirs.push(newOir);
         }

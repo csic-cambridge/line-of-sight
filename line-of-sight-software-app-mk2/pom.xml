@@ -5,7 +5,7 @@
 
     <groupId>com.costain.cdbb</groupId>
     <artifactId>cdbb</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
     <packaging>pom</packaging>
     <name>Line Of Sight Software App MK2</name>
     <description>Line of Sight</description>
@@ -147,6 +147,7 @@
                     <version>${maven-javadoc-plugin.version}</version>
                     <configuration>
                         <encoding>${project.build.sourceEncoding}</encoding>
+                        <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath> <!-- resolves lombok builder ref issue-->
                     </configuration>
                     <executions>
                         <execution>

@@ -24,16 +24,18 @@ import com.costain.cdbb.core.events.EventType;
 import com.costain.cdbb.core.events.NotifyClientEvent;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.DataDictionaryEntry;
+import com.costain.cdbb.model.Firs;
+import com.costain.cdbb.model.FirsDAO;
 import com.costain.cdbb.model.FunctionalOutput;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryEntryDAO;
 import com.costain.cdbb.model.FunctionalOutputWithId;
 import com.costain.cdbb.model.ProjectDAO;
+import com.costain.cdbb.repositories.FirsRepository;
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVParser;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,9 +47,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -61,6 +64,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class FunctionalOutputHelper {
+    private static final Logger logger = LogManager.getLogger();
 
     @Autowired
     ProjectRepository projectRepository;
@@ -70,6 +74,9 @@ public class FunctionalOutputHelper {
 
     @Autowired
     FunctionalOutputDataDictionaryEntryRepository ddeRepository;
+
+    @Autowired
+    FirsRepository firsRepository;
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
@@ -93,9 +100,14 @@ public class FunctionalOutputHelper {
             .entryId(dde.getEntryId())
             .text(dde.getEntryId() + "-" + dde.getText()));
         if (dao.getFirs() != null) {
-            ArrayList<String> sortedFirs = new ArrayList<String>(dao.getFirs());
-            Collections.sort(sortedFirs, String.CASE_INSENSITIVE_ORDER);
-            dto.firs(sortedFirs);
+            //ArrayList<FirsDAO> sortedFirs = new ArrayList<>(dao.getFirs());
+            logger.warn("********** Not sorting AIRS**************************************");
+            //Collections.sort(sortedFirs, String.CASE_INSENSITIVE_ORDER);
+            List<Firs> firs = new ArrayList<>(dao.getFirs().size());
+            for (FirsDAO firsDao: dao.getFirs()) {
+                firs.add(new Firs().id(firsDao.getId().toString()).firs(firsDao.getFirs()));
+            }
+            dto.firs(firs);
         } else {
             dto.firs(Collections.emptyList());
         }
@@ -136,20 +148,33 @@ public class FunctionalOutputHelper {
 
     private FunctionalOutputDAO fromDto(FunctionalOutputDAO.FunctionalOutputDAOBuilder builder,
                                         UUID projectId,
-                                        String ddeId, Collection<String> firs, Collection<UUID> assets) {
+                                        String ddeId, List<Firs> firs, Collection<UUID> assets) {
         ProjectDAO projectDao = projectRepository.findById(projectId).get();
         FunctionalOutputDataDictionaryEntryDAO optFoDdeDao =
             ddeRepository.findByFoDictionaryIdAndEntryId(projectDao.getFoDataDictionary().getId(), ddeId);
         FunctionalOutputDAO dao = builder
             .projectId(projectId)
             .dataDictionaryEntry(optFoDdeDao)
-            .firs(new HashSet<>(firs))
+            .firs(makeFirsSetFromFirs(firs))
             .assets(assets.stream().map(id -> AssetDAO.builder().id(id).build()).collect(Collectors.toSet()))
             .build();
         notifyClientOfProjectChange(projectId);
         return dao;
     }
 
+    private Set<FirsDAO> makeFirsSetFromFirs(Collection<Firs> firs) {
+        if (null == firs) {
+            return Collections.emptySet();
+        }
+        Set<FirsDAO> result = new HashSet<>(firs.size());
+        for (Firs fir: firs) {
+            FirsDAO firsDao =  FirsDAO.builder()
+                .id(fir.getId())
+                .firs(fir.getFirs()).build();
+            result.add(firsDao);
+        }
+        return result;
+    }
 
     /**
      * Import FIRs uploaded from client.
@@ -203,7 +228,12 @@ public class FunctionalOutputHelper {
                             .firs(new HashSet<>())
                             .build();
                     }
-                    foDao.getFirs().add(fields[1]);
+                    // do not add if fir text already in this fo
+                    if (null == firsRepository.findByFoDaoIdAndFirs(foDao.getId(), fields[1])) {
+                        FirsDAO firsDao = FirsDAO.builder().firs(fields[1]).build();
+                        foDao.getFirs().add(firsDao);
+                        foDao.setFirs();
+                    }
                     foDaosMap.put(fields[0], foRepository.save(foDao));
                 }
                 notifyClientOfProjectChange(projectId);
@@ -224,19 +254,19 @@ public class FunctionalOutputHelper {
      *  /web-reactive.html#webflux-codecs-jackson why this is necessary to encode here
      * @return Firs All FIRs sorted alphabetically
      */
-    public String findAllFirs() throws JsonProcessingException {
-        var ref = new Object() {
-            List<String> firs = new ArrayList<>();
-        };
+    public List<FirsDAO>  findAllFirs() throws JsonProcessingException {
+        logger.warn("*************NOT RETURNING FIRS IN ORDER");
+        List<FirsDAO> firs = new ArrayList<>();
         foRepository.findAll().forEach(
             foDao -> {
-                foDao.getFirs().forEach(fir -> ref.firs.add(fir));
+                foDao.getFirs().forEach(fir -> firs.add(fir));
             });
-        Set<String> set = new TreeSet<String>();
+        return firs;
+        /*Set<String> set = new TreeSet<String>();
         set.addAll(ref.firs);
         ref.firs = new ArrayList<String>(set);
         Collections.sort(ref.firs, String.CASE_INSENSITIVE_ORDER);
-        return new ObjectMapper().writeValueAsString(ref.firs);
+        return new ObjectMapper().writeValueAsString(ref.firs);*/
     }
 
     /**

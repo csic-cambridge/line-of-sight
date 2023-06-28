@@ -10,32 +10,24 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
-import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
 @Audited
 @Table(name = "oirs")
 @Getter
-//@Setter(AccessLevel.PROTECTED)
+@Setter //(AccessLevel.PROTECTED)
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -52,26 +44,33 @@ public class OirDAO {
     @JoinColumn(name = "oo_id", referencedColumnName = "id")
     private OrganisationalObjectiveDAO ooDao;
 
+    @ManyToMany
+    @JoinTable(
+        name = "oirs_airs",
+        joinColumns = @JoinColumn(name = "oirs_id"),
+        inverseJoinColumns = @JoinColumn(name = "airs_id"))
+    Set<AirsDAO> airs;
+
+
     @Column(name="oirs")
-    String oir;
+    String oirs;
 
-    @Column(name = "oo_id",  insertable=false, updatable=false)
+    @Column(name = "oo_id", insertable=false, updatable=false)
     String ooId;
-
-    public void setOoId (String ooId) {
-        this.ooId = ooId;
-    }
 
     public void setOoDao (OrganisationalObjectiveDAO ooDao) {
         this.ooDao = ooDao;
     }
+    public void setAirs( Set<AirsDAO> airs) {
+        this.airs = airs;
+    }
 
     @Override
     public String toString() {
-        return "Oir {" +
+        return "OirDAO {" +
             "id=" + id +
             ", oo_id=" + (ooDao == null ? "null" : ooDao.getId()) +
-            ", oir=" + oir +
+            ", oir=" + oirs +
             '}';
     }
 
@@ -82,11 +81,11 @@ public class OirDAO {
         OirDAO oirDAO = (OirDAO) o;
         return Objects.equals(id, oirDAO.id) &&
             Objects.equals(ooId, oirDAO.ooId) &&
-            Objects.equals(oir, oirDAO.oir);
+            Objects.equals(oirs, oirDAO.oirs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, ooId, oir);
+        return Objects.hash(id, ooId, oirs);
     }
 }

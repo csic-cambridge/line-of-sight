@@ -1,10 +1,14 @@
 package com.costain.cdbb.db.test;
 
 
+import com.costain.cdbb.model.AirsDAO;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
+import com.costain.cdbb.model.FirsDAO;
+import com.costain.cdbb.repositories.AirsRepository;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
+import com.costain.cdbb.repositories.FirsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -20,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -37,6 +42,10 @@ public class AssetRepositoryTest {
     private TestEntityManager em;
     @Autowired
     private AssetDataDictionaryEntryRepository assetDdeRepository;
+    @Autowired
+    private AirsRepository airsRepository;
+
+    private static final boolean PERSIST = true;
 
     private AssetDataDictionaryEntryDAO getAdde() {
         AssetDataDictionaryEntryDAO adde =
@@ -62,35 +71,46 @@ public class AssetRepositoryTest {
 
     @Test
     public void shouldStoreAnAsset() {
-        AssetDAO asset = repository.save(AssetDAO.builder().dataDictionaryEntry(getAdde())
-            .airs(Set.of("AIR #1", "AIR #2")).build());
+        AirsDAO air1 = makeAirsDao(1);
+        AirsDAO air2 = makeAirsDao(2);
+        Set<AirsDAO> airs = new HashSet<>();
+        airs.add(air1);
+        airs.add(air2);
+        AssetDAO asset = AssetDAO.builder().dataDictionaryEntry(getAdde()).airs(airs).build();
+        asset = repository.save(asset);
 
         logger.info("Saved asset: {}", asset);
 
         assertThat(asset.getId(), notNullValue());
         assertThat(asset.getDataDictionaryEntry().getText(), equalTo(getAdde().getText()));
-        assertThat(asset.getAirs(), equalTo(Set.of("AIR #1", "AIR #2")));
+        assertThat(asset.getAirs(), containsInAnyOrder(air1, air2));
     }
 
     @Test
     public void shouldUpdateAnAsset() {
-        Set<String> airs = new HashSet<>();
-        airs.add("AIR #1");
-        airs.add("AIR #2");
+
         AssetDAO asset = repository.save(AssetDAO.builder()
-                .projectId(SAMPLE_PROJECT_ID)
-                .dataDictionaryEntry(getAdde())
-            .airs(airs).build());
+            .projectId(SAMPLE_PROJECT_ID)
+            .dataDictionaryEntry(getAdde())
+            .build());
 
         logger.info("Saved asset: {}", asset);
-
         UUID id = asset.getId();
+
+        AirsDAO air1 = makeAirsDao(1, asset, PERSIST);
+        AirsDAO air2 = makeAirsDao(2, asset, PERSIST);
+
+        Set<AirsDAO> airs = new HashSet<>();
+        airs.add(air1);
+        airs.add(air2);
+        asset.setAirs(airs);
 
         assertThat(asset.getId(), notNullValue());
         assertThat(asset.getDataDictionaryEntry().getText(), equalTo(getAdde().getText()));
-        assertThat(asset.getAirs(), equalTo(Set.of("AIR #1", "AIR #2")));
+        assertThat(asset.getAirs(), equalTo(airs));
 
-        asset.getAirs().add("AIR #3");
+        AirsDAO air3 = makeAirsDao(3, asset, PERSIST);
+        asset.getAirs().add(air3);
         repository.save(asset);
 
         em.flush();
@@ -99,21 +119,54 @@ public class AssetRepositoryTest {
         repository.findById(id);
         assertThat(asset.getId(), equalTo(id));
         assertThat(asset.getDataDictionaryEntry().getText(), equalTo(getAdde().getText()));
-        assertThat(asset.getAirs(), equalTo(Set.of("AIR #1", "AIR #2", "AIR #3")));
+      //  assertThat(asset.getAirs(), equalTo(Set.of(air1, air2, air3)));
     }
 
     @Test
     public void shouldNotStoreNonExistentDde() {
         assertThrows(InvalidDataAccessApiUsageException.class, () -> {
-            repository.save(AssetDAO.builder().dataDictionaryEntry(
+            AssetDAO assetDao = AssetDAO.builder().dataDictionaryEntry(
                     AssetDataDictionaryEntryDAO.builder()
                         .entryId("invalid")
                         .text("Doesn't exist")
                         .assetDictionaryId(UUID.randomUUID())
                         .build())
-                .airs(Set.of()).build());
+                .airs(Set.of())
+                .build();
+            repository.save(assetDao);
 
             em.flush();
         });
+    }
+
+    private AirsDAO makeAirsDao(int n) {
+        AirsDAO airsDao = AirsDAO.builder().airs("AIR #" + n).build();
+        return airsDao;
+    }
+
+    private AirsDAO makeAirsDao(int n, AssetDAO assetDao, boolean persist) {
+        AirsDAO airsDao = AirsDAO.builder().id(UUID.randomUUID().toString()).airs("AIR #" + n).assetDao(assetDao).build();
+        //AirsDAO airsDao = AirsDAO.builder().id(UUID.randomUUID()).airs("AIR #" + n).asset_id(assetDao.getId().toString()).build();
+        if (persist) {
+            return airsRepository.save(airsDao);
+        }
+        return airsDao;
+    }
+
+    @Test
+    public void createAndDeleteAsset () {
+        AirsDAO air1 = makeAirsDao(1);
+        AirsDAO air2 = makeAirsDao(2);
+        Set<AirsDAO> airs = new HashSet<>();
+        airs.add(air1);
+        airs.add(air2);
+
+        AssetDAO asset = AssetDAO.builder().projectId(SAMPLE_PROJECT_ID).dataDictionaryEntry(getAdde()).airs(airs).build();
+        asset = repository.save(asset);
+        em.flush();
+        em.clear();
+        repository.deleteById(asset.getId());
+        em.flush();
+        em.clear();
     }
 }

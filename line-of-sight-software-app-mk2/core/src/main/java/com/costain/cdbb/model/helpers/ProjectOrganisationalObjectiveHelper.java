@@ -20,10 +20,12 @@ package com.costain.cdbb.model.helpers;
 import com.costain.cdbb.core.events.ClientNotification;
 import com.costain.cdbb.core.events.EventType;
 import com.costain.cdbb.core.events.NotifyClientEvent;
+import com.costain.cdbb.model.Airs;
 import com.costain.cdbb.model.DeletedOirDAO;
 import com.costain.cdbb.model.DeletedOirPk;
 import com.costain.cdbb.model.Oir;
 import com.costain.cdbb.model.OirDAO;
+import com.costain.cdbb.model.OirsWithLinkedAirs;
 import com.costain.cdbb.model.OoVersion;
 import com.costain.cdbb.model.OoVersionDAO;
 import com.costain.cdbb.model.ProjectOrganisationalObjectiveDAO;
@@ -146,11 +148,18 @@ public class ProjectOrganisationalObjectiveHelper {
             .ooVersions(ooVersions)
             .oirs(oirs.isEmpty()
                 ? Collections.emptyList()
-                : oirs.stream().map(oirdao -> new Oir().id(oirdao.getId()).oir(oirdao.getOir())).toList()
+                : oirs.stream().map(oirdao ->
+                new OirsWithLinkedAirs()
+                    .id(oirdao.getId())
+                    .oir(oirdao.getOirs())
+                    .airs(oirdao.getAirs().isEmpty()
+                        ? Collections.emptyList()
+                        : oirdao.getAirs().stream().map(airsDao ->
+                        new Airs().id(airsDao.getId().toString()).airs(airsDao.getAirs())).toList())).toList()
                )
             .deletedOirs(deletedOirs.isEmpty()
                 ? Collections.emptyList()
-                : deletedOirs.stream().map(oirdao -> new Oir().id(oirdao.getId()).oir(oirdao.getOir())).toList()
+                : deletedOirs.stream().map(oirdao -> new Oir().id(oirdao.getId()).oir(oirdao.getOirs())).toList()
             )
             .frs(dao.getFrs() != null ? dao.getFrs().stream().map(fr -> fr.getId()).toList() : Collections.emptyList());
     }

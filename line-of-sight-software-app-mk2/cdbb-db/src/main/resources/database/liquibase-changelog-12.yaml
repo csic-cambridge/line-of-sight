@@ -1,0 +1,306 @@
+databaseChangeLog:
+- changeSet:
+    id: 1678986057403-3
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: oirs_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: airs_id
+            type: CHAR(36)
+        tableName: oirs_airs
+- changeSet:
+    id: 1678986057403-4
+    author: philliprushby (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: rev
+            type: INT
+        - column:
+            defaultValueComputed: 'NULL'
+            name: revtype
+            type: TINYINT
+        - column:
+            constraints:
+              nullable: true
+            name: oirs_id
+            type: CHAR(36)
+        - column:
+            constraints:
+              nullable: true
+            name: airs_id
+            type: CHAR(36)
+        tableName: oirs_airs_aud
+- changeSet:
+    id: 1678986057403-5
+    author: philliprushby (generated)
+    changes:
+    - addColumn:
+        columns:
+        - column:
+            constraints:
+              nullable: false
+            name: id
+            type: CHAR(36 BYTE)
+        tableName: airs
+- changeSet:
+      id: 1678986057403-6
+      author: philliprushby (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                          name: id
+                          type: CHAR(36 BYTE)
+                tableName: firs
+- changeSet:
+    id: 167898605740-1
+    author: Philip Rushby
+    changes:
+        - sql:
+           dbms: 'mysql, mariadb'
+           splitStatements: false
+           stripComments: true
+           sql:
+               update airs set id = UUID();
+               update firs set id = UUID();
+- changeSet:
+    id: 1678986057403-7
+    author: philliprushby (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: id
+        constraintName: PRIMARY
+        tableName: airs
+- changeSet:
+      id: 1678986057403-8
+      author: philliprushby (generated)
+      changes:
+          - addPrimaryKey:
+                columnNames: id
+                constraintName: PRIMARY
+                tableName: firs
+- changeSet:
+    id: 1678986057403-9
+    author: philliprushby (generated)
+    changes:
+    - addPrimaryKey:
+        columnNames: oirs_id, airs_id, rev
+        constraintName: PRIMARY
+        tableName: oirs_airs_aud
+- changeSet:
+    id: 1678986057403-10
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: airs_id
+        indexName: OIRS_AIRS_ON_AIRS_idx
+        tableName: oirs_airs
+- changeSet:
+    id: 1678986057403-12
+    author: philliprushby (generated)
+    changes:
+    - createIndex:
+        columns:
+        - column:
+            name: rev
+        indexName: FKk2y69n6abc2iwwis54utbke
+        tableName: oirs_airs_aud
+- changeSet:
+    id: 1678986057403-13
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: airs_id
+        baseTableName: oirs_airs
+        constraintName: OIRS_AIRS_AIRSID_ON_AIRS
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: CASCADE
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: airs
+        validate: true
+- changeSet:
+    id: 1678986057403-14
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: oirs_id
+        baseTableName: oirs_airs
+        constraintName: OIRS_AIRS_OIRSID_ON_OIRS
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: CASCADE
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: oirs
+        validate: true
+
+- changeSet:
+    id: 1678986057403-16
+    author: philliprushby (generated)
+    changes:
+    - addForeignKeyConstraint:
+        baseColumnNames: rev
+        baseTableName: oirs_airs_aud
+        constraintName: FKk2y69n6abc2iwwis54utbke
+        deferrable: false
+        initiallyDeferred: false
+        onDelete: RESTRICT
+        onUpdate: RESTRICT
+        referencedColumnNames: id
+        referencedTableName: revinfo
+        validate: true
+
+- changeSet:
+      id: 1678987145896-5
+      author: philliprushby (generated)
+      changes:
+          - addColumn:
+                columns:
+                    - column:
+                          constraints:
+                              nullable: false
+                          name: id
+                          type: CHAR(36 BYTE)
+                tableName: airs_aud
+- changeSet:
+    id: 1678987145896-6
+    author: philliprushby (generated)
+    changes:
+        - addColumn:
+              columns:
+                  - column:
+                        constraints:
+                            nullable: false
+                        name: id
+                        type: CHAR(36 BYTE)
+              tableName: firs_aud
+#Liquibase separate drop primary key and add new primary key actions cause sql bug so have to do them combined
+- changeSet:
+      id: 1678987145897-1
+      author: philliprushby (generated)
+      changes:
+          - sql:
+                dbms: 'mysql, mariadb'
+                splitStatements: false
+                stripComments: true
+                sql:
+                    ALTER TABLE `cdbb`.`airs_aud`
+                    DROP PRIMARY KEY,
+                    ADD PRIMARY KEY (`rev`, `id`);
+- changeSet:
+      id: 1678987145897-2
+      author: philliprushby (generated)
+      changes:
+          - sql:
+                dbms: 'mysql, mariadb'
+                splitStatements: false
+                stripComments: true
+                sql:
+                    ALTER TABLE `cdbb`.`firs_aud`
+                    DROP PRIMARY KEY,
+                    ADD PRIMARY KEY (`rev`, `id`);
+- changeSet:
+      id: 1679495383457-5
+      author: philliprushby (generated)
+      changes:
+          - dropNotNullConstraint:
+                columnDataType: char(36)
+                columnName: asset_id
+                tableName: airs_aud
+- changeSet:
+      id: 1679495383457-6
+      author: philliprushby (generated)
+      changes:
+          - addDefaultValue:
+                columnDataType: char(36)
+                columnName: asset_id
+                defaultValue: 'NULL'
+                tableName: airs_aud
+
+
+- changeSet:
+      id: 1679495383457-9
+      author: philliprushby (generated)
+      changes:
+          - dropNotNullConstraint:
+                columnDataType: varchar(255)
+                columnName: airs
+                tableName: airs_aud
+- changeSet:
+      id: 1679495383457-10
+      author: philliprushby (generated)
+      changes:
+          - addDefaultValue:
+                columnDataType: varchar(255)
+                columnName: airs
+                defaultValue: 'NULL'
+                tableName: airs_aud
+- changeSet:
+      id: 1679495383457-11
+      author: philliprushby (generated)
+      changes:
+          - dropNotNullConstraint:
+                columnDataType: char(36)
+                columnName: fo_id
+                tableName: firs_aud
+- changeSet:
+      id: 1679495383457-12
+      author: philliprushby (generated)
+      changes:
+          - addDefaultValue:
+                columnDataType: char(36)
+                columnName: fo_id
+                defaultValue: 'NULL'
+                tableName: firs_aud
+
+
+- changeSet:
+      id: 1679495383457-13
+      author: philliprushby (generated)
+      changes:
+          - dropNotNullConstraint:
+                columnDataType: varchar(255)
+                columnName: firs
+                tableName: firs_aud
+- changeSet:
+      id: 1679495383457-14
+      author: philliprushby (generated)
+      changes:
+          - addDefaultValue:
+                columnDataType: varchar(255)
+                columnName: firs
+                defaultValue: 'NULL'
+                tableName: firs_aud
+
+- changeSet:
+      id: 1679495383457-15
+      author: Philip Rushby
+      changes:
+          - sql:
+                dbms:  'mysql, mariadb'
+                stripComments:  true
+                splitStatements: true
+                sql:
+                    insert into oirs_airs (oirs_id, airs_id)
+                        select "dcd5f889-bc87-4896-96b3-ca5c89325b89", id from airs where airs = "AIR \#1";
+

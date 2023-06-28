@@ -19,6 +19,7 @@ package com.costain.cdbb.core.api.delegates;
 
 
 import com.costain.cdbb.api.FirsApiDelegate;
+import com.costain.cdbb.model.Firs;
 import com.costain.cdbb.model.FunctionalOutputWithId;
 import com.costain.cdbb.model.helpers.FunctionalOutputHelper;
 import java.util.UUID;
@@ -45,8 +46,9 @@ public class FirsApiDelegateImpl implements FirsApiDelegate {
      * @return Mono&lt;ResponseEntity&lt;String&gt;&gt; all firs
      */
     @Override
-    public Mono<ResponseEntity<String>> fetchFirs(ServerWebExchange exchange) {
-        return Mono.fromCallable(() -> foHelper.findAllFirs())
+    public Mono<ResponseEntity<Flux<Firs>>> fetchFirs(ServerWebExchange exchange) {
+        return Mono.fromCallable(() -> Flux.fromIterable(foHelper.findAllFirs())
+            .map(dao -> new Firs().id(dao.getId().toString()).firs(dao.getFirs())))
             .map(ResponseEntity::ok)
             .defaultIfEmpty(ResponseEntity.notFound().build());
     }

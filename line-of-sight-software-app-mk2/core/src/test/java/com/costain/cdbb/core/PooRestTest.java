@@ -223,11 +223,11 @@ public class PooRestTest {
 
             List<String> dbOirStrings = new ArrayList<>();
             List<String> dbDeletedOirStrings = new ArrayList<>();
-            oirsFromDb.forEach(oirDao -> dbOirStrings.add(oirDao.getOir()));
+            oirsFromDb.forEach(oirDao -> dbOirStrings.add(oirDao.getOirs()));
             // remove deleted ones
             deletedOirDaos.forEach(deletedDao -> {
-                dbOirStrings.remove(deletedDao.getOir());
-                dbDeletedOirStrings.add(deletedDao.getOir());
+                dbOirStrings.remove(deletedDao.getOirs());
+                dbDeletedOirStrings.add(deletedDao.getOirs());
             });
             assertEquals(oirsFromResponse.size(), dbOirStrings.size(), "Unexpected number of OIRs");
             assertTrue(dbOirStrings.containsAll(oirsFromResponse)

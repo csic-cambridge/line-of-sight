@@ -79,7 +79,9 @@ public class ProjectApiDelegateImpl implements ProjectApiDelegate {
     public Mono<ResponseEntity<ProjectWithId>> addProject(Mono<ProjectWithImportProjectIds> projectWithImportProjectIds,
                                                          ServerWebExchange exchange) {
         return projectWithImportProjectIds.map(dto ->
-                                 transactionTemplate.execute(transactionStatus -> projectHelper.ddsFromDto(dto)))
+                                 transactionTemplate.execute(transactionStatus ->
+                                     projectHelper.ddsFromDto(dto))
+                                 )
                             .map(savedDao -> projectHelper.fromDao(savedDao))
                             .map(ResponseEntity::ok)
                             .defaultIfEmpty(ResponseEntity.notFound().build());

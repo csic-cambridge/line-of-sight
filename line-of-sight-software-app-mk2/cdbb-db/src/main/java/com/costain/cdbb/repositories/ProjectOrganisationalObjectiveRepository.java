@@ -8,4 +8,7 @@ import java.util.UUID;
 
 public interface ProjectOrganisationalObjectiveRepository extends CrudRepository<ProjectOrganisationalObjectiveDAO, UUID> {
     List<ProjectOrganisationalObjectiveDAO> findByProjectIdOrderByOoVersionNameAsc(UUID projectId);
+    List<ProjectOrganisationalObjectiveDAO> findByProjectIdAndOoVersionOoIsDeletedFalse(UUID projectId);
+    List<ProjectOrganisationalObjectiveDAO> findByProjectIdAndOoVersionOoIdAndOoVersionOoIsDeletedFalse
+        (UUID projectId, UUID ooId);
 }

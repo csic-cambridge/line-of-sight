@@ -9,7 +9,6 @@
             <a (click)="this.permissionService.userPermissionDisabled(this.permissionService.UPIds.EDIT_OOS) ? null : open(objective)">
                 <h5 [ngClass]="objective.is_deleted===true ? 'strikethrough' : ''"
                     class="card-header" id="{{objective.id}}">{{objective.name}}</h5>
-
                 <div class="card-body">
                     <ul class="list-group list-group-flush">
                         <li *ngFor="let oir of objective.oirs" class="list-group-item">{{oir.oir}}</li>

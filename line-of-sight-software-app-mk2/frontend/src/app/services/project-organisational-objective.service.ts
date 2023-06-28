@@ -50,4 +50,5 @@ export class ProjectOrganisationalObjectiveService extends BaseProjectOrganisati
         return this.http.delete(this.serviceUrl + '/' + this.ps.getProjectIdUrlPath(projectId) + '/' + pooId);
     }
 
+
 }

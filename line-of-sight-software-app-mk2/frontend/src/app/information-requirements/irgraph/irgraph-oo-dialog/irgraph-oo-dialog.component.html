@@ -85,6 +85,16 @@
         <!-- FRs -->
         <div class="form-group">
             <h5><label>Functional Requirements <i>(FR)</i></label></h5>
+            <div class="input-group">
+                <ngx-bootstrap-multiselect
+                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
+                    [options]="pooFROptions"
+                    formControlName="selectedFrs"
+                    [texts]="pooFRTexts"
+                    (removed)="selectedFrsChange($event)"
+                    [settings]="mySettings">
+                </ngx-bootstrap-multiselect>
+            </div>
             <h6><label for="pooFRContent"><b>Linked FRs</b>
                 <label style="font-size: smaller; font-style: italic; color: #0366d6; margin-left: 5pt"> (Uncheck to <b>delete</b> linked FRs)</label></label></h6>
 
@@ -101,16 +111,7 @@
                     </label>
                 </div>
             </div>
-            <div class="input-group">
-                <ngx-bootstrap-multiselect
-                    [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_POOS)"
-                    [options]="pooFROptions"
-                    formControlName="selectedFrs"
-                    [texts]="pooFRTexts"
-                    (removed)="selectedFrsChange($event)"
-                    [settings]="mySettings">
-                </ngx-bootstrap-multiselect>
-            </div>
+
         </div>
     </form>
 </div>

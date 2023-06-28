@@ -2,12 +2,15 @@ package com.costain.cdbb.db.test;
 
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
+import com.costain.cdbb.model.FirsDAO;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryEntryDAO;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
+import com.costain.cdbb.repositories.FirsRepository;
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
+import com.costain.cdbb.repositories.FunctionalRequirementRepository;
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +49,12 @@ public class FunctionalOutputRepositoryTest {
     private FunctionalOutputDataDictionaryEntryRepository foDdeRepository;
 
     @Autowired
+    private FirsRepository firsRepository;
+
+    @Autowired
     private TestEntityManager em;
+
+    private static final boolean PERSIST = true;
 
     private AssetDataDictionaryEntryDAO getAdde() {
         AssetDataDictionaryEntryDAO adde =
@@ -92,13 +100,15 @@ public class FunctionalOutputRepositoryTest {
         FunctionalOutputDAO fo = repository.save(FunctionalOutputDAO.builder()
             .projectId(SAMPLE_PROJECT_ID)
             .dataDictionaryEntry(getFodde())
-            .firs(Set.of("FIR #1", "FIR #2"))
             .assets(Set.of(AssetDAO.builder().id(linkedAsset.getId()).build()))
             .build());
 
         logger.info("Saved fo: {}", fo);
 
         UUID id = fo.getId();
+        FirsDAO fir1 = makeFirsDao(1, fo, PERSIST);
+        FirsDAO fir2 = makeFirsDao(2, fo, PERSIST);
+        fo.setFirs(Set.of(fir1, fir2));
 
         //Simulate the transaction finishing
         em.flush();
@@ -108,7 +118,7 @@ public class FunctionalOutputRepositoryTest {
 
         assertThat(fo.getId(), notNullValue());
         assertThat(fo.getDataDictionaryEntry().getText(), equalTo(getFodde().getText()));
-        assertThat(fo.getFirs(), equalTo(Set.of("FIR #1", "FIR #2")));
+        assertThat(fo.getFirs(), equalTo(Set.of(fir1, fir2)));
         assertThat(fo.getAssets().iterator().next().getId(), equalTo(linkedAsset.getId()));
         assertThat(fo.getAssets().iterator().next().getDataDictionaryEntry().getText(), equalTo(linkedAsset.getDataDictionaryEntry().getText()));
     }
@@ -116,9 +126,11 @@ public class FunctionalOutputRepositoryTest {
     @Test
     public void shouldNotStoreNonExistentAsset() {
         PersistenceException exception = assertThrows(PersistenceException.class, () -> {
+            FirsDAO fir1 = makeFirsDao(1);
+            FirsDAO fir2 = makeFirsDao(2);
             FunctionalOutputDAO fo = repository.save(FunctionalOutputDAO.builder()
                 .dataDictionaryEntry(getFodde())
-                .firs(Set.of("FIR #1", "FIR #2"))
+                .firs(Set.of(fir1, fir2))
                 .assets(Set.of(AssetDAO.builder().id(UUID.randomUUID()).build()))
                 .build());
 
@@ -133,11 +145,13 @@ public class FunctionalOutputRepositoryTest {
     @Test
     public void shouldNotStoreNonExistentFodde() {
         assertThrows(InvalidDataAccessApiUsageException.class, () -> {
+            FirsDAO fir1 = makeFirsDao(1);
+            FirsDAO fir2 = makeFirsDao(2);
             FunctionalOutputDAO fo = repository.save(FunctionalOutputDAO.builder()
                 .dataDictionaryEntry(FunctionalOutputDataDictionaryEntryDAO.builder()
                     .entryId("rubbish").text("doesn't exist").foDictionaryId(UUID.randomUUID())
                     .build())
-                .firs(Set.of("FIR #1", "FIR #2"))
+                .firs(Set.of(fir1, fir2))
                 .build());
 
             logger.info("Saved fo: {}", fo);
@@ -146,4 +160,16 @@ public class FunctionalOutputRepositoryTest {
         });
     }
 
+    private FirsDAO makeFirsDao(int n) {
+        FirsDAO firsDao = FirsDAO.builder().firs("FIR #" + n).build();
+        return firsDao;
+    }
+
+    private FirsDAO makeFirsDao(int n, FunctionalOutputDAO foDao, boolean persist) {
+        FirsDAO firsDao = FirsDAO.builder().id(UUID.randomUUID().toString()).firs("FIR #" + n).foDao(foDao).build();
+        if (persist) {
+            return firsRepository.save(firsDao);
+        }
+        return firsDao;
+    }
 }

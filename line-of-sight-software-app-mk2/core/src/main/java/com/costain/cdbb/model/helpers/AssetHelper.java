@@ -21,17 +21,21 @@ import com.costain.cdbb.core.CdbbValidationError;
 import com.costain.cdbb.core.events.ClientNotification;
 import com.costain.cdbb.core.events.EventType;
 import com.costain.cdbb.core.events.NotifyClientEvent;
+import com.costain.cdbb.model.AirsDAO;
+import com.costain.cdbb.model.AirsWithLinkedOirs;
 import com.costain.cdbb.model.Asset;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
 import com.costain.cdbb.model.AssetWithId;
 import com.costain.cdbb.model.DataDictionaryEntry;
+import com.costain.cdbb.model.Oir;
+import com.costain.cdbb.model.OirDAO;
 import com.costain.cdbb.model.ProjectDAO;
+import com.costain.cdbb.repositories.AirsRepository;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVParser;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,8 +47,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -60,6 +65,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class AssetHelper {
+    private static final Logger logger = LogManager.getLogger();
+
     @Autowired
     AssetDataDictionaryEntryRepository ddeRepository;
 
@@ -69,6 +76,8 @@ public class AssetHelper {
     @Autowired
     ProjectRepository projectRepository;
 
+    @Autowired
+    AirsRepository airsRepository;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -93,9 +102,22 @@ public class AssetHelper {
             .text(dde.getEntryId() + "-" + dde.getText())
         );
         if (dao.getAirs() != null) {
-            ArrayList<String> sortedAirs = new ArrayList<String>(dao.getAirs());
-            Collections.sort(sortedAirs, String.CASE_INSENSITIVE_ORDER);
-            dto.airs(sortedAirs);
+            //ArrayList<AirsDAO> sortedAirs = new ArrayList<>(dao.getAirs());
+            logger.warn("********** Not sorting AIRS**************************************");
+            //Collections.sort(sortedAirs, String.CASE_INSENSITIVE_ORDER);
+            List<AirsWithLinkedOirs> airs = new ArrayList<>(dao.getAirs().size());
+            for (AirsDAO airsDao: dao.getAirs()) {
+                List<Oir> oirs = new ArrayList<>();
+                if (null != airsDao.getOirs()) {
+                    for (OirDAO oirDao : airsDao.getOirs()) {
+                        oirs.add(new Oir().id(oirDao.getId()).oir(oirDao.getOirs()));
+                    }
+                }
+                airs.add(new AirsWithLinkedOirs().id(airsDao.getId().toString())
+                    .airs(airsDao.getAirs())
+                    .oirs(oirs));
+            }
+            dto.airs(airs);
         } else {
             dto.airs(Collections.emptyList());
         }
@@ -129,7 +151,7 @@ public class AssetHelper {
 
     private AssetDAO fromDto(AssetDAO.AssetDAOBuilder builder, UUID projectId,
                              String ddeEntryId,
-                             Collection<String> airs) {
+                             List<AirsWithLinkedOirs> airs) {
         ProjectDAO projectDao = projectRepository.findById(projectId).get();
         AssetDataDictionaryEntryDAO assetDdeDao =
             ddeRepository.findByAssetDictionaryIdAndEntryId(projectDao.getAssetDataDictionary().getId(), ddeEntryId);
@@ -137,12 +159,26 @@ public class AssetHelper {
         AssetDAO dao =  builder
             .projectId(projectId)
             .dataDictionaryEntry(assetDdeDao)
-            .airs(airs != null ? new HashSet<>(airs) : Collections.emptySet())
+            .airs(this.makeAirsDaoSetFromAirsList(airs))
             .build();
+        //dao.setAirs(this.makeAirsSetFromAirs(airs));
         notifyClientOfProjectChange(projectId);
         return dao;
     }
 
+    private Set<AirsDAO> makeAirsDaoSetFromAirsList(Collection<AirsWithLinkedOirs> airs) {
+        if (null == airs) {
+            return Collections.emptySet();
+        }
+        Set<AirsDAO> result = new HashSet<>(airs.size());
+        for (AirsWithLinkedOirs air: airs) {
+            AirsDAO airsDao = AirsDAO.builder()
+                .id(air.getId()) //AirsDAO.isNewAirsDao(air.getId()) ? null : UUID.fromString(air.getId()))
+                .airs(air.getAirs()).build();
+            result.add(airsDao);
+        }
+        return result;
+    }
     /**
      * Import AIRs uploaded from client.
      * @param base64CompressedAirsData <p>base64 compressed string.
@@ -150,6 +186,7 @@ public class AssetHelper {
      * @param projectId project Assets/AIRs to be imported into
      * @return List&lt;AssetDAO&gt; the assets imported
      */
+
     public List<AssetDAO> importAirs(String base64CompressedAirsData, UUID projectId) {
         List<String> importedRecords = null;
         String errorMsg = null;
@@ -173,7 +210,7 @@ public class AssetHelper {
                         fields = parser.parseLine(record);
                     } catch (IOException e) {
                         throw new CdbbValidationError(
-                            "Invalid line (#" + lineNo + ") in FIRs import '" + record
+                            "Invalid line (#" + lineNo + ") in AIRs import '" + record
                                 + " - Import aborted");
                     }
                     AssetDAO assetDao =
@@ -195,7 +232,12 @@ public class AssetHelper {
                             .airs(new HashSet<>())
                             .build();
                     }
-                    assetDao.getAirs().add(fields[1]);
+                    // do not add if air text already in this asset
+                    if (null == airsRepository.findByAssetDaoIdAndAirs(assetDao.getId(), fields[1])) {
+                        AirsDAO airsDao = AirsDAO.builder().airs(fields[1]).build();
+                        assetDao.getAirs().add(airsDao);
+                        assetDao.setAirs();
+                    }
                     assetDaosMap.put(fields[0], assetRepository.save(assetDao));
                 }
                 notifyClientOfProjectChange(projectId);
@@ -216,19 +258,19 @@ public class AssetHelper {
      *  /web-reactive.html#webflux-codecs-jackson why this is necessary to encode here
      *  @return Airs All AIRs sorted alphabetically
      */
-    public String findAllAirs() throws JsonProcessingException {
-        var ref = new Object() {
-            List<String> airs = new ArrayList<>();
-        };
+    public List<AirsDAO> findAllAirs() throws JsonProcessingException {
+        logger.warn("*************NOT RETURNING AIRS IN ORDER");
+        List<AirsDAO> airs = new ArrayList<>();
         assetRepository.findAll().forEach(
             foDao -> {
-                foDao.getAirs().forEach(air -> ref.airs.add(air));
+                foDao.getAirs().forEach(air -> airs.add(air));
             });
-        Set<String> set = new TreeSet<String>();
+        return airs;
+        /*Set<String> set = new TreeSet<String>();
         set.addAll(ref.airs);
         ref.airs = new ArrayList<String>(set);
         Collections.sort(ref.airs, String.CASE_INSENSITIVE_ORDER);
-        return new ObjectMapper().writeValueAsString(ref.airs);
+        return new ObjectMapper().writeValueAsString(ref.airs);*/
     }
 
     /**

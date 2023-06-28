@@ -39,12 +39,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 
 @Component
 public class TestOoManager {
+    public static final boolean LINK_OIR_AIR = true;
+    public static final boolean UNLINK_OIR_AIR = !LINK_OIR_AIR;
 
     @Autowired
     private TestApiManager apiManager;
@@ -133,12 +137,12 @@ public class TestOoManager {
         origOirs.remove(0);
         OirDAO updatedOir = origOirs.get(0);
         origOirs.remove(0);
-        origOirs.add(OirDAO.builder().id(updatedOir.getId()).oir("Updated " + updatedOir.getOir()).build());
-        origOirs.add(OirDAO.builder().oir(newOirText).build());
+        origOirs.add(OirDAO.builder().id(updatedOir.getId()).oirs("Updated " + updatedOir.getOirs()).build());
+        origOirs.add(OirDAO.builder().oirs(newOirText).build());
 
         List<Map<String, String>> testOirs = new ArrayList<>();
         for (OirDAO oir : origOirs) {
-            testOirs.add(getOirMap(oir.getId() == null ? null : oir.getId().toString(), oir.getOir()));
+            testOirs.add(getOirMap(oir.getId() == null ? null : oir.getId().toString(), oir.getOirs()));
         }
         Map<String, Object> map = new HashMap<>();
         map.put("name", modifiedName);
@@ -182,9 +186,9 @@ public class TestOoManager {
                     // check name and ids
                     JSONObject jsonOir = (JSONObject)jsonArray.get(i);
                     for (OirDAO dbOir : dbOirs) {
-                        if (dbOir.getOir().equals(jsonOir.getString("oir"))) {
+                        if (dbOir.getOirs().equals(jsonOir.getString("oir"))) {
                             countMatched++;
-                            if (dbOir.getOir().equals(newOirText)) {
+                            if (dbOir.getOirs().equals(newOirText)) {
                                 assertTrue(dbOir.getId() != null, "dbOir.getId() should not be null");
                             } else {
                                 assertEquals(dbOir.getId().toString(),  jsonOir.getString("id"),
@@ -224,5 +228,22 @@ public class TestOoManager {
         );
         System.out.println("OO " + ooId + " is marked as deleted");
         return true;
+    }
+
+    public ResponseEntity<String> linkOirWithAir(UUID projectId, UUID linkOirId, UUID linkAirId,
+                                                 boolean link, int port, HttpStatus expectedStatus) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("oirId", linkOirId.toString());
+        map.put("airId", linkAirId.toString());
+        String payload = null;
+        try {
+            payload = new ObjectMapper().writeValueAsString(map);
+        } catch (JsonProcessingException e) {
+            fail(e);
+        }
+        return
+            apiManager.doApiRequest(payload, "http://localhost:" + port + "/api/oirs/link/"
+            + (link == LINK_OIR_AIR ? "1" : "0") + "/pid/" + projectId.toString(), HttpMethod.POST, expectedStatus);
+
     }
 }

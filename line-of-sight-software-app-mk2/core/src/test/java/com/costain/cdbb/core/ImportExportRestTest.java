@@ -47,7 +47,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.codec.Hex;
 import org.springframework.test.context.ActiveProfiles;
 
 
@@ -124,34 +123,6 @@ public class ImportExportRestTest {
             fail("Failed to delete initial project(s) or data dictionaries" + e);
         }
     }
-
-
-    /* @Test
-    public void importProject() {
-        // Only works with dummy data at present
-        HttpEntity<String> response = apiManager.doSuccessfulPostApiRequestWithOctetStream(
-            Base64.getEncoder().encodeToString("test project data".getBytes(StandardCharsets.UTF_8)),
-            "http://localhost:" + port + "/api/project/import");
-        String projectResultAsJsonStr = response.getBody();
-        // TODO need to set importedProjectId so it can be deleted at end of test
-        try {
-            JSONObject jsonObject = new JSONObject(projectResultAsJsonStr);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            fail(e);
-        }
-    }
-
-    @Test
-    public void exportProject() {
-        // Only works with dummy data at present
-        HttpEntity<String> response = apiManager.doSuccessfulGetApiRequest(
-            "http://localhost:" + port + "/api/project/export/pid/" + project1Id.toString());
-        String projectResultAsBase64Str = response.getBody();
-        String exportFileStr =
-            new String(Base64.getDecoder().decode(projectResultAsBase64Str), StandardCharsets.UTF_8);
-        System.out.println("Export data = " + exportFileStr);
-    }*/
 
     @Test
     public void importAssetAndFoDataDictionaries() {
@@ -268,7 +239,8 @@ public class ImportExportRestTest {
                 JSONArray irsJson = jsonObject.getJSONArray(apiName);
                 List<String> rxedIrs = new ArrayList<>();
                 for (int j = 0; j < irsJson.length(); j++) {
-                    rxedIrs.add(irsJson.getString(j));
+                    JSONObject jsonObjectIrs = (JSONObject)irsJson.get(j);
+                    rxedIrs.add(jsonObjectIrs.getString(apiName));
                 }
 
                 // match dd entry id to irs

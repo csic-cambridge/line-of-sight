@@ -21,4 +21,5 @@ export class AirsService extends BaseAirsService {
     get(): Observable<Array<string>> {
         return this.http.get<Array<string>>(this.serviceUrl);
     }
+
 }

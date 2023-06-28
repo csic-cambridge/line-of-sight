@@ -12,9 +12,9 @@
         <div class="form-group">
             <div class="flex-row">
                 <label for="fos-Id" class="form-label text-right h5">Title</label>
-                <label *ngIf="this.instance.isPopupOpen() && this.searchItems.length > 10"
+                <label *ngIf="this.instance.isPopupOpen()"
                        class="form-label float-right text-primary">
-                    10 of {{this.searchItems.length}} matches shown, please refine search
+                    {{this.searchItems.length}} matches shown
                 </label>
             </div>
             <input id="fos-Id"
@@ -45,9 +45,9 @@
         <div class="form-group">
             <div class="flex-row">
                 <label for="firText" class="form-label h5">Functional Information Requirement <i>(FIR)</i></label>
-                <label *ngIf="this.instanceFir.isPopupOpen() && this.firSearchItems.length > 10"
+                <label *ngIf="this.instanceFir.isPopupOpen()"
                        class="form-label float-right text-primary">
-                    10 of {{this.firSearchItems.length}} matches shown, please refine search
+                    {{this.firSearchItems.length}} matches shown
                 </label>
             </div>
             <div class="input-group flexContainer">
@@ -57,6 +57,8 @@
                        formControlName="newFir"
                        (change)="newFirChange($event)"
                        [ngbTypeahead]="searchFir"
+                       [inputFormatter]="resultFormatter"
+                       [resultFormatter]="resultFormatter"
                        #instanceFir="ngbTypeahead"
                        (focus)="focusFir$.next($any($event).target.value)"
                        (click)="clickFir$.next($any($event).target.value)"

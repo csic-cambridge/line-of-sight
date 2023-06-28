@@ -91,7 +91,7 @@ public class OrganisationalObjectiveHelper {
                                                     .isDeleted(dao.isDeleted());
 
         dto.oirs(dao.getOirDaos() != null
-                ? dao.getOirDaos().stream().map(oirdao -> new Oir().id(oirdao.getId()).oir(oirdao.getOir())).toList()
+                ? dao.getOirDaos().stream().map(oirdao -> new Oir().id(oirdao.getId()).oir(oirdao.getOirs())).toList()
                 : Collections.emptyList());
         return dto;
     }
@@ -151,7 +151,7 @@ public class OrganisationalObjectiveHelper {
             ? Collections.emptyList()
             : oirs.stream().map(oir -> OirDAO.builder()
             .id(oir.getId())
-            .oir(oir.getOir())
+            .oirs(oir.getOir())
             .build()).toList();
 
         OrganisationalObjectiveDAO ooDao = daoBuilder

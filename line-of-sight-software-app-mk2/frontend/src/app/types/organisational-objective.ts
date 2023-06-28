@@ -1,3 +1,5 @@
+import {Airs} from "./airs";
+
 export interface OrganisationalObjective {
     id: string | null;
     name: string;
@@ -9,4 +11,5 @@ export interface Oir {
     id: string;
     oir: string;
     oo_id?: string | null;
+    airs: Airs[]
 }

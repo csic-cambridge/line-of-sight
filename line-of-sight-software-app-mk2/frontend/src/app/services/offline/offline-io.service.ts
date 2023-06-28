@@ -63,10 +63,18 @@ export class OfflineIoService extends BaseIoService {
                 reject(`Import file version ${project.import_version} does not match the current version ${versionJson.version}.`);
                 return;
             }
+            console.log(project)
+            const airs = project.assets.map((ass: Asset) => ass.airs)
+            const firs = project.fos.map((fo: FunctionalOutput) => fo.firs)
+
+            console.log(airs)
+            console.log(firs)
             localStorage.setItem('functionalOutputData', JSON.stringify(project.fos));
             localStorage.setItem('functionalRequirementData', JSON.stringify(project.frs));
             localStorage.setItem('assetData', JSON.stringify(project.assets));
             localStorage.setItem('projectOrganisationalObjectiveData', JSON.stringify(project.poos));
+            localStorage.setItem('airsData', JSON.stringify(airs.flat()))
+            localStorage.setItem('firsData', JSON.stringify(firs.flat()))
             this.foService.loadFunctionalOutputs('');
             this.frService.loadFunctionalRequirements('');
             this.assetService.loadAssets('');

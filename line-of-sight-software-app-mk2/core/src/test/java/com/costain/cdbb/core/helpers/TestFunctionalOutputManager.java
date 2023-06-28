@@ -23,6 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.costain.cdbb.model.Airs;
+import com.costain.cdbb.model.AirsDAO;
+import com.costain.cdbb.model.Firs;
+import com.costain.cdbb.model.FirsDAO;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryEntryDAO;
@@ -107,9 +111,9 @@ public class TestFunctionalOutputManager {
             new ArrayList<>(functionalOutputDdeRepository
                 .findByFoDictionaryIdOrderByEntryId(this.functionalOutputDd.getId()));
 
-        Set<String> sourceFirs = new HashSet<>();
-        sourceFirs.add("FirTest1");
-        sourceFirs.add("FirTest2");
+        Set<Firs> sourceFirs = new HashSet<>();
+        sourceFirs.add(new Firs().id(FirsDAO.NEW_ID).firs("FirTest1"));
+        sourceFirs.add(new Firs().id(FirsDAO.NEW_ID).firs("FirTest2"));
 
         Map<String, Object> ddeMap = new HashMap<>();
         ddeMap.put("entry_id", ddEntryDaos.get(0).getEntryId());
@@ -137,9 +141,11 @@ public class TestFunctionalOutputManager {
                 .text(ddeJsonObject.getString("text"))
                 .build();
         JSONArray firsJsonArray = functionalOutputJsonObject.getJSONArray("firs");
-        Set<String> firs = new HashSet<>();
+        Set<FirsDAO> firs = new HashSet<>();
         for (int i = 0; i < firsJsonArray.length(); i++) {
-            firs.add((String)firsJsonArray.get(i));
+            JSONObject jsonObjectFirs = (JSONObject)firsJsonArray.get(i);
+            firs.add(FirsDAO.builder().id(jsonObjectFirs.getString("id"))
+                    .firs(jsonObjectFirs.getString("firs")).build());
         }
         FunctionalOutputDAO result = FunctionalOutputDAO.builder()
             .id(UUID.fromString(functionalOutputJsonObject.getString("id")))
@@ -147,14 +153,15 @@ public class TestFunctionalOutputManager {
             .firs(firs)
             .build();
         assertAll(
-            () -> assertEquals(functionalOutputDataDictionaryEntryDao.getEntryId(), ddEntryDaos.get(0).getEntryId()),
+            () -> assertEquals(functionalOutputDataDictionaryEntryDao.getEntryId(), ddEntryDaos.get(0).getEntryId(),
+                "Dd entry ids differ"),
             () -> assertEquals(functionalOutputDataDictionaryEntryDao.getText(),
-                ddEntryDaos.get(0).getEntryId() + "-" + ddEntryDaos.get(0).getText()),
+                ddEntryDaos.get(0).getEntryId() + "-" + ddEntryDaos.get(0).getText(),
+                "Entry text incorrect"),
             () -> assertEquals(functionalOutputDataDictionaryEntryDao.getFoDictionaryId(),
-                this.functionalOutputDd.getId()),
-            () -> assertEquals(sourceFirs.size(), result.getFirs().size()),
-            () -> assertTrue(result.getFirs().containsAll(sourceFirs)
-                && sourceFirs.containsAll(result.getFirs()))
+                this.functionalOutputDd.getId(), "FO dd id incorrect"),
+            () -> assertEquals(sourceFirs.size(), result.getFirs().size(), "Firs size incorrect"),
+            () -> assertTrue(compareFirsStrings(result.getFirs(), sourceFirs))
         );
         return result;
     }
@@ -164,5 +171,47 @@ public class TestFunctionalOutputManager {
             "http://localhost:" + port + "/api/functional-outputs/pid/" + projectId + "/" + functionalOutput.getId());
         // check it has been deleted from database
         assertFalse(functionalOutputRepository.findById(functionalOutput.getId()).isPresent());
+    }
+
+    public boolean compareFirsStrings(Set<FirsDAO> firs1, Set<Firs> firs2) {
+        if (firs1 == null && firs2 == null) {
+            return true;
+        }
+        if (firs1 == null || firs2 == null) {
+            return false;
+        }
+        if (firs1.size() != firs2.size()) {
+            return false;
+        }
+        List<String> strings1 = new ArrayList<>();
+        List<String> strings2 = new ArrayList<>();
+        for (FirsDAO firsDao : firs1) {
+            strings1.add(firsDao.getFirs());
+        }
+        for (Firs firs : firs2) {
+            strings2.add(firs.getFirs());
+        }
+        return strings1.containsAll(strings2) && strings2.containsAll(strings1);
+    }
+
+    public boolean compareFirsDaos(Set<FirsDAO> firs1, Set<FirsDAO> firs2) {
+        if (firs1 == null && firs2 == null) {
+            return true;
+        }
+        if (firs1 == null || firs2 == null) {
+            return false;
+        }
+        if (firs1.size() != firs2.size()) {
+            return false;
+        }
+        List<String> strings1 = new ArrayList<>();
+        List<String> strings2 = new ArrayList<>();
+        for (FirsDAO firsDao : firs1) {
+            strings1.add(firsDao.getFirs());
+        }
+        for (FirsDAO firs : firs2) {
+            strings2.add(firs.getFirs());
+        }
+        return strings1.containsAll(strings2) && strings2.containsAll(strings1);
     }
 }

@@ -41,6 +41,8 @@ public class ApiPermissions {
     private static final int ROOT_PATH_INDEX = 2;
 
     private static final String OO_ROOT = "organisational-objectives";
+    private static final String OIR_AIR_LINK = "oirs/link/1";
+    private static final String OIR_AIR_UNLINK = "oirs/link/0";
     private static final String PROJECT_ROOT = "project";
     private static final String PROJECT_IMPORT_ROOT = "project/import";
     private static final String PROJECT_EXPORT_ROOT = "project/export";
@@ -95,6 +97,11 @@ public class ApiPermissions {
             UserPermissionTypes.USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID)),
         getEntryForApiCall(FIRS_ROOT, WITH_ENTITY_ID, HttpMethod.POST, ProjectPermissionTypes.getAuthorityNameForId(
             ProjectPermissionTypes.PROJECT_PERMISSION_IMPORT_DATA_ID)),
+        getEntryForApiCall(OIR_AIR_LINK, WITH_ENTITY_ID, HttpMethod.POST, ProjectPermissionTypes.getAuthorityNameForId(
+            ProjectPermissionTypes.PROJECT_PERMISSION_LINK_OIR_AIR)),
+        getEntryForApiCall(OIR_AIR_UNLINK, WITH_ENTITY_ID, HttpMethod.POST,
+            ProjectPermissionTypes.getAuthorityNameForId(
+            ProjectPermissionTypes.PROJECT_PERMISSION_LINK_OIR_AIR)),
 
         // assets
         getEntryForApiCall(ASSET_ROOT, NO_ENTITY_ID, HttpMethod.GET, ProjectPermissionTypes.getAuthorityNameForId(
@@ -110,6 +117,7 @@ public class ApiPermissions {
             UserPermissionTypes.USER_PERMISSION_VIEW_PROJECT_DASHBOARD_ID)),
         getEntryForApiCall(AIRS_ROOT, WITH_ENTITY_ID, HttpMethod.POST, ProjectPermissionTypes.getAuthorityNameForId(
             ProjectPermissionTypes.PROJECT_PERMISSION_IMPORT_DATA_ID)),
+
 
         // asset dd
         getEntryForApiCall(ASSET_DD_ROOT, NO_ENTITY_ID, HttpMethod.GET, UserPermissionTypes.getAuthorityNameForId(
@@ -163,9 +171,18 @@ public class ApiPermissions {
      */
     public static String getNonSuperUserAuthorityForUrl(String url, HttpMethod method) {
         String [] pathElements = url.split("/");
-        // some roots have 2 path elements e.g. project/import, most have 1 - start with potential for 2
+        // This code is a bit convoluted and may need refactoring in the future if the api is expanded much more
+        // Some roots have 3 path elements e.g. oirs/link/1,
+        // Some 2 path elements e.g. project/import, most have 1 - start with potential for 2
         String result = null;
-        if (pathElements.length > ROOT_PATH_INDEX + 1) {
+        if (pathElements.length > ROOT_PATH_INDEX + 2
+            && !"pid".equals(pathElements[ROOT_PATH_INDEX + 1])
+            && !"pid".equals(pathElements[ROOT_PATH_INDEX + 2])) {
+            result = apiPermissionsMap.get(pathElements[ROOT_PATH_INDEX] + "/" + pathElements[ROOT_PATH_INDEX + 1]
+                + "/" + pathElements[ROOT_PATH_INDEX + 2]
+                + idStr(url, ROOT_PATH_INDEX + 2) + method.toString());
+        }
+        if (result == null && pathElements.length > ROOT_PATH_INDEX + 1) {
             result = apiPermissionsMap.get(pathElements[ROOT_PATH_INDEX] + "/" + pathElements[ROOT_PATH_INDEX + 1]
                 + idStr(url, ROOT_PATH_INDEX + 1) + method.toString());
         }

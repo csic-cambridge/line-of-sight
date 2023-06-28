@@ -416,8 +416,7 @@ public class UserRestTest {
         // check authorities required for urls and methods
         List<AuthorityTestData> testData = authoritiesManager.setData(testUsers.get(0), project1Id);
         testData.forEach(data -> {
-            if (data.getUrl().startsWith("/api/project/export")
-            ) {
+            if (data.getUrl().startsWith("/api/firs/import")) { //("/api/oirs/link/1")) {
                 System.out.println("check"); // to help with debugging
             }
             List<String> requiredAuthorities =

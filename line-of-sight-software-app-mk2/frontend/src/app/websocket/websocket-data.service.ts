@@ -5,7 +5,7 @@ import { catchError, tap, switchAll } from 'rxjs/operators';
 import { EMPTY, Subject, Observable, ObservableInput, timer } from 'rxjs';
 import { delayWhen, retryWhen } from 'rxjs/operators';
 
-export const WS_ENDPOINT = environment.wsEndpoint;
+//export const WS_ENDPOINT = environment.wsEndpoint;
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +31,7 @@ export class WebsocketDataService {
 
     private getNewWebSocket() {
         return webSocket({
-            url: WS_ENDPOINT,
+            url: 'ws://' + window.location.host + '/cdbb-ws', //WS_ENDPOINT,
             closeObserver: {
                 next: () => {
                     console.log('[Websocket]: connection closed');

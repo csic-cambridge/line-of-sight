@@ -27,7 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.costain.cdbb.core.helpers.TestApiManager;
+import com.costain.cdbb.core.helpers.TestAssetManager;
 import com.costain.cdbb.core.helpers.TestDataDictionaryManager;
+import com.costain.cdbb.core.helpers.TestFunctionalOutputManager;
 import com.costain.cdbb.core.helpers.TestProjectManager;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
@@ -48,6 +50,7 @@ import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectOrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -68,21 +71,15 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-
 @ActiveProfiles("no_security")
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class ProjectRestTest {
 
-
-
     @LocalServerPort
     private int port;
 
     private JSONObject projectJsonObject;
-
-    private static final String SAMPLE_PROJECT_ID = "387dac90-e188-11ec-8fea-0242ac120002";
-    private static final String SAMPLE_PROJECT_NAME = "Sample Project";
 
     private int projectsWithSampleProjectFoDictionary;
     private int projectsWithSampleProjectAssetDictionary;
@@ -92,6 +89,12 @@ public class ProjectRestTest {
 
     @Autowired
     private TestProjectManager projectManager;
+
+    @Autowired
+    private TestFunctionalOutputManager foManager;
+
+    @Autowired
+    private TestAssetManager assetManager;
 
     @Autowired
     ProjectRepository projectRepository;
@@ -183,9 +186,6 @@ public class ProjectRestTest {
 
         // Using api,  add some functional requirements, [ to do : fos, firs, assets and airs]
         //TODO
-        for (int i = 1; i < 4; i++) {
-
-        }
 
         // now delete it
         apiManager.doSuccessfulDeleteApiRequest(
@@ -209,7 +209,7 @@ public class ProjectRestTest {
         createAndDeleteProjectWithImportFrsAndAirs(TestApiManager.sampleProjectId, null);
         createAndDeleteProjectWithImportFrsAndAirs(null, TestApiManager.sampleProjectId);
         createAndDeleteProjectWithImportFrsAndAirs(TestApiManager.sampleProjectId, TestApiManager.sampleProjectId);
-        UUID copiedProjectId = createCopyOfSampleProject();
+        UUID copiedProjectId = projectManager.createCopyOfSampleProject(port);
         createAndDeleteProjectWithImportFrsAndAirs(copiedProjectId, TestApiManager.sampleProjectId);
         deleteProjectFn(copiedProjectId);
     }
@@ -254,8 +254,7 @@ public class ProjectRestTest {
                     ) {
                         assertEquals(importableFo.getFirs().size(), addedFo.getFirs().size(),
                             "Firs counts do not match");
-                        assertTrue(importableFo.getFirs().containsAll(addedFo.getFirs())
-                            && addedFo.getFirs().containsAll(importableFo.getFirs()),
+                        assertTrue(foManager.compareFirsDaos(importableFo.getFirs(), addedFo.getFirs()),
                             "Firs entries do not match");
                         // check for imported links
                         if (sameImportProjects) {
@@ -288,8 +287,8 @@ public class ProjectRestTest {
                     ) {
                         assertEquals(importableAsset.getAirs().size(), addedAsset.getAirs().size(),
                             "Airs counts do not match");
-                        assertTrue(importableAsset.getAirs().containsAll(addedAsset.getAirs())
-                                && addedAsset.getAirs().containsAll(importableAsset.getAirs()),
+                        assertTrue(
+                            assetManager.compareAirsDaoStrings(importableAsset.getAirs(), addedAsset.getAirs()),
                             "Airs entries do not match");
                     }
                 }
@@ -301,61 +300,19 @@ public class ProjectRestTest {
     @Test
     public void copySampleProject() throws Exception {
         System.out.println("Starting test copySampleProject");
-        UUID copiedProjectId = createCopyOfSampleProject();
+        UUID copiedProjectId = projectManager.createCopyOfSampleProject(port);
         deleteProjectFn(copiedProjectId);
     }
 
-    private UUID createCopyOfSampleProject() throws Exception {
-        Optional<ProjectDAO> optProject = projectRepository.findById(UUID.fromString(SAMPLE_PROJECT_ID));
-        assertTrue(optProject.isPresent(), "Source project " + SAMPLE_PROJECT_ID + " not found for copying");
 
-        String originalProjectName = (String)projectJsonObject.get("name");
-        String startOfCopiedProjectName = "New Copy Of " + originalProjectName;
-        JSONObject copyProjectJsonObject = new JSONObject();
-        copyProjectJsonObject.put("name", startOfCopiedProjectName);
-        ResponseEntity<String> response = apiManager.doSuccessfulPostApiRequest(
-            copyProjectJsonObject.toString(),
-            "http://localhost:" + port + "/api/project/pid/" + SAMPLE_PROJECT_ID);
-        String personResultAsJsonStr = response.getBody();
-
-        JSONObject jsonObject = new JSONObject(personResultAsJsonStr);
-        assertTrue(jsonObject.has("id"), "Create project response has no id field");
-        UUID copiedProjectId = UUID.fromString((String) jsonObject.get("id"));
-
-        String newProjectName = (String) jsonObject.get("name");
-        Set<OrganisationalObjectiveDAO> ooDaos =
-            StreamSupport.stream(ooRepository.findAll().spliterator(), false)
-            .collect(Collectors.toSet());
-        List<ProjectOrganisationalObjectiveDAO> pooDaos =
-            pooRepository.findByProjectIdOrderByOoVersionNameAsc(copiedProjectId);
-
-        assertAll(
-            () -> assertEquals(ooDaos.size(), pooDaos.size(),
-                "Expected " + ooDaos.size() + " poos but found " + pooDaos.size()),
-            () -> assertTrue(jsonObject.has("name"), "Create project response has no name field"),
-
-            () -> assertNotEquals(SAMPLE_PROJECT_ID, copiedProjectId.toString()),
-            () -> assertEquals("New Copy Of " + originalProjectName, newProjectName)
-        );
-        System.out.println("Project " + originalProjectName + " with Id " + SAMPLE_PROJECT_ID
-            + " was copied to project " + newProjectName + " with Id " + copiedProjectId);
-
-        // test copied project by fetching properties from database
-        ProjectDAO copiedProject = projectRepository.findById(copiedProjectId).get();
-        ProjectDAO sourceProject = optProject.get();
-        System.out.println("Source project = " + sourceProject);
-        System.out.println("Copied project = " + copiedProject);
-        assertTrue(copiedProject.getName().startsWith(startOfCopiedProjectName));
-        projectManager.compareProjects(sourceProject, copiedProject);
-        return copiedProjectId;
-    }
 
     @Test
     public void fetchSampleProject() {
         // fetch the sample project as the front-end would do
         // fetch poos
         final ResponseEntity<String> pooResponse =  apiManager.doSuccessfulGetApiRequest(
-                "http://localhost:" + port + "/api/project-organisational-objectives/pid/" + SAMPLE_PROJECT_ID);
+                "http://localhost:" + port + "/api/project-organisational-objectives/pid/"
+                    + TestProjectManager.SAMPLE_PROJECT_ID);
         try {
             final JSONArray jsonPooResponseRaw = new JSONArray(pooResponse.getBody());
             List<JSONObject> jsonPooResponse = IntStream
@@ -428,30 +385,45 @@ public class ProjectRestTest {
     @Test
     public void exportImportSameOrganisationTest() {
         // use ProjectImportExportHelper methods directly to exercise export and import
-
-        List<ProjectDAO> projectDaos = projectRepository.findByName("Sample Project");
+        String sourceProjectName = "Sample Project";
+        String importedProjectName = sourceProjectName + System.currentTimeMillis();
+        List<ProjectDAO> projectDaos = projectRepository.findByName(sourceProjectName);
         assertEquals(1,projectDaos.size());
         ProjectDAO importedProject = null;
         try {
-            // import to 'same' organisation
-            String exportedFileData = projectImportExportHelper.exportProject(projectDaos.get(0).getId());
+            final ResponseEntity<String> responseExport = apiManager.doSuccessfulGetApiRequest(
+                "http://localhost:" + port + "/api/project/export/pid/"
+                    + projectDaos.get(0).getId().toString());
+
+
             String exportedData = null;
             try {
-                exportedData = compressionHelper.decompress(Base64.getDecoder().decode(exportedFileData));
+                exportedData = compressionHelper.decompress(Base64.getDecoder().decode(responseExport.getBody()));
             } catch (Exception e) {
                 fail(e);
             }
+            assertTrue(null != exportedData);
             System.out.println("Exported data = \n" + exportedData);
+            // import to 'same' organisation
             // need to change project name to avoid clash
             try {
                 JSONObject projectJson = new JSONObject(exportedData);
-                String origProjectName = projectJson.getJSONObject("project").getString("project_name");
-                projectJson.getJSONObject("project").put(
-                    "project_name", origProjectName + System.currentTimeMillis());
 
-                importedProject = projectImportExportHelper.importProjectFile(
-                    Base64.getEncoder().encodeToString(compressionHelper.compress(projectJson.toString())));
-                projectManager.compareProjects(projectDaos.get(0), importedProject);
+                projectJson.getJSONObject("project").put(
+                    "project_name", importedProjectName);
+                final ResponseEntity<String> responseImport = apiManager.doSuccessfulPostApiRequestWithOctetStream(
+                        Base64.getEncoder().encodeToString(compressionHelper.compress(projectJson.toString())),
+                            "http://localhost:" + port + "/api/project/import");
+                String importedData = null;
+                try {
+                    importedData = responseImport.getBody();
+                } catch (Exception e) {
+                    fail(e);
+                }
+                assertTrue(null != importedData);
+                importedProject = projectRepository.findByName(importedProjectName).get(0);
+                projectManager.compareProjects(projectDaos.get(0), importedProject,
+                    TestProjectManager.INCLUDE_OIR_AIR_LINKS);
             } catch (JSONException | IOException e) {
                 fail(e);
             }
@@ -469,7 +441,7 @@ public class ProjectRestTest {
         try {
             final JSONArray jsonProjectsResponseRaw = new JSONArray(response.getBody());
             if (expectedProjectsWithFoDdOverBaseline < 0) {
-                // save baseline so that further test test the incremental change
+                // save baseline so that further tests test the incremental change
                 this.projectsWithSampleProjectFoDictionary = jsonProjectsResponseRaw.length();
             } else {
                 assertEquals(this.projectsWithSampleProjectFoDictionary
@@ -548,7 +520,8 @@ public class ProjectRestTest {
             } catch (Exception e) {
                 fail(e);
             }
-            projectManager.compareProjects(projectDaos.get(0), importedProject2, null);
+            projectManager.compareProjects(projectDaos.get(0), importedProject2, null,
+                TestProjectManager.EXCLUDE_OIR_AIR_LINKS);
             this.checkProjectsWithSpecificDds(
                 TestApiManager.sampleFoDdId, 1,
                 TestApiManager.sampleAssetDdId, 1);
@@ -569,7 +542,7 @@ public class ProjectRestTest {
                 fail(e);
             }
             projectManager.compareProjects(projectDaos.get(0),
-                importedProject3, null);
+                importedProject3, null, TestProjectManager.EXCLUDE_OIR_AIR_LINKS);
             this.checkProjectsWithSpecificDds(
                 TestApiManager.sampleFoDdId, 2,
                 TestApiManager.sampleAssetDdId, 2);
@@ -594,7 +567,8 @@ public class ProjectRestTest {
                 fail(e);
             }
             projectManager.compareProjects(projectDaos.get(0),
-                importedProject4, null, REPLACEMENT_FO_DD_NAME_2, REPLACEMENT_ASSET_DD_NAME_2);
+                importedProject4, null, REPLACEMENT_FO_DD_NAME_2, REPLACEMENT_ASSET_DD_NAME_2,
+                TestProjectManager.EXCLUDE_OIR_AIR_LINKS);
             this.checkProjectsWithSpecificDds(
                 TestApiManager.sampleFoDdId, 2,
                 TestApiManager.sampleAssetDdId, 2);

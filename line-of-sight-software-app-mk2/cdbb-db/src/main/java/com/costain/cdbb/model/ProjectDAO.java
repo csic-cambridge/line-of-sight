@@ -61,6 +61,12 @@ public class ProjectDAO {
     @OneToMany(mappedBy = "projectId", cascade = { CascadeType.PERSIST, CascadeType.MERGE})
     private Set<FunctionalRequirementDAO> functionRequirementDaos;
 
+    @OneToMany(mappedBy = "projectId", cascade = { CascadeType.PERSIST, CascadeType.MERGE})
+    private Set<FunctionalOutputDAO> functionalOutputDaos;
+
+    @OneToMany(mappedBy = "projectId", cascade = { CascadeType.PERSIST, CascadeType.MERGE})
+    private Set<AssetDAO> assetDaos;
+
     @Override
     public String toString() {
         return "Project {" +
@@ -68,9 +74,13 @@ public class ProjectDAO {
             ", name=" + name +
             ", assetDataDictionary='" + assetDataDictionary + '\'' +
             ", functionalOutputDataDictionary='" + foDataDictionary +
-            ", projectOrganisationalObjectiveDAOs = " + (projectOrganisationalObjectiveDaos ==null
+            ", projectOrganisationalObjectiveDAOs = " + (projectOrganisationalObjectiveDaos == null
                                                        ? "null"
-                                                        : projectOrganisationalObjectiveDaos.size()) +
+                                                       : projectOrganisationalObjectiveDaos.size()) +
+            ", functionalOutputDaos = " + (functionalOutputDaos == null
+                                            ? "null"
+                                            : functionalOutputDaos.size()) +
+            ", assetDaos = " + (assetDaos == null ? "null" : assetDaos.size()) +
             '}';
     }
 
@@ -82,12 +92,13 @@ public class ProjectDAO {
         return Objects.equals(id, projectDAO.id) &&
             Objects.equals(name, projectDAO.getName()) &&
             Objects.equals(assetDataDictionary, projectDAO.assetDataDictionary) &&
-            Objects.equals(foDataDictionary, projectDAO.foDataDictionary)
+            Objects.equals(functionalOutputDaos, projectDAO.functionalOutputDaos) &&
+            Objects.equals(assetDaos, projectDAO.assetDaos)
             ;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, assetDataDictionary, foDataDictionary);
+        return Objects.hash(id, assetDataDictionary, foDataDictionary, functionalOutputDaos, assetDaos);
     }
 }

@@ -601,7 +601,9 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: string
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/firs'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -649,6 +651,46 @@ paths:
                         schema:
                             type: string
                             format: base64
+    /oirs/link/{linkunlink}/pid/{projectid}:
+        post:
+            operationId: linkOirsAirs
+            summary: Link a oirs with an airs
+            description: Links or unlinks an oir with an air
+            parameters:
+                -   in: path
+                    name: projectid
+                    required: true
+                    schema:
+                        type: string
+                        format: uuid
+                    description: The project UUID for the oir and air
+                -   in: path
+                    name: linkunlink
+                    required: true
+                    schema:
+                        type: integer
+                        minimum: 0
+                        maximum: 1
+                    description: True if creating link, false if breaking link
+            responses:
+                '200':
+                    description: Successful link operation
+                '400':
+                    $ref: '#/components/responses/BadRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorised'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    $ref: '#/components/responses/NotFound'
+            requestBody:
+                description: Oir id and Air id
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: string # keys = 'oirId' and 'airId'
+                            format: json
     /airs:
         get:
             operationId: fetchAirs
@@ -660,7 +702,9 @@ paths:
                     content:
                         application/json:
                             schema:
-                                type: string
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/airs'
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
@@ -702,7 +746,7 @@ paths:
                 '404':
                     $ref: '#/components/responses/NotFound'
             requestBody:
-                description: The csv file containing FO and FIR pairs
+                description: The csv file containing Asset and AIR pairs
                 required: true
                 content:
                     application/octet-stream:
@@ -1725,10 +1769,13 @@ components:
                     description: "The set of organisational information requirements associated with this project organisational objective"
                     type: array
                     items:
-                        $ref: '#/components/schemas/oir'
+                        $ref: '#/components/schemas/oirs_with_linked_airs'
                     example:
                     -   id: fc3a0c12-2720-494f-90d9-83b37030f114
                         oir: 'OIR 1'
+                        airs:
+                            - id: 98745678-d5e8-4ee5-8e96-d4bc63cc95ed
+                              airs: "linked air"
                     -   id: c88e33d0-6738-41aa-9f0e-86b85032e194
                         oir: 'OIR #2'
                 frs:
@@ -1852,7 +1899,7 @@ components:
                     description: "The set of functional information requirements associated with this functional output"
                     type: array
                     items:
-                        type: string
+                        $ref: '#/components/schemas/firs'
                     example:
                         - 'FIR #1'
                         - 'FIR #2'
@@ -1914,10 +1961,13 @@ components:
                     description: "The set of asset information requirements associated with this asset"
                     type: array
                     items:
-                        type: string
+                        $ref: '#/components/schemas/airs_with_linked_oirs'
                     example:
-                        - 'AIR #1'
-                        - 'AIR #2'
+                        - airs:
+                            - id: '2853000a-ec64-4d5b-9dcd-f73d8a79e1aa'
+                            - airs: 'AIR #1'
+                            - id: '2853000a-ec64-4d5b-9dcd-f73d8a79e1ab'
+                            - airs: 'AIR #2'
             required:
                 - data_dictionary_entry
                 - airs
@@ -2097,6 +2147,19 @@ components:
                 id: 3a1e57a7-bc10-48e4-b8a7-2ced7ba38e73
                 oir: OIR#1
 
+        oirs_with_linked_airs:
+            allOf:
+                -   $ref: '#/components/schemas/oir'
+            type: object
+            properties:
+                airs:
+                    description: Linked Airs
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/airs'
+            required:
+                - airs
+
         user:
             type: object
             properties:
@@ -2163,6 +2226,45 @@ components:
                 is_granted:
                     description: whether permission type granted to this user
                     type: boolean
+        firs:
+            type: object
+            properties:
+                id:
+                    description: Id of the firs object
+                    type: string
+                firs:
+                    description: Firs text
+                    type: string
+
+            required:
+                - id
+                - firs
+        airs:
+            type: object
+            properties:
+                id:
+                    description: Id of the airs object
+                    type: string
+                airs:
+                    description: Airs text
+                    type: string
+            required:
+                - id
+                - airs
+
+        airs_with_linked_oirs:
+            allOf:
+                -   $ref: '#/components/schemas/airs'
+            type: object
+            properties:
+                oirs:
+                    description: Linked Oirs
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/oir'
+            required:
+                - oirs
+
 
     responses:
         BadRequest:

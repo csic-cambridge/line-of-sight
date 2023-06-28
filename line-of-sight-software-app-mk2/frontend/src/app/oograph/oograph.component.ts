@@ -23,6 +23,7 @@ export class OOGraphComponent {
                 public permissionService: BasePermissionService,
                 private cookieService: CookieService) {
         this.ooService.reload();
+        document.body.style.overflow = 'hidden';
     }
 
     openModal(): void {

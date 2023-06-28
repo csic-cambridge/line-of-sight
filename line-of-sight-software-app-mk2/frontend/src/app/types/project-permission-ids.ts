@@ -12,5 +12,7 @@ export enum ProjectPermissionIds{
     ADD_AIRS = '2411',
     DELETE_AIRS = '2412',
     DELETE_ASSETS = '2413',
-    IMPORT_DATA = '2510'
+    IMPORT_DATA = '2510',
+    LINK_OIR_AIR = '2112'
+
 }

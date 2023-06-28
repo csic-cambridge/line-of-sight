@@ -18,6 +18,8 @@ import {forbiddenNameValidator} from '../../../dashboard/copy-project-dialog/cop
 import {BaseFirsService} from '../../../services/base/base-firs-service';
 import {BaseFunctionalOutputService} from '../../../services/base/base-functional-output-service';
 import {BaseAssetDictionaryEntryService} from '../../../services/base/base-asset-dictionary-entry-service';
+import {Airs} from "../../../types/airs";
+import {Firs} from "../../../types/firs";
 
 @Component({
   selector: 'app-irgraph-fo-dialog',
@@ -49,12 +51,12 @@ export class IrgraphFoDialogComponent implements OnInit {
     focusFir$ = new Subject<string>();
     clickFir$ = new Subject<string>();
     searchItems = [] as DataDictionaryEntry[];
-    firSearchItems = [] as string[];
+    firSearchItems = [] as Firs[];
     foAssetOptions: IMultiSelectOption[] = [];
     foForm = new FormGroup({});
     foAssetTexts: IMultiSelectTexts = {defaultTitle: 'Select Assets to link', searchEmptyResult: 'No Assets found ...'};
     mySettings: IMultiSelectSettings = {buttonClasses: 'form-control element-text', enableSearch: true, dynamicTitleMaxItems: 0};
-    newFirs = [] as string[];
+    newFirs = [] as Firs[];
     formatter = (result: DataDictionaryEntry) => result.text;
     inputformatter = (x: { text: string }) => x.text;
     search: OperatorFunction<string, readonly DataDictionaryEntry[]> = (text$: Observable<string>) => {
@@ -69,13 +71,13 @@ export class IrgraphFoDialogComponent implements OnInit {
                     const items = this.getNewFunctionalObjectives().filter((v) =>
                         v.text.toLowerCase().indexOf(term.toLowerCase()) > -1);
                     this.searchItems = items;
-                    return items.slice(0, 10);
+                    return items
                 }
             ),
         );
     }
 
-    searchFir: OperatorFunction<string, readonly string[]> = (text$: Observable<string>) => {
+    searchFir: (text$: Observable<string>) => Observable<Firs[]> = (text$: Observable<string>) => {
         const debouncedText$ = text$.pipe(
             debounceTime(200),
             distinctUntilChanged());
@@ -85,9 +87,9 @@ export class IrgraphFoDialogComponent implements OnInit {
         return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe(
             map((term) => {
                     const items = this.newFirs.filter((v) =>
-                        v.toLowerCase().indexOf(term.toLowerCase()) > -1);
+                        v.firs.toLowerCase().indexOf(term.toLowerCase()) > -1);
                     this.firSearchItems = items;
-                    return items.slice(0, 10);
+                    return items
                 }
             ),
         );
@@ -134,7 +136,7 @@ export class IrgraphFoDialogComponent implements OnInit {
                 requiredNameValidator(this.getNewFunctionalObjectives().map(x => x.text))]),
             newFir: this.fb.control({value: '', disabled:
                     this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_FIRS)},
-            [forbiddenNameValidator(this.selectedFO?.firs, false)]),
+            [forbiddenNameValidator(this.selectedFO?.firs.map(x => x.firs), false)]),
             id: this.fb.control(''),
             entry_id: this.fb.control(''),
         });
@@ -146,7 +148,7 @@ export class IrgraphFoDialogComponent implements OnInit {
             this.foForm.controls.foName.setValidators([]);
             this.selectedFO.firs?.map(x => this.firs().push(this.fb.control({value: true,
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_FIRS)})));
-            this.selectedFO.firs?.map(x => this.firNames().push(this.fb.control(x)));
+            this.selectedFO.firs?.map(x => this.firNames().push(this.fb.control(x.firs)));
             this.selectedFO.assets?.map(x => this.linkedAssets().push(this.fb.control({value: true,
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.EDIT_FOS)})));
         }
@@ -198,17 +200,22 @@ export class IrgraphFoDialogComponent implements OnInit {
         };
         this.firs().getRawValue().map((v, i) => {
             if (v) {
-                foToSave.firs.push(this.firNames().controls[i].value);
+                foToSave.firs.push(this.selectedFO.firs[i]);
             }
         });
+
+        if (this.foForm.value.newFir !== '') {
+            if (this.foForm.value.newFir.id) {
+                foToSave.firs.push({id:'', firs:this.foForm.value.newFir.firs});
+            } else {
+                foToSave.firs.push({id:'', firs: this.foForm.value.newFir});
+            }
+        }
         this.linkedAssets().getRawValue().map((v, i) => {
             if (v) {
                 foToSave.assets.push(this.linkedAssetIds().controls[i].value);
             }
         });
-        if (this.foForm.value.newFir !== '') {
-            foToSave.firs.push(this.foForm.value.newFir);
-        }
         (this.foForm.value.selectedAssets as []).map(v => {
             foToSave.assets.push(v);
         });
@@ -302,10 +309,22 @@ export class IrgraphFoDialogComponent implements OnInit {
     }
 
     getFirs(): void {
-        this.firsService.get().subscribe(data => {
-            this.newFirs = data.filter(x => this.selectedFO.id === '' ? true : !this.selectedFO.firs.includes(x));
+        this.firsService.get().subscribe((x: any[]) => {
+            console.log(x)
+            let uniqueFirsMap = new Map();
+            let selectedFirIds = new Set(this.selectedFO.firs.map(a => a.id));
+            let selectedFirNames = new Set(this.selectedFO.firs.map(a => a.firs));
+            for(let fir of x) {
+                // If the fir.firs value is not yet in the map or in selectedFirNames, add the whole fir object
+                if(!uniqueFirsMap.has(fir.firs) && !selectedFirIds.has(fir.id) && !selectedFirNames.has(fir.firs)) {
+                    uniqueFirsMap.set(fir.firs, fir);
+                }
+            }
+            this.newFirs = Array.from(uniqueFirsMap.values());
         });
     }
+
+    resultFormatter = (result: Firs) => result.firs
 
     itemSelected($event: any): void {
         this.selectedFO = {

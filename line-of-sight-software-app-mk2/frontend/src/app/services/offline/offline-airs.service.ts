@@ -12,12 +12,13 @@ export class OfflineAirsService extends BaseAirsService {
     get(): Observable<Array<string>> {
         const airsData = localStorage.getItem('airsData');
         if (airsData) {
-            this.airs = JSON.parse(airsData) as string[];
+            this.airs = JSON.parse(airsData);
         }
-        return of(this.airs.map(x => x.split(',')[1].trim()).filter((v, i, a) => a.indexOf(v) === i));
+        return of(this.airs);
     }
     import(data: string): boolean {
       const array = data.split(/\r\n|\r|\n/).filter(x => !this.airs.includes(x));
+      console.log(array)
       this.airs = [...this.airs, ...array];
       const jsonData = JSON.stringify(this.airs);
       localStorage.setItem('airsData', jsonData);

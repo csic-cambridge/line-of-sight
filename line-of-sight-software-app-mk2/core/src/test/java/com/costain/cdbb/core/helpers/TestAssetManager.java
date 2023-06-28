@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.costain.cdbb.model.Airs;
+import com.costain.cdbb.model.AirsDAO;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
@@ -29,8 +31,10 @@ import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetDataDictionaryRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -95,9 +99,9 @@ public class TestAssetManager {
         // create a new asset
         // List<AssetDataDictionaryEntryDAO>ddEntryDaos =
         //     new ArrayList<>(assetDdeRepository.findByAssetDictionaryId(this.assetDd.getId()));
-        Set<String> sourceAirs = new HashSet<>();
-        sourceAirs.add(firsRoot + "-1");
-        sourceAirs.add(firsRoot + "-2");
+        Set<Airs> sourceAirs = new HashSet<>();
+        sourceAirs.add(new Airs().id(AirsDAO.NEW_ID).airs(firsRoot + "-1"));
+        sourceAirs.add(new Airs().id(AirsDAO.NEW_ID).airs(firsRoot + "-2"));
 
         Map<String, Object> ddeMap = new HashMap<>();
         ddeMap.put("entry_id", assetDdEntry.getEntryId());
@@ -124,9 +128,11 @@ public class TestAssetManager {
             .text(ddeJsonObject.getString("text"))
             .build();
         JSONArray airsJsonArray = assetJsonObject.getJSONArray("airs");
-        Set<String> airs = new HashSet<>();
+        Set<AirsDAO> airs = new HashSet<>();
         for (int i = 0; i < airsJsonArray.length(); i++) {
-            airs.add((String)airsJsonArray.get(i));
+            JSONObject jsonObjectAirs = (JSONObject)airsJsonArray.get(i);
+            airs.add(AirsDAO.builder().airs(jsonObjectAirs.getString("airs"))
+                .id(jsonObjectAirs.getString("id")).build());
         }
         AssetDAO result = AssetDAO.builder()
             .id(UUID.fromString(assetJsonObject.getString("id")))
@@ -134,14 +140,58 @@ public class TestAssetManager {
             .airs(airs)
             .build();
         assertAll(
-            () -> assertEquals(assetDataDictionaryEntryDao.getEntryId(), assetDdEntry.getEntryId()),
+            () -> assertEquals(assetDataDictionaryEntryDao.getEntryId(), assetDdEntry.getEntryId(),
+                "Entry id incorrect"),
             () -> assertEquals(assetDataDictionaryEntryDao.getText(), assetDdEntry.getEntryId() + "-"
-                + assetDdEntry.getText()),
-            () -> assertEquals(assetDataDictionaryEntryDao.getAssetDictionaryId(), this.assetDd.getId()),
-            () -> assertEquals(result.getAirs().size(), sourceAirs.size()),
-            () -> assertTrue(result.getAirs().containsAll(sourceAirs)
-                && sourceAirs.containsAll(result.getAirs()))
+                + assetDdEntry.getText(), "Entry text incorrect"),
+            () -> assertEquals(assetDataDictionaryEntryDao.getAssetDictionaryId(), this.assetDd.getId(),
+                "Asset dd id incorrect"),
+            () -> assertEquals(sourceAirs.size(), result.getAirs().size(),  "Airs size incorrect"),
+            () -> assertTrue(compareAirsStrings(result.getAirs(), sourceAirs),
+                "Result airs and source airs different")
         );
         return result;
+    }
+
+    public boolean compareAirsStrings(Set<AirsDAO> airs1, Set<Airs> airs2) {
+        if (airs1 == null && airs2 == null) {
+            return true;
+        }
+        if (airs1 == null || airs2 == null) {
+            return false;
+        }
+        if (airs1.size() != airs2.size()) {
+            return false;
+        }
+        List<String> strings1 = new ArrayList<>();
+        List<String> strings2 = new ArrayList<>();
+        for (AirsDAO airsDao : airs1) {
+            strings1.add(airsDao.getAirs());
+        }
+        for (Airs airs : airs2) {
+            strings2.add(airs.getAirs());
+        }
+        return strings1.containsAll(strings2) && strings2.containsAll(strings1);
+    }
+
+    public boolean compareAirsDaoStrings(Set<AirsDAO> airs1, Set<AirsDAO> airs2) {
+        if (airs1 == null && airs2 == null) {
+            return true;
+        }
+        if (airs1 == null || airs2 == null) {
+            return false;
+        }
+        if (airs1.size() != airs2.size()) {
+            return false;
+        }
+        List<String> strings1 = new ArrayList<>();
+        List<String> strings2 = new ArrayList<>();
+        for (AirsDAO airsDao : airs1) {
+            strings1.add(airsDao.getAirs());
+        }
+        for (AirsDAO airs : airs2) {
+            strings2.add(airs.getAirs());
+        }
+        return strings1.containsAll(strings2) && strings2.containsAll(strings1);
     }
 }

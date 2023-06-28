@@ -29,6 +29,7 @@ export class IrgraphOoDialogComponent implements OnInit {
     pooFROptions: Array<IMultiSelectOption> = [];
     selectedFRArray: Array<string> = [];
     pooFRTexts: IMultiSelectTexts = {defaultTitle: 'Select FRs to link', searchEmptyResult: 'No FRs found ...'};
+    airLinkTexts: IMultiSelectTexts = {defaultTitle: 'Select AIRs to link', searchEmptyResult: 'No AIRs found ...'};
     mySettings: IMultiSelectSettings = {buttonClasses: 'form-control element-text', enableSearch: true, dynamicTitleMaxItems: 0};
     pooForm = new FormGroup({});
     public env = environment;
@@ -145,14 +146,15 @@ export class IrgraphOoDialogComponent implements OnInit {
         });
         this.oirs().getRawValue().map((v, i) => {
             if (v) {
-                poo.oirs.push({id: this.oirIds().controls[i].value, oir: this.oirNames().getRawValue()[i]} as Oir);
+                poo.oirs.push({id: this.oirIds().controls[i].value, oir: this.oirNames().getRawValue()[i], airs:[]} as Oir);
             }
         });
 
         if (this.pooForm.value.newOir){
             const newOir = {
-                id: GuidHelper.getGuid(),
-                oir: this.pooForm.value.newOir
+                id: '',
+                oir: this.pooForm.value.newOir,
+                airs: []
             };
             poo.oirs.push(newOir);
         }
@@ -230,7 +232,7 @@ export class IrgraphOoDialogComponent implements OnInit {
         if (!this.selectedPoo || this.selectedPoo.id === '') {
             return false;
         }
-        return this.selectedPoo?.oirs?.length === 0 && this.selectedPoo?.frs?.length === 0;
+        return (this.selectedPoo?.oirs?.length === 0 && this.selectedPoo?.frs?.length === 0) ;
     }
 
     ngOnInit(): void {

@@ -21,11 +21,14 @@ import com.costain.cdbb.core.CdbbValidationError;
 import com.costain.cdbb.core.events.ClientNotification;
 import com.costain.cdbb.core.events.EventType;
 import com.costain.cdbb.core.events.NotifyClientEvent;
+import com.costain.cdbb.model.AirsDAO;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
+import com.costain.cdbb.model.FirsDAO;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryDAO;
 import com.costain.cdbb.model.FunctionalRequirementDAO;
+import com.costain.cdbb.model.OirDAO;
 import com.costain.cdbb.model.OrganisationalObjectiveDAO;
 import com.costain.cdbb.model.Project;
 import com.costain.cdbb.model.ProjectDAO;
@@ -40,7 +43,6 @@ import com.costain.cdbb.repositories.FunctionalRequirementRepository;
 import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectOrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -90,6 +92,7 @@ public class ProjectHelper {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
+
     /**
      * Create a dto from a priject dao.
      * @param dao the source data
@@ -108,7 +111,7 @@ public class ProjectHelper {
      * Adds all organisational objectives as Project Organisational Objectives to a project.
      * @param projectDao The projectDAO the POOs are to be added to
      */
-    public void addAllOrganisationObjctivesToproject(ProjectDAO projectDao) {
+    public void addAllOrganisationObjectivesToProject(ProjectDAO projectDao) {
         Set<OrganisationalObjectiveDAO> ooDaos =
             organisationalObjectiveRepository.findByIsDeleted(false);
         Set<ProjectOrganisationalObjectiveDAO> projectOrganisationalObjectives =
@@ -126,7 +129,7 @@ public class ProjectHelper {
      * @param project the dto
      * @return ProjectDAO the created project dao
      */
-    public ProjectDAO createProject(Project project) {
+    /*public ProjectDAO createProject(Project project) {
         checkProjectNameIsUnique(null, project.getName());
         ProjectDAO projectDao = repository.save(ProjectDAO.builder()
             .name(project.getName())
@@ -138,7 +141,7 @@ public class ProjectHelper {
         applicationEventPublisher.publishEvent(
             new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ADDED, null, projectDao.getId())));
         return projectDao;
-    }
+    }*/
 
     /**
      * Delete a project.
@@ -183,8 +186,10 @@ public class ProjectHelper {
     }
 
     /**
-     * Create project dao from dto and data dictionaries.
-     * @param project project dto with data dictionaries
+     * Create project dao from dto and data dictionaries and
+     * optional imported fos and/or assets from other projects.
+     * @param project ProjectWithImportProjectIds dto with data dictionaries
+     *                and optional imported fo/assets
      * @return ProjectDAO
      */
     public ProjectDAO ddsFromDto(ProjectWithImportProjectIds project) {
@@ -281,75 +286,125 @@ public class ProjectHelper {
     }
 
     private  Set<ProjectOrganisationalObjectiveDAO> copyPooLinkedEntities(
-        ProjectDAO sourceProject, ProjectDAO copiedProject) {
+        ProjectDAO sourceProject, ProjectDAO destinationProject) {
         return
             sourceProject.getProjectOrganisationalObjectiveDaos().stream().map(
                 dao -> pooRepository.save(ProjectOrganisationalObjectiveDAO.builder()
-                    .projectId(copiedProject.getId())
+                    .projectId(destinationProject.getId())
                     .ooVersion(dao.getOoVersion())
-                    .frs(saveFrs(copiedProject, dao.getFrs()))
+                    .frs(saveFrs(destinationProject, dao.getFrs()))
                     .build())).collect(Collectors.toSet());
     }
 
     private Set<FunctionalRequirementDAO> saveFrs(
-        ProjectDAO copiedProject, Set<FunctionalRequirementDAO> sourceFrDaos) {
+        ProjectDAO destinationProject, Set<FunctionalRequirementDAO> sourceFrDaos) {
         // do not save new frs with same name as existing
-        Set<FunctionalRequirementDAO> existingFrs = frRepository.findByProjectIdOrderByNameAsc(copiedProject.getId());
+        Set<FunctionalRequirementDAO> existingFrs =
+            frRepository.findByProjectIdOrderByNameAsc(destinationProject.getId());
         return sourceFrDaos.stream().map(daoFr -> {
             List<FunctionalRequirementDAO> existingFr = existingFrs.stream().filter(
                 frDao -> frDao.getName().equals(daoFr.getName())).toList();
             return
                 frRepository.save(FunctionalRequirementDAO.builder()
                 .id(existingFr.size() == 0 ? null : existingFr.get(0).getId())
-                .projectId(copiedProject.getId())
+                .projectId(destinationProject.getId())
                 .name(daoFr.getName())
-                .fos(saveFos(copiedProject, daoFr.getFos(), true))
+                .fos(saveFos(destinationProject, daoFr.getFos(), true))
                 .build());
         }).collect(Collectors.toSet());
     }
 
-    private Set<FunctionalOutputDAO> saveFos(ProjectDAO copiedProject,
+    private Set<FunctionalOutputDAO> saveFos(ProjectDAO destinationProject,
                                              Set<FunctionalOutputDAO> sourceFoDaos,
                                              boolean includeAssetsInsave) {
         // do not save new fos with same data dictionary entry as existing
-        Set<FunctionalOutputDAO> existingFos = foRepository.findByProjectId(copiedProject.getId());
-        return sourceFoDaos.stream().map(daoFos -> {
-            List<FunctionalOutputDAO> existingFo = existingFos.stream().filter(
-                foDao -> foDao.getDataDictionaryEntry().getId()
-                    .equals(daoFos.getDataDictionaryEntry().getId())).toList();
-            return
-                foRepository.save(FunctionalOutputDAO.builder()
-                    .id(existingFo.size() == 0 ? null : existingFo.get(0).getId())
-                    .projectId(copiedProject.getId())
-                    .dataDictionaryEntry(daoFos.getDataDictionaryEntry())
-                    .firs(new HashSet<>(daoFos.getFirs()))
-                    .assets(includeAssetsInsave ? this.saveAssets(copiedProject, daoFos.getAssets()) : null)
-                    .build());
-        }).collect(Collectors.toSet());
-    }
-
-    private Set<AssetDAO> saveAssets(ProjectDAO copiedProject, Set<AssetDAO> sourceAssetDaos) {
-        // do not save new assets with same data dictionary entry as existing
-        Set<AssetDAO> existingAssets = assetRepository.findByProjectId(copiedProject.getId());
-        return sourceAssetDaos.stream().map(daoAssets -> {
-            // 'assit' because 'asset' gives CNC_COLLECTION_NAMING_CONFUSION!
-            List<AssetDAO> existingAssit = new ArrayList<>();
-            for (AssetDAO assetDao : existingAssets) {
-                if (Objects.equals(assetDao.getDataDictionaryEntry().getId(),
-                    daoAssets.getDataDictionaryEntry().getId())) {
-                    existingAssit.add(assetDao);
+        // For copying a project/importing into new project
+        // if there are any existing firs it's because of multiple links
+        // e.g. from multiple POOs to a single fr - in this case just return the existing firs
+        // Importing is not done in this method
+        Set<FunctionalOutputDAO> existingFos = foRepository.findByProjectId(destinationProject.getId());
+        return sourceFoDaos.stream().map(sourceFoDao -> {
+            FunctionalOutputDAO existingFo = null;
+            for (FunctionalOutputDAO foDao : existingFos) {
+                if (foDao.getDataDictionaryEntry().getId()
+                        .equals(sourceFoDao.getDataDictionaryEntry().getId())) {
+                    existingFo = foDao;
+                    break;
                 }
             }
-            return assetRepository.save(AssetDAO.builder()
-                .id(existingAssit.size() == 0 ? null : existingAssit.get(0).getId())
-                .projectId(copiedProject.getId())
-                .airs(new HashSet<>(daoAssets.getAirs()))
-                .dataDictionaryEntry(daoAssets.getDataDictionaryEntry())
-                .build());
+
+            if (null != existingFo) {
+                return existingFo;
+            }
+            FunctionalOutputDAO fo = FunctionalOutputDAO.builder()
+                .projectId(destinationProject.getId())
+                .dataDictionaryEntry(sourceFoDao.getDataDictionaryEntry())
+                .firs(this.copyFirsDaos(existingFo, sourceFoDao.getFirs()))
+                .assets(includeAssetsInsave
+                    ? this.saveAssets(destinationProject, sourceFoDao.getAssets()) : null)
+                .build();
+            return foRepository.save(fo);
         }).collect(Collectors.toSet());
     }
 
-    Set<FunctionalRequirementDAO> findUnlinkedSourceFunctionalRequirements(
+    private Set<AssetDAO> saveAssets(
+        ProjectDAO destinationProject, Set<AssetDAO> sourceAssetDaos) {
+        // do not save new assets with same data dictionary entry as existing
+        // For copying a project/importing into new project
+        // if there are any existing airs it's because of multiple links
+        // e.g. from multiple POOs to a single asset - in this case just return the existing airs
+        // Importing is not done in this method
+        Set<AssetDAO> existingAssets = assetRepository.findByProjectId(destinationProject.getId());
+        return sourceAssetDaos.stream().map(sourceAssetDao -> {
+            AssetDAO existingAsset = null;
+            for (AssetDAO existingAssetDao : existingAssets) {
+                if (Objects.equals(existingAssetDao.getDataDictionaryEntry().getId(),
+                    sourceAssetDao.getDataDictionaryEntry().getId())) {
+                    existingAsset = existingAssetDao;
+                    break;
+                }
+            }
+            if (null != existingAsset) {
+                // existing asset
+                return existingAsset;
+            }
+            AssetDAO asset = AssetDAO.builder()
+                .projectId(destinationProject.getId())
+                .airs(this.copyAirsDaos(existingAsset, sourceAssetDao.getAirs()))
+                .dataDictionaryEntry(sourceAssetDao.getDataDictionaryEntry())
+                .build();
+            return assetRepository.save(asset);
+        }).collect(Collectors.toSet());
+    }
+
+    private Set<FirsDAO> copyFirsDaos(FunctionalOutputDAO existingFoDaoOrNull, Set<FirsDAO> sourceFirs) {
+        Set<FirsDAO> firsCopy = new HashSet<>(sourceFirs.size());
+        for (FirsDAO firsDao : sourceFirs) {
+            firsCopy.add(FirsDAO.builder()
+                .foDao(existingFoDaoOrNull)
+                .firs(firsDao.getFirs())
+                .build());
+        }
+        return firsCopy;
+    }
+
+    private Set<AirsDAO> copyAirsDaos(AssetDAO existingAssetDaoOrNull, Set<AirsDAO> sourceAirs) {
+        Set<AirsDAO> airsCopy = new HashSet<>(sourceAirs.size());
+        for (AirsDAO airsDao : sourceAirs) {
+            Set<OirDAO> oirsDaos = new HashSet<>(airsDao.getOirs());
+            AirsDAO copyAirsDao = AirsDAO.builder()
+                .id(AirsDAO.NEW_ID)
+                .assetDao(existingAssetDaoOrNull)
+                .airs(airsDao.getAirs())
+                .oirs(oirsDaos)
+                .build();
+            oirsDaos.stream().forEach(oirDao -> oirDao.getAirs().add(copyAirsDao));
+            airsCopy.add(copyAirsDao);
+        }
+        return airsCopy;
+    }
+
+    public Set<FunctionalRequirementDAO> findUnlinkedSourceFunctionalRequirements(
         ProjectDAO sourceProject, Set<ProjectOrganisationalObjectiveDAO> savedPooDaos) {
         Set<FunctionalRequirementDAO> sourceFrs = frRepository.findByProjectIdOrderByNameAsc(sourceProject.getId());
         sourceFrs.removeIf(unlinkedFr ->

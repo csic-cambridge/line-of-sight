@@ -8,6 +8,8 @@ import {GuidHelper} from '../../helpers/guid-helper';
   providedIn: 'root'
 })
 export class OfflineProjectOrganisationalObjectiveService extends BaseProjectOrganisationalObjectiveService {
+
+
     delete(pooId: string, projectId: string): Observable<any> {
         const fr = this.projectOrganisationalObjectives.value.find(x => x.id  === pooId);
         this.projectOrganisationalObjectives.next(this.projectOrganisationalObjectives.value.filter(x => x.id !== pooId));
@@ -31,27 +33,37 @@ export class OfflineProjectOrganisationalObjectiveService extends BaseProjectOrg
     }
 
     save(poo: ProjectOrganisationalObjective, projectId: string): Observable<ProjectOrganisationalObjectiveUpdate> {
+        console.log(poo)
         if (poo.id === '') {
             poo.id = GuidHelper.getGuid();
+            poo.oirs[0].id = GuidHelper.getGuid()
             this.projectOrganisationalObjectives.next([...this.projectOrganisationalObjectives.value, ...[poo]]);
         } else {
             const update = this.projectOrganisationalObjectives.value;
+            poo.oirs.map(oir => {
+                if (oir.id === '') {
+                    oir.id = GuidHelper.getGuid()
+                }
+            })
             update[update.findIndex(x => x.id === poo.id)] = poo;
             this.projectOrganisationalObjectives.next(update);
         }
         const jsonData = JSON.stringify(this.projectOrganisationalObjectives.value);
+
+        console.log(jsonData)
         localStorage.setItem('projectOrganisationalObjectiveData', jsonData);
         const oir_ids: string[] = [];
         poo.oirs.forEach((oir) => oir_ids.push(oir.id));
+        console.log(poo.oirs)
         const pooUpdate = {
             id: poo.id,
             oo_version_id: poo.oo_version_id,
             oo_is_deleted: poo.oo_is_deleted,
             oo_versions: poo.oo_versions,
-            oir_ids: oir_ids.flat(),
+            oirs: poo.oirs,
             frs: poo.frs
         };
-        return  of(pooUpdate);
+        return of(pooUpdate);
     }
 
 }

@@ -21,9 +21,11 @@ import com.costain.cdbb.core.CdbbValidationError;
 import com.costain.cdbb.core.events.ClientNotification;
 import com.costain.cdbb.core.events.EventType;
 import com.costain.cdbb.core.events.NotifyClientEvent;
+import com.costain.cdbb.model.AirsDAO;
 import com.costain.cdbb.model.AssetDAO;
 import com.costain.cdbb.model.AssetDataDictionaryDAO;
 import com.costain.cdbb.model.AssetDataDictionaryEntryDAO;
+import com.costain.cdbb.model.FirsDAO;
 import com.costain.cdbb.model.FunctionalOutputDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryDAO;
 import com.costain.cdbb.model.FunctionalOutputDataDictionaryEntryDAO;
@@ -33,6 +35,7 @@ import com.costain.cdbb.model.OoVersionDAO;
 import com.costain.cdbb.model.OrganisationalObjectiveDAO;
 import com.costain.cdbb.model.ProjectDAO;
 import com.costain.cdbb.model.ProjectOrganisationalObjectiveDAO;
+import com.costain.cdbb.repositories.AirsRepository;
 import com.costain.cdbb.repositories.AssetDataDictionaryEntryRepository;
 import com.costain.cdbb.repositories.AssetDataDictionaryRepository;
 import com.costain.cdbb.repositories.AssetRepository;
@@ -40,7 +43,9 @@ import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryEntryReposito
 import com.costain.cdbb.repositories.FunctionalOutputDataDictionaryRepository;
 import com.costain.cdbb.repositories.FunctionalOutputRepository;
 import com.costain.cdbb.repositories.FunctionalRequirementRepository;
+import com.costain.cdbb.repositories.OirRepository;
 import com.costain.cdbb.repositories.OoVersionRepository;
+import com.costain.cdbb.repositories.OrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectOrganisationalObjectiveRepository;
 import com.costain.cdbb.repositories.ProjectRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,8 +85,9 @@ public class ProjectImportExportHelper {
 
     private static final String EXPORT_VERSION_KEY = "export_version";
     //private static final String EXPORT_VERSION_1_0_0 = "1.0.0"; Problems with dde ids made this version unviable
-    private static final String EXPORT_VERSION_1_0_1 = "1.0.1";
-    private static final String CURRENT_EXPORT_VERSION = EXPORT_VERSION_1_0_1;
+    //private static final String EXPORT_VERSION_1_0_1 = "1.0.1"; // V1.5.0
+    private static final String EXPORT_VERSION_1_0_2 = "1.0.2"; // Firs/Airs with Ids, join table between OIRs and AIRs
+    private static final String CURRENT_EXPORT_VERSION = EXPORT_VERSION_1_0_2;
     private static final String PROJECT_KEY = "project";
     private static final String FO_DD_KEY = "fo_dd";
     private static final String ASSET_DD_KEY = "asset_dd";
@@ -100,6 +106,7 @@ public class ProjectImportExportHelper {
     private static final String DATE_CREATED_KEY = "dateCreated";
     private static final String DELETED_KEY = "deleted";
     private static final String OO_KEY = "oo";
+    private static final String OO_ID_KEY = "ooId";
     private static final String OIRS_KEY = "oirs";
     private static final String OIR_KEY = "oir";
     private static final String FRS_KEY = "frs";
@@ -122,6 +129,15 @@ public class ProjectImportExportHelper {
 
     @Autowired
     ProjectOrganisationalObjectiveRepository pooRepository;
+
+    @Autowired
+    OirRepository oirRepository;
+
+    @Autowired
+    AirsRepository airsRepository;
+
+    @Autowired
+    OrganisationalObjectiveRepository ooRepository;
 
     @Autowired
     OoVersionRepository ooVersionRepository;
@@ -169,7 +185,7 @@ public class ProjectImportExportHelper {
             try {
                 JSONObject importJsonObject = new JSONObject(importedData);
                 String version = importJsonObject.getString(EXPORT_VERSION_KEY);
-                if (EXPORT_VERSION_1_0_1.equals(version)) { // add any version supported by importVersion1
+                if (EXPORT_VERSION_1_0_2.equals(version)) { // add any version supported by importVersion1
                     ProjectDAO importDao = this.importVersion1(importJsonObject);
                     applicationEventPublisher.publishEvent(
                         new NotifyClientEvent(new ClientNotification(EventType.PROJECT_ADDED,
@@ -222,7 +238,7 @@ public class ProjectImportExportHelper {
 
     // Import methods
     private ProjectDAO importVersion1(JSONObject importJsonObject) throws JSONException {
-        // this may support multiple versions depending on how different they are to the original V1.0.0
+        // this may support multiple versions depending on how different they are to earlier versions
         this.errorMsg = null;
         this.importFoDataDictionaryDao = importFoDataDictionaryIfRequired(importJsonObject.getJSONObject(FO_DD_KEY));
         this.importAssetDataDictionaryDao =
@@ -246,13 +262,14 @@ public class ProjectImportExportHelper {
                 this.importPoos(projectJsonObject.getJSONArray(POOS_KEY)));
         } else {
             // replace the original POOs with the ones from this organisation and import the linked FRs
-            projectHelper.addAllOrganisationObjctivesToproject(this.sourceProjectDao);
+            projectHelper.addAllOrganisationObjectivesToProject(this.sourceProjectDao);
             this.sourceProjectDao.setFunctionRequirementDaos(
-                this.importFrsFromPoos(projectJsonObject.getJSONArray(POOS_KEY)));
+                this.importFrsFromPoos(projectJsonObject.getJSONArray(POOS_KEY), false));
         }
-        this.importUnlinkedFunctionalRequirements(projectJsonObject);
-        this.importUnlinkedFunctionalOutputs(projectJsonObject);
-        this.importUnlinkedAssets(projectJsonObject);
+        this.importUnlinkedFunctionalRequirements(projectJsonObject, sameOrganisation);
+        this.importUnlinkedFunctionalOutputs(projectJsonObject, sameOrganisation);
+        this.importUnlinkedAssets(projectJsonObject, sameOrganisation);
+
         this.sourceProjectDao = projectRepository.save(this.sourceProjectDao);
         this.sourceProjectDao = projectRepository.findById(this.sourceProjectDao.getId()).get();
         return this.sourceProjectDao;
@@ -437,14 +454,15 @@ public class ProjectImportExportHelper {
             UUID.fromString(importJsonObject.getJSONObject(ASSET_DD_KEY).getString(ASSET_DD_ID_KEY))).orElse(null);
     }
 
-    private  Set<ProjectOrganisationalObjectiveDAO> importPoos(JSONArray poosJson) throws JSONException {
+    private  Set<ProjectOrganisationalObjectiveDAO> importPoos(JSONArray poosJson)
+        throws JSONException {
         Set<ProjectOrganisationalObjectiveDAO> poos = new HashSet<>(poosJson.length());
         for (int i = 0; i < poosJson.length(); i++) {
             JSONObject pooJson = poosJson.getJSONObject(i);
             poos.add(pooRepository.save(ProjectOrganisationalObjectiveDAO.builder()
                 .projectId(this.sourceProjectDao.getId())
                 .ooVersion(this.importOoVersion(pooJson.getJSONObject(OO_VERSION_KEY)))
-                .frs(this.importFrsList(pooJson.getJSONArray(FRS_KEY)))
+                .frs(this.importFrsList(pooJson.getJSONArray(FRS_KEY), true))
                 .build()));
         }
         return poos;
@@ -454,16 +472,18 @@ public class ProjectImportExportHelper {
         return ooVersionRepository.findById(UUID.fromString(ooVersionJson.getString(ID_KEY))).get();
     }
 
-    private Set<FunctionalRequirementDAO> importFrsFromPoos(JSONArray poosJson)  throws JSONException {
+    private Set<FunctionalRequirementDAO> importFrsFromPoos(JSONArray poosJson, boolean sameOrganisation)
+        throws JSONException {
         Set<FunctionalRequirementDAO> frs = new HashSet<>();
         for (int i = 0; i < poosJson.length(); i++) {
             JSONObject  pooJson = poosJson.getJSONObject(i);
-            frs.addAll(this.importFrsList(pooJson.getJSONArray(FRS_KEY)));
+            frs.addAll(this.importFrsList(pooJson.getJSONArray(FRS_KEY), sameOrganisation));
         }
         return frs;
     }
 
-    private  Set<FunctionalRequirementDAO> importFrsList(JSONArray frsJson) throws JSONException {
+    private  Set<FunctionalRequirementDAO> importFrsList(JSONArray frsJson, boolean sameOrganisation)
+        throws JSONException {
         Set<FunctionalRequirementDAO> frs = new HashSet<>(frsJson.length());
         for (int i = 0; i < frsJson.length(); i++) {
             JSONObject frJson = frsJson.getJSONObject(i);
@@ -473,7 +493,7 @@ public class ProjectImportExportHelper {
                 fr = frRepository.save(FunctionalRequirementDAO.builder()
                     .projectId(this.sourceProjectDao.getId())
                     .name(frJson.getString(NAME_KEY))
-                    .fos(this.importFosList(frJson.getJSONArray(FOS_KEY)))
+                    .fos(this.importFosList(frJson.getJSONArray(FOS_KEY), sameOrganisation))
                     .build());
             }
             frs.add(fr);
@@ -481,7 +501,7 @@ public class ProjectImportExportHelper {
         return frs;
     }
 
-    private  Set<FunctionalOutputDAO> importFosList(JSONArray fosJson) throws JSONException {
+    private  Set<FunctionalOutputDAO> importFosList(JSONArray fosJson, boolean sameOrganisation) throws JSONException {
         Set<FunctionalOutputDAO> fos = new HashSet<>(fosJson.length());
         for (int i = 0; i < fosJson.length(); i++) {
             JSONObject foJson = fosJson.getJSONObject(i);
@@ -492,10 +512,21 @@ public class ProjectImportExportHelper {
             if (fo == null) {
                 fo = foRepository.save(FunctionalOutputDAO.builder()
                     .projectId(this.sourceProjectDao.getId())
-                    .firs(this.importStringList(foJson.getJSONArray(FIRS_KEY)))
-                    .assets(this.importAssetsList(foJson.getJSONArray(ASSETS_KEY)))
+                    .assets(this.importAssetsList(foJson.getJSONArray(ASSETS_KEY), sameOrganisation))
                     .dataDictionaryEntry(foDdeDao)
                     .build());
+                JSONArray jsonFirsArray = foJson.getJSONArray(FIRS_KEY);
+                Set<String> firsSet = new HashSet<>(jsonFirsArray.length());
+                Set<FirsDAO> firsDaos = new HashSet<>(firsSet.size());
+                for (int j = 0; j < jsonFirsArray.length(); j++) {
+                    JSONObject jsonAirs = (JSONObject)jsonFirsArray.get(j);
+                    firsSet.add(jsonAirs.getString("firs"));
+                }
+                for (String firs : firsSet) {
+                    firsDaos.add(FirsDAO.builder().id(FirsDAO.NEW_ID).firs(firs).foDao(fo).build());
+                }
+                fo.setFirs(firsDaos);
+                foRepository.save(fo);
             }
             fos.add(fo);
         }
@@ -507,23 +538,70 @@ public class ProjectImportExportHelper {
             this.importFoDataDictionaryDao.getId(), foDdeJson.getString(ENTRY_ID_KEY));
     }
 
-    private Set<AssetDAO> importAssetsList(JSONArray assetsJson) throws JSONException {
+    private Set<AssetDAO> importAssetsList(JSONArray assetsJson, boolean sameOrganisation) throws JSONException {
         Set<AssetDAO> assets = new HashSet<>(assetsJson.length());
         for (int i = 0; i < assetsJson.length(); i++) {
             JSONObject assetJson = assetsJson.getJSONObject(i);
             AssetDataDictionaryEntryDAO assetDdeDao = this.getAssetDde(assetJson.getJSONObject(ASSET_DDE_KEY));
-            AssetDAO asset = assetRepository.findByProjectIdAndDataDictionaryEntry_EntryId(
+            AssetDAO assetDao = assetRepository.findByProjectIdAndDataDictionaryEntry_EntryId(
                 this.sourceProjectDao.getId(), assetDdeDao.getEntryId());
-            if (asset == null) {
-                asset = assetRepository.save(AssetDAO.builder()
-                    .projectId(this.sourceProjectDao.getId())
-                    .airs(this.importStringList(assetJson.getJSONArray(AIRS_KEY)))
-                    .dataDictionaryEntry(assetDdeDao)
-                    .build());
+            if (null == assetDao) {
+                assetDao = createAssetFromJson(assetJson, sameOrganisation, assetDdeDao);
+                assets.add(assetDao);
             }
-            assets.add(asset);
         }
         return assets;
+    }
+
+    private AssetDAO createAssetFromJson(JSONObject assetJson, boolean sameOrganisation,
+                                         AssetDataDictionaryEntryDAO assetDdeDao) throws JSONException {
+        AssetDAO asset = assetRepository.save(AssetDAO.builder()
+            .projectId(this.sourceProjectDao.getId())
+            .dataDictionaryEntry(assetDdeDao)
+                    .build());
+        JSONArray jsonAirsArray = assetJson.getJSONArray(AIRS_KEY);
+        Set<AirsDAO> airsDaos = new HashSet<>(jsonAirsArray.length());
+        for (int j = 0; j < jsonAirsArray.length(); j++) {
+            JSONObject jsonAirs = (JSONObject)jsonAirsArray.get(j);
+            Set<OirDAO> oirsDaos = null;
+
+            if (sameOrganisation && jsonAirs.has(OIRS_KEY)) {
+                JSONArray jsonOirsArray = jsonAirs.getJSONArray(OIRS_KEY);
+                oirsDaos = new HashSet<>(jsonOirsArray.length());
+                for (int k = 0; k < jsonOirsArray.length(); k++) {
+                    JSONObject jsonOirs = (JSONObject) jsonOirsArray.get(k);
+                    OrganisationalObjectiveDAO oodao =
+                        ooRepository.findById(UUID.fromString(jsonOirs.getString(OO_ID_KEY))).get();
+                    OirDAO oirDao = OirDAO.builder().id(UUID.fromString(jsonOirs.getString(ID_KEY)))
+                        .ooId(jsonOirs.getString(OO_ID_KEY))
+                        .ooDao(oodao)
+                        .oirs(jsonOirs.getString(OIR_KEY)).build();
+                    oirsDaos.add(oirDao);
+                }
+            }
+            AirsDAO airsDao = AirsDAO.builder()
+                .id(AirsDAO.NEW_ID)
+                .airs(jsonAirs.getString("airs"))
+                .oirs(oirsDaos)
+                .assetDao(asset).build();
+            airsRepository.save(airsDao);
+            airsDaos.add(airsDao);
+            asset.setAirs(airsDaos);
+            asset.setAssetDaoInAirs();
+            asset = assetRepository.save(asset);
+            if (null != oirsDaos) {
+                oirsDaos.stream().forEach(oirDao -> {
+                    if (null == oirDao.getAirs()) {
+                        oirDao.setAirs(new HashSet<>());
+                    }
+                    oirDao.getAirs().add(airsDao);
+                    oirRepository.save(oirDao);
+                });
+            }
+        }
+        asset.setAirs(airsDaos);
+        asset.setAssetDaoInAirs();
+        return assetRepository.save(asset);
     }
 
     private AssetDataDictionaryEntryDAO getAssetDde(JSONObject assetDdeJson) throws JSONException {
@@ -531,17 +609,12 @@ public class ProjectImportExportHelper {
             this.importAssetDataDictionaryDao.getId(), assetDdeJson.getString(ENTRY_ID_KEY));
     }
 
-    private Set<String> importStringList(JSONArray stringsJson) throws JSONException {
-        Set<String> strings = new HashSet<>(stringsJson.length());
-        for (int i = 0; i < stringsJson.length(); i++) {
-            strings.add(stringsJson.getString(i));
-        }
-        return strings;
-    }
+    private void importUnlinkedFunctionalRequirements(JSONObject projectJsonObject, boolean sameOrganisation)
+        throws JSONException {
+        Set<FunctionalRequirementDAO> frDaos = this.importFrsList(projectJsonObject.getJSONArray(FRS_KEY),
+            sameOrganisation);
 
 
-    private void importUnlinkedFunctionalRequirements(JSONObject projectJsonObject) throws JSONException {
-        Set<FunctionalRequirementDAO> frDaos = this.importFrsList(projectJsonObject.getJSONArray(FRS_KEY));
         if (!frDaos.isEmpty()) {
             if (null != this.sourceProjectDao.getFunctionRequirementDaos()) {
                 frDaos.addAll(this.sourceProjectDao.getFunctionRequirementDaos());
@@ -550,8 +623,9 @@ public class ProjectImportExportHelper {
         }
     }
 
-    private void importUnlinkedFunctionalOutputs(JSONObject projectJsonObject) throws JSONException {
-        Set<FunctionalOutputDAO> foDaos = this.importFosList(projectJsonObject.getJSONArray(FOS_KEY));
+    private void importUnlinkedFunctionalOutputs(JSONObject projectJsonObject, boolean sameOrganisation)
+        throws JSONException {
+        Set<FunctionalOutputDAO> foDaos = this.importFosList(projectJsonObject.getJSONArray(FOS_KEY), sameOrganisation);
         if (!foDaos.isEmpty()) {
             for (FunctionalOutputDAO foDao : foDaos) {
                 foRepository.save(foDao);
@@ -559,8 +633,8 @@ public class ProjectImportExportHelper {
         }
     }
 
-    private void importUnlinkedAssets(JSONObject projectJsonObject) throws JSONException {
-        Set<AssetDAO> assetDaos = this.importAssetsList(projectJsonObject.getJSONArray(ASSETS_KEY));
+    private void importUnlinkedAssets(JSONObject projectJsonObject, boolean sameOrganisation) throws JSONException {
+        Set<AssetDAO> assetDaos = this.importAssetsList(projectJsonObject.getJSONArray(ASSETS_KEY), sameOrganisation);
         if (!assetDaos.isEmpty()) {
             for (AssetDAO assetDao : assetDaos) {
                 assetRepository.save(assetDao);
@@ -575,31 +649,22 @@ public class ProjectImportExportHelper {
         projectExportMap.put(PROJECT_NAME_KEY, sourceProjectDao.getName());
 
         this.addPoosToExportMap(projectExportMap);
-        this.addUnlinkedFrsToExportMap(projectExportMap);
-        Set<FunctionalOutputDAO> unlinkedFos = this.addUnlinkedFosToExportMap(projectExportMap);
-        this.addUnlinkedAssetsToExportMap(projectExportMap, unlinkedFos);
-
+        this.addFrsToExportMap(projectExportMap);
+        this.addFosToExportMap(projectExportMap);
+        this.addAssetsToExportMap(projectExportMap);
         return projectExportMap;
     }
 
-    private void addUnlinkedFrsToExportMap(Map<String, Object> projectExportMap) {
-        Set<FunctionalRequirementDAO> unlinkedFrs =
-            projectHelper.findUnlinkedSourceFunctionalRequirements(
-                this.sourceProjectDao, this.sourceProjectDao.getProjectOrganisationalObjectiveDaos());
-        projectExportMap.put(FRS_KEY, this.exportFrsList(unlinkedFrs));
+    private void addFrsToExportMap(Map<String, Object> projectExportMap) {
+        projectExportMap.put(FRS_KEY, this.exportFrsList(sourceProjectDao.getFunctionRequirementDaos()));
     }
 
-    private Set<FunctionalOutputDAO> addUnlinkedFosToExportMap(Map<String, Object> projectExportMap) {
-        Set<FunctionalOutputDAO> unlinkedFos = projectHelper.findUnlinkedSourceFunctionalOutputs(
-            this.sourceProjectDao, this.sourceProjectDao.getFunctionRequirementDaos());
-        projectExportMap.put(FOS_KEY, this.exportFosList(unlinkedFos));
-        return unlinkedFos;
+    private void addFosToExportMap(Map<String, Object> projectExportMap) {
+        projectExportMap.put(FOS_KEY, this.exportFosList(sourceProjectDao.getFunctionalOutputDaos()));
     }
 
-    private void addUnlinkedAssetsToExportMap(
-        Map<String, Object> projectExportMap, Set<FunctionalOutputDAO> unlinkedFos) {
-        Set<AssetDAO> unlinkedAssets = projectHelper.findUnlinkedSourceAssets(this.sourceProjectDao, unlinkedFos);
-        projectExportMap.put(ASSETS_KEY, this.exportAssetsList(unlinkedAssets));
+    private void addAssetsToExportMap(Map<String, Object> projectExportMap) {
+        projectExportMap.put(ASSETS_KEY, this.exportAssetsList(sourceProjectDao.getAssetDaos()));
     }
 
     private Map<String, Object> getFoDdMap() {
@@ -671,7 +736,8 @@ public class ProjectImportExportHelper {
         for (OirDAO oir : oirs) {
             Map<String, Object> oirMap = new LinkedHashMap<>();
             oirMap.put(ID_KEY, oir.getId());
-            oirMap.put(OIR_KEY, oir.getOir());
+            oirMap.put(OIR_KEY, oir.getOirs());
+            oirMap.put(OO_ID_KEY, oir.getOoId());
             oirsList.add(oirMap);
         }
         return oirsList;
@@ -696,19 +762,12 @@ public class ProjectImportExportHelper {
         for (FunctionalOutputDAO fo : fos) {
             Map<String, Object> foMap = new LinkedHashMap<>();
             foMap.put(ID_KEY, fo.getId());
-            foMap.put(FIRS_KEY, this.exportStringList(fo.getFirs()));
+            foMap.put(FIRS_KEY, this.exportFirsList(fo.getFirs()));
             foMap.put(ASSETS_KEY, this.exportAssetsList(fo.getAssets()));
             foMap.put(FO_DDE_KEY, this.exportFoDde(fo.getDataDictionaryEntry()));
             fosList.add(foMap);
         }
         return fosList;
-    }
-
-    private List<String> exportStringList(Set<String> stringSet) {
-        // this code will always be for CURRENT_EXPORT_VERSION only
-        List<String> strList = new ArrayList<>(stringSet.size());
-        strList.addAll(stringSet);
-        return strList;
     }
 
     private List<Map<String, Object>> exportAssetsList(Set<AssetDAO> assets) {
@@ -717,11 +776,36 @@ public class ProjectImportExportHelper {
         for (AssetDAO asset : assets) {
             Map<String, Object> assetMap = new LinkedHashMap<>();
             assetMap.put(ID_KEY, asset.getId());
-            assetMap.put(AIRS_KEY, this.exportStringList(asset.getAirs()));
+            assetMap.put(AIRS_KEY, this.exportAirsList(asset.getAirs()));
             assetMap.put(ASSET_DDE_KEY, this.exportAssetDde(asset.getDataDictionaryEntry()));
             assetsList.add(assetMap);
         }
         return assetsList;
+    }
+
+    private List<Map<String, Object>> exportAirsList(Set<AirsDAO> airsDaos) {
+        List<Map<String, Object>> airsList = new ArrayList<>(airsDaos.size());
+        for (AirsDAO airDao : airsDaos) {
+            Map<String, Object> airsMap = new LinkedHashMap<>();
+            airsMap.put(ID_KEY, airDao.getId().toString());
+            airsMap.put(AIRS_KEY, airDao.getAirs());
+            airsMap.put(ASSETS_KEY, airDao.getAssetDao().getId().toString());
+            airsMap.put(OIRS_KEY, exportOirsList(airDao.getOirs()));
+            airsList.add(airsMap);
+        }
+        return airsList;
+    }
+
+    private List<Map<String, String>> exportFirsList(Set<FirsDAO> firsDaos) {
+        List<Map<String, String>> firsList = new ArrayList<>(firsDaos.size());
+        for (FirsDAO firDao : firsDaos) {
+            Map<String, String> firsMap = new LinkedHashMap<>();
+            firsMap.put(ID_KEY, firDao.getId().toString());
+            firsMap.put(FIRS_KEY, firDao.getFirs());
+            firsMap.put(FOS_KEY, firDao.getFoDao().getId().toString());
+            firsList.add(firsMap);
+        }
+        return firsList;
     }
 
     private Map<String, String> exportAssetDde(AssetDataDictionaryEntryDAO assetDdeDao) {

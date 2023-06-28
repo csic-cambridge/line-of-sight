@@ -113,6 +113,19 @@ public class TestAuthoritiesManager {
                 ProjectPermissionTypes.getAuthorityNameForId(
                     ProjectPermissionTypes.PROJECT_PERMISSION_DELETE_POO_ID)
             ));
+        // OIR-AIR Links
+        testData.add(new AuthorityTestData(this.testUser,
+            this.projectId,
+            HttpMethod.POST, "/api/oirs/link/1/pid/{projectid}",
+            ProjectPermissionTypes.getAuthorityNameForId(
+                ProjectPermissionTypes.PROJECT_PERMISSION_LINK_OIR_AIR)
+        ));
+        testData.add(new AuthorityTestData(this.testUser,
+            this.projectId,
+            HttpMethod.POST, "/api/oirs/link/0/pid/{projectid}",
+            ProjectPermissionTypes.getAuthorityNameForId(
+                ProjectPermissionTypes.PROJECT_PERMISSION_LINK_OIR_AIR)
+        ));
     }
 
     private void addFrApiCallsData(List<AuthorityTestData> testData) {

@@ -22,6 +22,7 @@ import {forbiddenNameValidator} from '../../../dashboard/copy-project-dialog/cop
 import {BaseAssetService} from '../../../services/base/base-asset-service';
 import {BaseAirsService} from '../../../services/base/base-airs-service';
 import {BaseAssetDictionaryEntryService} from '../../../services/base/base-asset-dictionary-entry-service';
+import {Airs} from "../../../types/airs";
 
 @Component({
   selector: 'app-irgraph-asset-dialog',
@@ -51,10 +52,10 @@ export class IrgraphAssetDialogComponent implements OnInit {
     focusAir$ = new Subject<string>();
     clickAir$ = new Subject<string>();
     searchItems = [] as DataDictionaryEntry[];
-    airSearchItems = [] as string[];
+    airSearchItems = [] as Airs[];
     showDelete = false;
     assetForm = new FormGroup({});
-    newAirs = [] as string[];
+    newAirs = [] as Airs[];
     formatter = (result: DataDictionaryEntry) => result.text;
     inputformatter = (x: { text: string }) => x.text;
 
@@ -70,12 +71,12 @@ export class IrgraphAssetDialogComponent implements OnInit {
                     const items = this.getNewAssets().filter((v) =>
                         v.text.toLowerCase().indexOf(term.toLowerCase()) > -1);
                     this.searchItems = items;
-                    return items.slice(0, 10);
+                    return items;
                 }
             ),
         );
     }
-    searchAir: OperatorFunction<string, readonly string[]> = (text$: Observable<string>) => {
+    searchAir: (text$: Observable<string>) => Observable<Airs[]> = (text$: Observable<string>) => {
         const debouncedText$ = text$.pipe(
             debounceTime(200),
             distinctUntilChanged());
@@ -84,14 +85,16 @@ export class IrgraphAssetDialogComponent implements OnInit {
         const inputFocus$ = this.focusAir$;
         return merge(debouncedText$, inputFocus$, clicksWithClosedPopup$).pipe(
             map((term) => {
-                    const items = this.newAirs.filter((v) =>
-                        v.toLowerCase().indexOf(term.toLowerCase()) > -1);
+                const items = this.newAirs.filter((v) =>
+                        v.airs.toLowerCase().indexOf(term.toLowerCase()) > -1);
                     this.airSearchItems = items;
-                    return items.slice(0, 10);
+                    return items
                 }
             ),
         );
     }
+
+    resultFormatter = (result: Airs) => result.airs
 
     ngOnInit(): void {
         this.buildForm();
@@ -116,7 +119,7 @@ export class IrgraphAssetDialogComponent implements OnInit {
             newAir: this.fb.control({
                 value: '',
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_AIRS)
-            }, [forbiddenNameValidator(this.selectedAsset?.airs, false)]),
+            }, [forbiddenNameValidator(this.selectedAsset?.airs.map(x => x.airs), false)]),
             entry_Id: this.fb.control(''),
             assetTitle: this.fb.control('', [Validators.required,
                 requiredNameValidator(this.getNewAssets().map(x => x.text))]),
@@ -134,12 +137,13 @@ export class IrgraphAssetDialogComponent implements OnInit {
                 value: true,
                 disabled: this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_AIRS)
             })));
-            this.selectedAsset?.airs?.map(x => this.airNames().push(this.fb.control(x)));
+            this.selectedAsset?.airs?.map(x => this.airNames().push(this.fb.control(x.airs)));
             this.assetForm.markAsPristine();
         }
     }
 
     save(): void {
+
         if (!this.selectedAsset || this.assetForm.invalid) {
             return;
         }
@@ -155,13 +159,15 @@ export class IrgraphAssetDialogComponent implements OnInit {
                 this.assetForm.value.assetTitle : this.assetForm.value.assetTitle.text,
             airs: []
         };
+
         this.airs().getRawValue().map((v, i) => {
             if (v) {
-                asset.airs.push(this.airNames().controls[i].value);
+                asset.airs.push(this.selectedAsset.airs[i]);
             }
         });
+
         if (this.assetForm.value.newAir !== '') {
-            asset.airs.push(this.assetForm.value.newAir);
+                asset.airs.push({id:'', airs: this.assetForm.value.newAir.airs ?this.assetForm.value.newAir.airs : this.assetForm.value.newAir, oirs:[]});
         }
         this.assetService.save(asset, this.project.id)
             .subscribe(
@@ -269,7 +275,16 @@ export class IrgraphAssetDialogComponent implements OnInit {
     }
     getAirs(): void {
         this.airsService.get().subscribe((x: any[]) => {
-            this.newAirs = x.filter(air => !this.selectedAsset.airs.includes(air));
+            let uniqueAirsMap = new Map();
+            let selectedAirIds = new Set(this.selectedAsset.airs.map(a => a.id));
+            let selecteAirNames = new Set(this.selectedAsset.airs.map(a => a.airs));
+            for(let air of x) {
+                // If the fir.firs value is not yet in the map or in selectedFirNames, add the whole fir object
+                if(!uniqueAirsMap.has(air.airs) && !selectedAirIds.has(air.id) && !selecteAirNames.has(air.airs)) {
+                    uniqueAirsMap.set(air.airs, air);
+                }
+            }
+            this.newAirs = Array.from(uniqueAirsMap.values());
         });
     }
 }

@@ -1,5 +1,6 @@
 import { OrganisationalObjectiveVersion } from './organisational-objective-version';
 import { Oir } from './organisational-objective';
+import {FormControl} from "@angular/forms";
 
 export interface ProjectOrganisationalObjective {
     id: string;
@@ -11,6 +12,14 @@ export interface ProjectOrganisationalObjective {
     oirs: Oir[];
     deleted_oirs:Oir[];
     frs: string[];
+
+}
+
+export interface ProjectOrganisationalObjectiveAir {
+    id: string;
+    project_id: string;
+    name: string;
+    air_oirs: Oir[];
 }
 
 export interface ProjectOrganisationalObjectiveUpdate {
@@ -18,6 +27,6 @@ export interface ProjectOrganisationalObjectiveUpdate {
     oo_version_id: string;
     oo_is_deleted: boolean;
     oo_versions: OrganisationalObjectiveVersion[];
-    oir_ids: string[];
+    oirs: Oir[];
     frs: string[];
 }

@@ -59,6 +59,8 @@ import {AssetService} from './services/asset.service';
 import {BaseAirsService} from './services/base/base-airs-service';
 import {AirsService} from './services/airs.service';
 import {OfflineAirsService} from './services/offline/offline-airs.service';
+import {OirsService} from './services/oirs.service';
+import {OfflineOirsService} from './services/offline/offline-oirs.service';
 import {BaseAssetDictionaryEntryService} from './services/base/base-asset-dictionary-entry-service';
 import {AssetDataDictionaryEntryService} from './services/asset-data-dictionary-entry.service';
 import {OfflineAssetDataDictionaryEntryService} from './services/offline/offline-asset-data-dictionary-entry.service';
@@ -82,6 +84,8 @@ import {FunctionalOutputDataDictionaryEntryService} from './services/functional-
 import {OfflineFoDataDictionaryEntryService} from './services/offline/offline-fo-data-dictionary-entry.service';
 import { ClearShowcaseDialogComponent } from './components/login/clear-showcase-dialog/clear-showcase-dialog.component';
 import {APP_BASE_HREF, HashLocationStrategy, LocationStrategy} from '@angular/common';
+import { NgxPanZoomModule } from 'ngx-panzoom';
+import {BaseOirsService} from "./services/base/base-oirs-service";
 
 
 @NgModule({
@@ -116,7 +120,8 @@ import {APP_BASE_HREF, HashLocationStrategy, LocationStrategy} from '@angular/co
         FormsModule,
         ReactiveFormsModule,
         AngularDraggableModule,
-        NgxBootstrapMultiselectModule, NgxIndexedDBModule.forRoot(IndexedDbConfigHelperHelper.dbConfig)
+        NgxBootstrapMultiselectModule, NgxIndexedDBModule.forRoot(IndexedDbConfigHelperHelper.dbConfig),
+        NgxPanZoomModule
     ],
     providers: [{provide: HTTP_INTERCEPTORS, useClass: HttpAuthInterceptor, multi: true},
         { provide: APP_BASE_HREF, useValue: '/' },
@@ -127,6 +132,7 @@ import {APP_BASE_HREF, HashLocationStrategy, LocationStrategy} from '@angular/co
         {provide: BaseAssetDictionaryEntryService, useExisting: environment.offline
                 ? OfflineAssetDataDictionaryEntryService : AssetDataDictionaryEntryService },
         {provide: BaseAirsService, useExisting: environment.offline ? OfflineAirsService : AirsService },
+        {provide: BaseOirsService, useExisting: environment.offline ? OfflineOirsService : OirsService },
         {provide: BaseFirsService, useExisting: environment.offline ? OfflineFirsService : FirsService },
         {provide: BaseFunctionalOutputService, useExisting: environment.offline
                 ? OfflineFunctionalOutputService : FunctionalOutputService },

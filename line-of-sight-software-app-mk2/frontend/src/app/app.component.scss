@@ -1,12 +1,11 @@
 
-.header { grid-area: header; }
-.main { grid-area: main;}
+.header { grid-area: header; z-index: 2 }
+.main { grid-area: main; z-index: 2}
 .grid-container {
     display: grid;
     grid-template-areas:
     'header'
     'main';
-    gap: 10px;
     grid-template-rows: auto auto 20px;
 }
 
@@ -29,4 +28,8 @@ a[ng-reflect-router-link] {
 }
 .navbar {
     justify-content: space-between;
+}
+
+.leader-line {
+    z-index: -1;
 }
