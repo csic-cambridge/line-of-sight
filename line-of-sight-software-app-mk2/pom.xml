@@ -5,7 +5,7 @@
 
     <groupId>com.costain.cdbb</groupId>
     <artifactId>cdbb</artifactId>
-    <version>1.6.0</version>
+    <version>1.6.1</version>
     <packaging>pom</packaging>
     <name>Line Of Sight Software App MK2</name>
     <description>Line of Sight</description>

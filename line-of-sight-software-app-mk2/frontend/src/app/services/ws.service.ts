@@ -58,7 +58,8 @@ export class WsService {
     }
 
     private getNewWebSocket(): WebSocketSubject<any> {
-        return webSocket('ws://' + window.location.host + '/cdbb-ws'); //WS_ENDPOINT);
+        let wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        return webSocket(wsProtocol + '://' + window.location.host + '/cdbb-ws'); //WS_ENDPOINT);
     }
 
     sendMessage(msg: any): void {

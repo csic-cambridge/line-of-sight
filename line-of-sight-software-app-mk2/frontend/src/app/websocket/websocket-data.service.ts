@@ -30,8 +30,9 @@ export class WebsocketDataService {
       }
 
     private getNewWebSocket() {
+        let wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         return webSocket({
-            url: 'ws://' + window.location.host + '/cdbb-ws', //WS_ENDPOINT,
+            url: wsProtocol + '://' + window.location.host + '/cdbb-ws',
             closeObserver: {
                 next: () => {
                     console.log('[Websocket]: connection closed');

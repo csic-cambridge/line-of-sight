@@ -68,11 +68,11 @@
                             (click)="new(dialogTypes.ASSET_DIALOG)">Add Asset</button>
                     <button class="dropdown-item" *ngIf="this.project.id"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.ADD_AIRS) || this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.DELETE_AIRS)"
-                            (click)="new(dialogTypes.BULK_AIR_DIALOG)">Bulk AIR Edit</button>
+                            (click)="new(dialogTypes.BULK_AIR_DIALOG)">Bulk Edit Asset Information Requirement</button>
                     <button class="dropdown-item" *ngIf="this.project.id && !env.offline"
                             [disabled]="this.permissionService.permissionDisabled(this.project.id, this.permissionService.PPIds.IMPORT_DATA)"
                             (click)="airsfileInput.click()">
-                        Import AIRs
+                        Import Asset Information Requirements
                     </button>
 
                     <input #airsfileInput type="file" style="display:none;" (change)="importAirs($event);airsfileInput.value='';" />

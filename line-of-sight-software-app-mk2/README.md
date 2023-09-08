@@ -32,8 +32,24 @@ an example of the format and settings which can be specified.  Other settings ca
 ### Authentication Providers
 The application uses OIDC (Open ID Connect) authentication providers.  Sample Google and Azure configurations are in the example
 but others may be added e.g. Facebook, Github etc. - see their documentation for the specific settings required.  
-Accounts with these providers will need to be available.
+At least one authentication provider account is required to be available.
 
+####Configuration Notes
+The redirect url for an authentication provider is defined by the application through Spring Boot and will be:
+
+{baseUrl}/login/oauth2/code/{registrationId}
+
+where registrationId is the name of the provider in the configuration file (application.yaml) under
+
+security:
+oauth2:
+client:
+registration:
+
+It is important that the authentication provider sends the email address of the user in the 
+redirect message so that the application can create the user's account.  
+Some providers do this automatically e.g. Google, others require it to be set up explicitly
+in the authentication account e.g. Azure.
 ### Database Connections
 The application can function with most SQL databases but only MariaDb and MySQL have been tested.
 The database connection string and credentials must be specified - see example file for MariaDb.
@@ -195,6 +211,162 @@ Exported files may be imported at any time, replacing the current project.
 
 ## Functionality
 The functionality and working of the Line of Sight Software Application is detailed in the [User Manual](https://github.com/csic-cambridge/line-of-sight/wiki/User-Manual)
+
+AWS Deployment Guide
+=========================
+
+This guide provides a detailed walkthrough of how to deploy the CDBB application using AWS Elastic Beanstalk, AWS RDS MariaDB, and configuring it with the necessary environment variables.
+
+Prerequisites:
+--------------
+
+-   AWS account with required privileges
+-   Knowledge of AWS services mentioned in the guide
+-   The CDBB application source code
+
+Deployment Steps:
+-----------------
+
+### 1\. AWS EC2 Configuration
+
+-   Create EC2 Instance Profile:
+
+    -   An instance profile is a container for an AWS Identity and Access Management (IAM) role that you can use to pass role information to an EC2 instance at launch time.
+    -   Navigate to the AWS Management Console and then to the IAM dashboard.
+    -   Choose "Roles" and then "Create Role".
+    -   In the AWS service role type, choose "EC2" and then select "EC2" again for the use case. Follow the prompts to create the role with necessary permissions.
+-   Create EC2 Key pair:
+
+    -   Key pairs are used to securely log in to your EC2 instances.
+    -   In the EC2 dashboard, under "Network & Security", click "Key Pairs".
+    -   Click "Create Key Pair" and provide a name.
+    -   Download and securely store the private key.
+
+### 2\. AWS Elastic Beanstalk Environment
+
+-   Create AWS Elastic Beanstalk environment:
+    -   Navigate to the Elastic Beanstalk console.
+    -   Click "Create New Environment".
+    -   Follow the wizard and select the desired platform, in this case, Java.
+    -   You'll configure the environment details later after the database setup.
+
+### 3\. Database Setup with AWS RDS MariaDB
+
+-   Create AWS RDS database with MariaDB:
+
+    -   Navigate to the RDS dashboard.
+    -   Click "Create Database".
+    -   Choose "MariaDB" as the database type.
+    -   In the connectivity section:
+        -   Select connect to the EC2 instance and choose the Beanstalk EC2 instance you've created.
+        -   For the DB subnet group, select "auto-setup".
+        -   Create a new VPC security group.
+    -   In the "Additional configuration" section, name your initial database as "cdbb".
+-   Database Accessibility:
+
+    -   To connect to the database outside AWS, make sure RDS is publicly accessible via its configurations.
+    -   Update the security groups to allow inbound connections on port `3306` and specify the desired IP addresses that can access the RDS.
+    -   For a secure approach, set up an EC2 instance within AWS as a 'jump' box to perform database admin tasks. This acts as a secure bridge for database access.
+
+### 4\. Building & Deploying the Application
+
+-   Configure application.yml:
+
+    -   Locate the `application.yml` file under `core/src/main/resources/`.
+    -   Update the `spring.datasource` property with your RDS connection details.
+-   Build the JAR with the Beanstalk environment configuration:
+
+    -   Depending on your build tool (like Maven or Gradle), execute the relevant command to produce the JAR file of your application.
+-   Upload & Deploy JAR to the Beanstalk environment:
+
+    -   Navigate back to your Elastic Beanstalk environment in the AWS console.
+    -   Upload the JAR file and deploy it.
+
+### 5\. Set Environment Variables
+
+-   In the Elastic Beanstalk environment dashboard:
+    -   Set `SERVER_PORT` to `5000`.
+    -   Configure `web.cors.allowed-origins` with your Beanstalk deployment domain.
+    -   Configure `security.oauth2.client.registration` with details of your OAuth2 providers (e.g., Google/AzureAD).
+
+### 6\. OAuth2 Configuration
+
+-   Update OAuth2 providers with deployed Beanstalk URLs:
+    -   Ensure that the URLs (redirect URLs and others) of your OAuth2 providers, like Google or AzureAD, are updated to point to the correct endpoints on your Beanstalk environment.
+
+### 7\. Configuring SSL for Your Beanstalk Environment
+
+Ensuring encrypted communication to your deployed application is paramount for security. Here's a step-by-step guide on how to configure SSL for your application deployed on AWS Elastic Beanstalk.
+
+### Acquiring an SSL Certificate
+
+1.  Navigate to Amazon Certificate Manager (ACM):
+
+    -   Access the AWS Management Console.
+    -   Open the Amazon Certificate Manager.
+2.  Request a Certificate:
+
+    -   Choose Request a certificate.
+    -   Select Request a public certificate and provide your domain name details. Follow the steps to validate your domain either through DNS or email validation.
+    -   Upon validation, the certificate status will change to `Issued`.
+
+### Configuring Elastic Load Balancer (ELB) with SSL
+
+Elastic Beanstalk applications typically use an Elastic Load Balancer to manage incoming traffic. To ensure secure communication, you can attach the SSL certificate to this load balancer.
+
+1.  Access Elastic Beanstalk Dashboard:
+
+    -   Select your application environment.
+2.  Navigate to Configuration:
+
+    -   In the navigation pane, choose Configuration.
+3.  Edit Load Balancer Settings:
+
+    -   Locate the Load Balancer category and select Edit.
+    -   In the Load balancer settings section:
+        -   For Secure listener port, input `443`.
+        -   Set the Protocol to HTTPS.
+        -   Under SSL certificate ID, choose the SSL certificate you provisioned with ACM.
+4.  Apply Changes:
+
+    -   Click on Apply to save your settings.
+
+### Redirect HTTP to HTTPS
+
+To ensure that all traffic is encrypted, you can set up a redirect to forward all HTTP traffic to HTTPS without modifying the application code:
+
+1.  Access the Elastic Load Balancing Dashboard in EC2 Console:
+
+    -   On the navigation pane, under Load Balancing, choose Load Balancers.
+2.  Choose Your Load Balancer:
+
+    -   Identify the load balancer associated with your Beanstalk environment. It's typically prefixed with "awseb".
+3.  Modify Listener Rules:
+
+    -   Navigate to the Listeners tab.
+    -   For the listener on HTTP : 80, select View/edit rules.
+    -   Click the pencil icon to edit.
+    -   Add a condition for source and target:
+        -   For source, select `HTTP` and `source port 80`.
+        -   For the target, opt for `HTTPS` and `target port 443`.
+    -   Confirm by clicking the checkmark icon.
+4.  Save the Rules:
+
+    -   Confirm your changes by selecting the checkmark icon once again.
+5.  Validation:
+
+    -   As a final step, test your application by trying to access it over HTTP. It should automatically redirect you to HTTPS, ensuring your traffic remains encrypted.
+
+Following these steps, your application on AWS Elastic Beanstalk will be securely configured with SSL.
+
+Additional Notes:
+-----------------
+
+1.  The [AWS documentation](https://aws.amazon.com/blogs/devops/deploying-a-spring-boot-application-on-aws-using-aws-elastic-beanstalk/) can be a valuable resource to assist with many of the aforementioned steps.
+
+2.  Remember, making the RDS database publicly accessible might expose it to risks. Always ensure that only the required IPs are whitelisted and consider using secure methods like a jump box for administration.
+
+With these steps completed, your CDBB application should be up and running on AWS Elastic Beanstalk with a connected MariaDB instance on RDS. Ensure to perform regular checks and monitoring to ensure the smooth operation of your deployment.
 
 ## License
 [GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html)
